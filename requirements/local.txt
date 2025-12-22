@@ -1,0 +1,3 @@
+# 本地模型依赖 (Ollama/vLLM)
+
+aiohttp>=3.9.0  # 已在 base.txt 中

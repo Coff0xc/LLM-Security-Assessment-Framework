@@ -15,11 +15,14 @@ FORGEDAN 核心引擎
 import random
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Tuple
+from tqdm import tqdm
 
 from .config import ForgeDanConfig
 from .mutator import Mutator
 from .fitness import SemanticFitness, SimpleFitness
 from .judge import DualJudge
+from .logger import logger
+from .utils import async_retry, APIError
 
 
 @dataclass
@@ -80,8 +83,9 @@ class ForgeDAN_Engine:
         # 适应度评估器 (优先使用语义模型)
         try:
             self.fitness_evaluator = SemanticFitness(self.config.embedding_model)
+            logger.info(f"使用语义适应度评估器: {self.config.embedding_model}")
         except ImportError:
-            print("[警告] sentence-transformers 未安装，使用简化适应度评估")
+            logger.warning("sentence-transformers 未安装，使用简化适应度评估")
             self.fitness_evaluator = SimpleFitness()
 
         # 统计
@@ -93,11 +97,26 @@ class ForgeDAN_Engine:
         self.target_llm = llm_func
 
     def _query_llm(self, prompt: str) -> str:
-        """查询目标LLM"""
+        """查询目标LLM（带缓存）"""
         if self.target_llm is None:
             raise ValueError("未设置目标LLM，请调用 set_target_llm()")
+
+        # 检查缓存
+        cache_key = hash(prompt)
+        if hasattr(self, '_cache') and cache_key in self._cache:
+            logger.debug(f"命中缓存: {prompt[:50]}...")
+            return self._cache[cache_key]
+
+        # 查询LLM
         self.total_queries += 1
-        return self.target_llm(prompt)
+        response = self.target_llm(prompt)
+
+        # 更新缓存
+        if not hasattr(self, '_cache'):
+            self._cache = {}
+        self._cache[cache_key] = response
+
+        return response
 
     def _initialize_population(
         self, seed_template: str, goal: str
@@ -206,13 +225,13 @@ class ForgeDAN_Engine:
 
         # Step 1: 初始化种群
         population = self._initialize_population(seed_template, goal)
-        print(f"[初始化] 种群大小: {len(population)}")
+        logger.info(f"初始化种群，大小: {len(population)}")
 
         best_candidate = None
 
-        # Step 2: 进化循环
-        for gen in range(self.config.max_iterations):
-            print(f"\n[第 {gen + 1}/{self.config.max_iterations} 代]")
+        # Step 2: 进化循环（带进度条）
+        for gen in tqdm(range(self.config.max_iterations), desc="进化中", unit="代"):
+            logger.info(f"第 {gen + 1}/{self.config.max_iterations} 代")
 
             # Step 2a: 评估适应度
             population = self._evaluate_fitness(population, target_output)
@@ -221,8 +240,7 @@ class ForgeDAN_Engine:
             population = sorted(population, key=lambda x: x.fitness, reverse=True)
             best_candidate = population[0]
 
-            print(f"  最优适应度: {best_candidate.fitness:.4f}")
-            print(f"  总查询数: {self.total_queries}")
+            logger.info(f"最优适应度: {best_candidate.fitness:.4f}, 总查询数: {self.total_queries}")
 
             # 记录历史
             self.history.append({
@@ -238,7 +256,7 @@ class ForgeDAN_Engine:
             )
 
             if is_jailbreak:
-                print(f"\n[成功] 在第 {gen + 1} 代找到越狱提示!")
+                logger.info(f"成功! 在第 {gen + 1} 代找到越狱提示")
                 return EvolutionResult(
                     success=True,
                     best_prompt=best_candidate.prompt,
@@ -257,7 +275,7 @@ class ForgeDAN_Engine:
             population = elites + offspring
 
         # 未成功，返回最优结果
-        print(f"\n[结束] 达到最大迭代次数，未找到成功越狱")
+        logger.warning(f"达到最大迭代次数({self.config.max_iterations})，未找到成功越狱")
         return EvolutionResult(
             success=False,
             best_prompt=best_candidate.prompt if best_candidate else "",

@@ -1,0 +1,15 @@
+# 基础依赖 - 所有用户必须安装
+
+# 核心依赖
+aiohttp>=3.9.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# 数据处理
+numpy>=1.21.0
+
+# 文本处理和语义相似度
+sentence-transformers>=2.2.0
+
+# 日志和配置
+pyyaml>=6.0
