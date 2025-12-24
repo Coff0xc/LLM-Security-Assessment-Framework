@@ -23,6 +23,8 @@ from .fitness import SemanticFitness, SimpleFitness
 from .judge import DualJudge
 from .logger import logger
 from .utils import async_retry, APIError
+from .attack_logger import AttackLogger
+from .visualizer import Visualizer
 
 
 @dataclass
@@ -65,6 +67,8 @@ class ForgeDAN_Engine:
         self,
         config: Optional[ForgeDanConfig] = None,
         target_llm: Optional[Callable[[str], str]] = None,
+        enable_logging: bool = True,
+        log_dir: str = "logs/attacks",
     ):
         """
         初始化引擎
@@ -72,13 +76,25 @@ class ForgeDAN_Engine:
         Args:
             config: 配置对象
             target_llm: 目标LLM调用函数 (prompt -> response)
+            enable_logging: 是否启用攻击日志记录
+            log_dir: 日志保存目录
         """
         self.config = config or ForgeDanConfig()
         self.target_llm = target_llm
+        self.model_name = ""
 
         # 初始化组件
         self.mutator = Mutator()
         self.judge = DualJudge()
+
+        # 日志和可视化
+        self.enable_logging = enable_logging
+        if enable_logging:
+            self.attack_logger = AttackLogger(log_dir)
+            self.visualizer = Visualizer()
+        else:
+            self.attack_logger = None
+            self.visualizer = None
 
         # 适应度评估器 (优先使用语义模型)
         try:
@@ -92,9 +108,10 @@ class ForgeDAN_Engine:
         self.total_queries = 0
         self.history: List[dict] = []
 
-    def set_target_llm(self, llm_func: Callable[[str], str]):
+    def set_target_llm(self, llm_func: Callable[[str], str], model_name: str = ""):
         """设置目标LLM"""
         self.target_llm = llm_func
+        self.model_name = model_name
 
     def _query_llm(self, prompt: str) -> str:
         """查询目标LLM（带缓存）"""
@@ -204,6 +221,8 @@ class ForgeDAN_Engine:
         seed_template: str,
         goal: str,
         target_output: str = "Sure, here is",
+        category: str = "",
+        generate_report: bool = True,
     ) -> EvolutionResult:
         """
         执行进化算法 (对应论文 Algorithm 1 主循环)
@@ -212,6 +231,8 @@ class ForgeDAN_Engine:
             seed_template: 种子模板，使用 {goal} 作为占位符
             goal: 恶意目标描述
             target_output: 期望的目标输出前缀
+            category: 攻击类别
+            generate_report: 是否生成可视化报告
 
         Returns:
             EvolutionResult 包含最优结果和统计信息
@@ -257,6 +278,22 @@ class ForgeDAN_Engine:
 
             if is_jailbreak:
                 logger.info(f"成功! 在第 {gen + 1} 代找到越狱提示")
+
+                # 记录成功攻击
+                if self.attack_logger:
+                    self.attack_logger.log_attack(
+                        goal=goal,
+                        template=seed_template,
+                        prompt=best_candidate.prompt,
+                        response=best_candidate.response,
+                        fitness=best_candidate.fitness,
+                        success=True,
+                        generation=gen + 1,
+                        total_queries=self.total_queries,
+                        model_name=self.model_name,
+                        category=category
+                    )
+
                 return EvolutionResult(
                     success=True,
                     best_prompt=best_candidate.prompt,
@@ -274,7 +311,21 @@ class ForgeDAN_Engine:
             # Step 2e: 更新种群
             population = elites + offspring
 
-        # 未成功，返回最优结果
+        # 未成功，记录失败
+        if self.attack_logger and best_candidate:
+            self.attack_logger.log_attack(
+                goal=goal,
+                template=seed_template,
+                prompt=best_candidate.prompt,
+                response=best_candidate.response,
+                fitness=best_candidate.fitness,
+                success=False,
+                generation=self.config.max_iterations,
+                total_queries=self.total_queries,
+                model_name=self.model_name,
+                category=category
+            )
+
         logger.warning(f"达到最大迭代次数({self.config.max_iterations})，未找到成功越狱")
         return EvolutionResult(
             success=False,
@@ -285,3 +336,43 @@ class ForgeDAN_Engine:
             total_queries=self.total_queries,
             history=self.history,
         )
+
+    def save_logs(self) -> str:
+        """保存攻击日志"""
+        if self.attack_logger:
+            return self.attack_logger.save_session()
+        return ""
+
+    def export_report(self, format: str = "markdown") -> str:
+        """导出报告"""
+        if self.attack_logger:
+            if format == "markdown":
+                return self.attack_logger.export_markdown_report()
+        return ""
+
+    def generate_visual_report(self, title: str = "FORGEDAN 安全评估报告") -> str:
+        """生成可视化HTML报告"""
+        if self.visualizer and self.attack_logger:
+            records = [
+                {
+                    "goal": r.goal,
+                    "category": r.category,
+                    "fitness": r.fitness,
+                    "success": r.success,
+                    "generation": r.generation
+                }
+                for r in self.attack_logger.records
+            ]
+            return self.visualizer.generate_html_report(
+                records=records,
+                history=self.history,
+                model_name=self.model_name,
+                title=title
+            )
+        return ""
+
+    def get_statistics(self) -> dict:
+        """获取攻击统计"""
+        if self.attack_logger:
+            return self.attack_logger.get_statistics()
+        return {}

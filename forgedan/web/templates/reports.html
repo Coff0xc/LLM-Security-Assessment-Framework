@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试报告 - FORGEDAN</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🔒</span>
+                <span class="logo-text">FORGEDAN</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span>仪表盘</span>
+                </a>
+                <a href="/test" class="nav-item">
+                    <span class="nav-icon">🧪</span>
+                    <span>安全测试</span>
+                </a>
+                <a href="/reports" class="nav-item active">
+                    <span class="nav-icon">📄</span>
+                    <span>测试报告</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>设置</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="version">v1.1.0</span>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>测试报告</h1>
+                <p class="subtitle">查看和管理历史测试报告</p>
+            </header>
+
+            <!-- 筛选控制 -->
+            <div class="filter-bar">
+                <input type="text" id="search-reports" class="search-input" placeholder="搜索报告...">
+                <select id="sort-reports" class="filter-select">
+                    <option value="date-desc">最新优先</option>
+                    <option value="date-asc">最早优先</option>
+                    <option value="name">按名称</option>
+                </select>
+            </div>
+
+            <!-- 报告列表 -->
+            <div class="reports-grid" id="reports-container">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        let allReports = [];
+
+        async function loadReports() {
+            try {
+                const response = await fetch('/api/reports');
+                allReports = await response.json();
+                renderReports(allReports);
+            } catch (error) {
+                document.getElementById('reports-container').innerHTML =
+                    '<div class="empty-state">加载报告失败</div>';
+            }
+        }
+
+        function renderReports(reports) {
+            const container = document.getElementById('reports-container');
+
+            if (reports.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">📄</span>
+                        <h3>暂无报告</h3>
+                        <p>运行测试后将在这里显示报告</p>
+                        <a href="/test" class="btn btn-primary">开始测试</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = reports.map(report => `
+                <div class="report-card">
+                    <div class="report-icon">📊</div>
+                    <div class="report-info">
+                        <h3>${report.name}</h3>
+                        <p class="report-meta">
+                            <span>${formatDate(report.created)}</span>
+                            <span>${formatSize(report.size)}</span>
+                        </p>
+                    </div>
+                    <div class="report-actions">
+                        <a href="/api/reports/${report.name}" target="_blank" class="btn btn-small">
+                            查看
+                        </a>
+                        <a href="/api/reports/${report.name}" download class="btn btn-small btn-secondary">
+                            下载
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        // 搜索
+        document.getElementById('search-reports').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allReports.filter(r =>
+                r.name.toLowerCase().includes(query)
+            );
+            renderReports(filtered);
+        });
+
+        // 排序
+        document.getElementById('sort-reports').addEventListener('change', (e) => {
+            const sorted = [...allReports];
+            switch (e.target.value) {
+                case 'date-asc':
+                    sorted.sort((a, b) => new Date(a.created) - new Date(b.created));
+                    break;
+                case 'name':
+                    sorted.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                default:
+                    sorted.sort((a, b) => new Date(b.created) - new Date(a.created));
+            }
+            renderReports(sorted);
+        });
+
+        document.addEventListener('DOMContentLoaded', loadReports);
+    </script>
+</body>
+
+</html>

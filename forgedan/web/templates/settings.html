@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - FORGEDAN</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🔒</span>
+                <span class="logo-text">FORGEDAN</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span>仪表盘</span>
+                </a>
+                <a href="/test" class="nav-item">
+                    <span class="nav-icon">🧪</span>
+                    <span>安全测试</span>
+                </a>
+                <a href="/reports" class="nav-item">
+                    <span class="nav-icon">📄</span>
+                    <span>测试报告</span>
+                </a>
+                <a href="/settings" class="nav-item active">
+                    <span class="nav-icon">⚙️</span>
+                    <span>设置</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="version">v1.1.0</span>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>设置</h1>
+                <p class="subtitle">配置 API 密钥和默认参数</p>
+            </header>
+
+            <form id="settings-form" class="settings-form">
+                <!-- API 密钥配置 -->
+                <section class="settings-section">
+                    <h2>🔑 API 密钥</h2>
+                    <div class="form-group">
+                        <label for="openai-key">OpenAI API Key</label>
+                        <input type="password" id="openai-key" name="openai_api_key" placeholder="sk-...">
+                        <span class="help-text">用于 GPT-3.5/GPT-4 模型</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="anthropic-key">Anthropic API Key</label>
+                        <input type="password" id="anthropic-key" name="anthropic_api_key" placeholder="sk-ant-...">
+                        <span class="help-text">用于 Claude 模型</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="ollama-url">Ollama Base URL</label>
+                        <input type="text" id="ollama-url" name="ollama_base_url" value="http://localhost:11434">
+                        <span class="help-text">本地 Ollama 服务地址</span>
+                    </div>
+                </section>
+
+                <!-- 默认参数 -->
+                <section class="settings-section">
+                    <h2>⚙️ 默认参数</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="default-iterations">默认迭代次数</label>
+                            <input type="number" id="default-iterations" name="default_iterations" value="20" min="1"
+                                max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="default-population">默认种群大小</label>
+                            <input type="number" id="default-population" name="default_population" value="10" min="2"
+                                max="50">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="default-elite">默认精英数</label>
+                            <input type="number" id="default-elite" name="default_elite" value="2" min="1" max="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="default-model">默认模型</label>
+                            <select id="default-model" name="default_model">
+                                <option value="mock:test-model">Mock - 测试模式</option>
+                                <option value="openai:gpt-3.5-turbo">OpenAI - GPT-3.5 Turbo</option>
+                                <option value="openai:gpt-4">OpenAI - GPT-4</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 存储配置 -->
+                <section class="settings-section">
+                    <h2>💾 存储配置</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="log-dir">日志目录</label>
+                            <input type="text" id="log-dir" name="log_dir" value="logs/attacks">
+                        </div>
+                        <div class="form-group">
+                            <label for="report-dir">报告目录</label>
+                            <input type="text" id="report-dir" name="report_dir" value="reports">
+                        </div>
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        💾 保存设置
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetSettings()">
+                        重置默认
+                    </button>
+                </div>
+            </form>
+
+            <!-- 关于信息 -->
+            <section class="settings-section about-section">
+                <h2>ℹ️ 关于</h2>
+                <div class="about-content">
+                    <p><strong>FORGEDAN</strong> - LLM 安全评估框架</p>
+                    <p>版本: 1.1.0</p>
+                    <p>
+                        <a href="https://github.com/Coff0xc/LLM-Security-Assessment-Framework" target="_blank">
+                            GitHub 仓库
+                        </a>
+                    </p>
+                    <p class="license">MIT License © 2025</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // 加载保存的设置
+        document.addEventListener('DOMContentLoaded', () => {
+            const settings = JSON.parse(localStorage.getItem('forgedan_settings') || '{}');
+            Object.entries(settings).forEach(([key, value]) => {
+                const input = document.querySelector(`[name="${key}"]`);
+                if (input) input.value = value;
+            });
+        });
+
+        // 保存设置
+        document.getElementById('settings-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const settings = Object.fromEntries(formData);
+            localStorage.setItem('forgedan_settings', JSON.stringify(settings));
+            alert('设置已保存！');
+        });
+
+        function resetSettings() {
+            if (confirm('确定要重置所有设置吗？')) {
+                localStorage.removeItem('forgedan_settings');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+
+</html>

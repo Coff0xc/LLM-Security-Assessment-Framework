@@ -13,3 +13,7 @@ sentence-transformers>=2.2.0
 
 # 日志和配置
 pyyaml>=6.0
+
+# CLI 工具
+click>=8.0.0
+tqdm>=4.60.0

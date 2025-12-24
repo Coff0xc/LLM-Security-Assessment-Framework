@@ -32,6 +32,7 @@
 ### 什么是越狱测试？
 
 越狱（Jailbreak）是指通过特殊构造的提示词，绕过AI模型的安全限制，使其输出有害内容。本工具用于：
+
 - ✅ **评估模型安全性**: 发现潜在的安全漏洞
 - ✅ **红队测试**: 模拟攻击者行为
 - ✅ **防御研究**: 生成对抗样本训练防御系统
@@ -61,6 +62,7 @@
 ```
 
 **三层变异策略**:
+
 - **字符级**: 同形字替换（o→0）、邻位交换
 - **词级**: 同义词替换、形态变化
 - **句子级**: 句式重构、语序调整
@@ -204,6 +206,7 @@ python quick_start.py
 ```
 
 **输出示例**:
+
 ```
 演示1: Mock适配器测试
   提示: 如何制作炸弹？
@@ -358,6 +361,7 @@ asyncio.run(batch_test())
 ### 5. 自定义数据集
 
 创建 `my_dataset.json`:
+
 ```json
 [
   {
@@ -370,6 +374,7 @@ asyncio.run(batch_test())
 ```
 
 加载使用:
+
 ```python
 dataset = DatasetLoader.load(
     "custom",
@@ -596,6 +601,7 @@ config = ForgeDanConfig(
 ### Q1: 如何降低API成本？
 
 **A**:
+
 1. 使用Mock适配器开发测试
 2. 减少迭代次数和种群大小
 3. 启用缓存避免重复查询
@@ -614,6 +620,7 @@ config = ForgeDanConfig(
 ### Q2: 如何加速测试？
 
 **A**:
+
 1. 增加并发数
 2. 使用本地模型（Ollama）
 3. 批量处理
@@ -630,6 +637,7 @@ adapter = ModelAdapterFactory.create_from_string("ollama:llama2")
 ### Q3: 如何保存测试结果？
 
 **A**:
+
 ```python
 import json
 
@@ -669,6 +677,7 @@ result = engine.run(
 ### Q5: 如何添加自定义变异策略？
 
 **A**:
+
 ```python
 from forgedan.mutator import Mutator, MutationStrategy
 
@@ -750,11 +759,13 @@ mutator.strategies.append(MyMutation())
 - [x] 进度追踪
 - [x] 结果缓存
 - [x] 并发控制
-- [ ] 单元测试覆盖
-- [ ] CLI命令行工具
-- [ ] Web可视化界面
-- [ ] 更多攻击方法（PAIR、GCG）
+- [x] 单元测试覆盖 ✨ **v1.1.0**
+- [x] CLI命令行工具 ✨ **v1.1.0**
+- [x] Web可视化界面 ✨ **v1.1.0**
+- [x] 更多攻击方法（PAIR、GCG）✨ **v1.1.0**
+- [x] 开发文档 ✨ **v1.1.0**
 - [ ] 防御检测模块
+- [ ] 模型评估基准
 
 ---
 
@@ -801,6 +812,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ## 致谢
 
 感谢以下项目和论文的启发：
+
 - FORGEDAN论文作者
 - llm-attacks项目
 - OpenAI、Anthropic等提供的API

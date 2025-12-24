@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGEDAN - LLM安全评估框架</title>
+    <meta name="description" content="基于进化算法的大语言模型越狱测试工具">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🔒</span>
+                <span class="logo-text">FORGEDAN</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item active">
+                    <span class="nav-icon">📊</span>
+                    <span>仪表盘</span>
+                </a>
+                <a href="/test" class="nav-item">
+                    <span class="nav-icon">🧪</span>
+                    <span>安全测试</span>
+                </a>
+                <a href="/reports" class="nav-item">
+                    <span class="nav-icon">📄</span>
+                    <span>测试报告</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>设置</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="version">v1.1.0</span>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>仪表盘</h1>
+                <p class="subtitle">LLM 安全评估概览</p>
+            </header>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        🎯
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-tests">0</h3>
+                        <p>总测试数</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        ⚠️
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="success-count">0</h3>
+                        <p>越狱成功</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        🛡️
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="blocked-count">0</h3>
+                        <p>成功拦截</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        📈
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="safety-rate">0%</h3>
+                        <p>安全率</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速操作 -->
+            <section class="quick-actions">
+                <h2>快速操作</h2>
+                <div class="action-cards">
+                    <a href="/test" class="action-card">
+                        <div class="action-icon">🚀</div>
+                        <h3>新建测试</h3>
+                        <p>运行进化算法安全评估</p>
+                    </a>
+                    <a href="/test?mode=batch" class="action-card">
+                        <div class="action-icon">📋</div>
+                        <h3>批量测试</h3>
+                        <p>使用数据集批量测试</p>
+                    </a>
+                    <a href="/reports" class="action-card">
+                        <div class="action-icon">📊</div>
+                        <h3>查看报告</h3>
+                        <p>浏览历史测试报告</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- 最近测试 -->
+            <section class="recent-tests">
+                <div class="section-header">
+                    <h2>最近测试</h2>
+                    <a href="/reports" class="view-all">查看全部 →</a>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>目标</th>
+                                <th>模型</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-tests-body">
+                            <tr>
+                                <td colspan="5" class="empty-state">暂无测试记录</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // 初始化仪表盘
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDashboardStats();
+            await loadRecentTests();
+        });
+    </script>
+</body>
+</html>

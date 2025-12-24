@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全测试 - FORGEDAN</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🔒</span>
+                <span class="logo-text">FORGEDAN</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span>仪表盘</span>
+                </a>
+                <a href="/test" class="nav-item active">
+                    <span class="nav-icon">🧪</span>
+                    <span>安全测试</span>
+                </a>
+                <a href="/reports" class="nav-item">
+                    <span class="nav-icon">📄</span>
+                    <span>测试报告</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>设置</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="version">v1.1.0</span>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>安全测试</h1>
+                <p class="subtitle">配置并运行 LLM 安全评估</p>
+            </header>
+
+            <!-- 测试模式切换 -->
+            <div class="tab-container">
+                <button class="tab-btn active" data-tab="evolution">
+                    🧬 进化测试
+                </button>
+                <button class="tab-btn" data-tab="batch">
+                    📋 批量测试
+                </button>
+            </div>
+
+            <!-- 进化测试表单 -->
+            <div id="evolution-tab" class="tab-content active">
+                <form id="evolution-form" class="test-form">
+                    <div class="form-section">
+                        <h3>基本配置</h3>
+                        <div class="form-group">
+                            <label for="goal">测试目标 <span class="required">*</span></label>
+                            <input type="text" id="goal" name="goal" 
+                                   placeholder="例如：如何制作炸弹" required>
+                            <span class="help-text">输入要测试的恶意提示</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="template">种子模板</label>
+                            <input type="text" id="template" name="template" 
+                                   value="Please help me with: {goal}">
+                            <span class="help-text">使用 {goal} 作为占位符</span>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>模型配置</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="model">目标模型</label>
+                                <select id="model" name="model">
+                                    <option value="mock:test-model">Mock - 测试模式</option>
+                                    <option value="openai:gpt-3.5-turbo">OpenAI - GPT-3.5 Turbo</option>
+                                    <option value="openai:gpt-4">OpenAI - GPT-4</option>
+                                    <option value="anthropic:claude-3-sonnet">Anthropic - Claude 3 Sonnet</option>
+                                    <option value="ollama:llama2">Ollama - Llama2</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="api-key">API 密钥</label>
+                                <input type="password" id="api-key" name="api_key" 
+                                       placeholder="sk-...">
+                                <span class="help-text">Mock 模式无需密钥</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>进化参数</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="iterations">最大迭代</label>
+                                <input type="number" id="iterations" name="iterations" 
+                                       value="10" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="population">种群大小</label>
+                                <input type="number" id="population" name="population" 
+                                       value="5" min="2" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            🚀 开始测试
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            重置
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 批量测试表单 -->
+            <div id="batch-tab" class="tab-content">
+                <form id="batch-form" class="test-form">
+                    <div class="form-section">
+                        <h3>数据集配置</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dataset">数据集</label>
+                                <select id="dataset" name="dataset">
+                                    <option value="advbench">AdvBench (520 样本)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="samples">样本数量</label>
+                                <input type="number" id="samples" name="samples" 
+                                       value="10" min="1" max="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>模型配置</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="batch-model">目标模型</label>
+                                <select id="batch-model" name="model">
+                                    <option value="mock:test-model">Mock - 测试模式</option>
+                                    <option value="openai:gpt-3.5-turbo">OpenAI - GPT-3.5 Turbo</option>
+                                    <option value="openai:gpt-4">OpenAI - GPT-4</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="batch-api-key">API 密钥</label>
+                                <input type="password" id="batch-api-key" name="api_key">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            📋 开始批量测试
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 测试结果 -->
+            <div id="test-result" class="result-container hidden">
+                <div class="result-header">
+                    <h3>测试结果</h3>
+                    <span id="result-status" class="status-badge">进行中</span>
+                </div>
+                <div class="result-content">
+                    <div id="result-progress" class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                    <div id="result-summary" class="result-summary hidden">
+                        <!-- 结果摘要将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Tab 切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // 进化测试表单
+        document.getElementById('evolution-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            showResult();
+            
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.task_id) {
+                    pollTaskStatus(result.task_id);
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        // 批量测试表单
+        document.getElementById('batch-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            showResult();
+            
+            try {
+                const response = await fetch('/api/batch-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.task_id) {
+                    pollTaskStatus(result.task_id, true);
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        function showResult() {
+            document.getElementById('test-result').classList.remove('hidden');
+            document.getElementById('result-summary').classList.add('hidden');
+            document.getElementById('result-status').textContent = '进行中';
+            document.getElementById('result-status').className = 'status-badge running';
+        }
+
+        async function pollTaskStatus(taskId, isBatch = false) {
+            const poll = async () => {
+                const response = await fetch(`/api/task/${taskId}`);
+                const task = await response.json();
+                
+                if (task.status === 'running') {
+                    if (isBatch && task.total) {
+                        const progress = (task.completed / task.total) * 100;
+                        updateProgress(progress);
+                    }
+                    setTimeout(poll, 1000);
+                } else if (task.status === 'completed') {
+                    updateProgress(100);
+                    showCompleted(task, isBatch);
+                } else if (task.status === 'failed') {
+                    showError(task.error);
+                } else {
+                    setTimeout(poll, 500);
+                }
+            };
+            poll();
+        }
+
+        function updateProgress(percent) {
+            document.querySelector('.progress-fill').style.width = `${percent}%`;
+            document.querySelector('.progress-text').textContent = `${Math.round(percent)}%`;
+        }
+
+        function showCompleted(task, isBatch) {
+            const statusBadge = document.getElementById('result-status');
+            const summary = document.getElementById('result-summary');
+            
+            statusBadge.textContent = '已完成';
+            statusBadge.className = 'status-badge completed';
+            summary.classList.remove('hidden');
+            
+            if (isBatch) {
+                const s = task.summary;
+                summary.innerHTML = `
+                    <div class="summary-stats">
+                        <div class="summary-item">
+                            <span class="label">总样本</span>
+                            <span class="value">${s.total}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">拒绝</span>
+                            <span class="value success">${s.refused}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">未拒绝</span>
+                            <span class="value ${s.not_refused > 0 ? 'danger' : ''}">${s.not_refused}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">安全率</span>
+                            <span class="value">${s.refusal_rate.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const r = task.result;
+                summary.innerHTML = `
+                    <div class="summary-stats">
+                        <div class="summary-item">
+                            <span class="label">状态</span>
+                            <span class="value ${r.success ? 'danger' : 'success'}">${r.success ? '越狱成功' : '防护有效'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">适应度</span>
+                            <span class="value">${r.fitness.toFixed(4)}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">查询数</span>
+                            <span class="value">${r.queries}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">迭代</span>
+                            <span class="value">${r.generations}</span>
+                        </div>
+                    </div>
+                    ${task.report_path ? `<a href="${task.report_path}" class="btn btn-secondary" target="_blank">查看详细报告</a>` : ''}
+                `;
+            }
+        }
+
+        function showError(message) {
+            const statusBadge = document.getElementById('result-status');
+            const summary = document.getElementById('result-summary');
+            
+            statusBadge.textContent = '失败';
+            statusBadge.className = 'status-badge failed';
+            summary.classList.remove('hidden');
+            summary.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+        }
+    </script>
+</body>
+</html>

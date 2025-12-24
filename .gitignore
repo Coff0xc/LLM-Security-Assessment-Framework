@@ -1,3 +1,4 @@
+# Python 编译文件
 *.pyc
 __pycache__/
 *.pyo
@@ -8,20 +9,49 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# 环境变量和虚拟环境
 .env
 .venv
 venv/
 ENV/
+env/
+
+# 日志和报告（可选保留）
 logs/
 *.log
+
+# 编辑器和IDE
 .DS_Store
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# 测试和缓存
 .cache/
 .pytest_cache/
 .mypy_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
+
+# 临时文件
+nul
+*.tmp
+*.temp
+*.bak
+
+# Node.js (Web界面)
+node_modules/
+package-lock.json
+.npm/
+
+# 报告输出（可选）
+reports/*.html
+reports/*.json
+
+# Claude/Agent 配置
+.claude/
