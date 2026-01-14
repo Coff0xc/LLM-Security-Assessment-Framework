@@ -14,7 +14,7 @@ FORGEDAN 核心引擎
 
 import random
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Dict, Any
 from tqdm import tqdm
 
 from .config import ForgeDanConfig
@@ -22,7 +22,8 @@ from .mutator import Mutator
 from .fitness import SemanticFitness, SimpleFitness
 from .judge import DualJudge
 from .logger import logger
-from .utils import async_retry, APIError
+from .utils import async_retry, LRUCache, truncate_string
+from .exceptions import TargetLLMNotSetError, EngineError
 from .attack_logger import AttackLogger
 from .visualizer import Visualizer
 
@@ -108,32 +109,49 @@ class ForgeDAN_Engine:
         self.total_queries = 0
         self.history: List[dict] = []
 
+        # LRU 缓存 (使用 hashlib 生成稳定的缓存键)
+        self._response_cache: LRUCache[str] = LRUCache(
+            max_size=config.extra_params.get("cache_size", 1000) if config else 1000,
+            ttl=config.extra_params.get("cache_ttl", None) if config else None
+        )
+
     def set_target_llm(self, llm_func: Callable[[str], str], model_name: str = ""):
         """设置目标LLM"""
         self.target_llm = llm_func
         self.model_name = model_name
 
     def _query_llm(self, prompt: str) -> str:
-        """查询目标LLM（带缓存）"""
+        """
+        查询目标LLM（带 LRU 缓存）
+
+        使用 SHA256 哈希生成稳定的缓存键，避免 hash() 的不稳定性。
+        """
         if self.target_llm is None:
-            raise ValueError("未设置目标LLM，请调用 set_target_llm()")
+            raise TargetLLMNotSetError()
 
         # 检查缓存
-        cache_key = hash(prompt)
-        if hasattr(self, '_cache') and cache_key in self._cache:
-            logger.debug(f"命中缓存: {prompt[:50]}...")
-            return self._cache[cache_key]
+        cached_response = self._response_cache.get(prompt)
+        if cached_response is not None:
+            logger.debug(f"缓存命中: {truncate_string(prompt, 50)}")
+            return cached_response
 
         # 查询LLM
         self.total_queries += 1
         response = self.target_llm(prompt)
 
         # 更新缓存
-        if not hasattr(self, '_cache'):
-            self._cache = {}
-        self._cache[cache_key] = response
+        self._response_cache.set(prompt, response)
 
         return response
+
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """获取缓存统计信息"""
+        return self._response_cache.get_stats()
+
+    def clear_cache(self) -> None:
+        """清空缓存"""
+        self._response_cache.clear()
+        logger.info("缓存已清空")
 
     def _initialize_population(
         self, seed_template: str, goal: str
