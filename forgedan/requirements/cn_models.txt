@@ -1,0 +1,125 @@
+# 国产大模型 SDK 依赖
+# Chinese LLM Provider Dependencies
+# ===================================
+#
+# 使用方式:
+#   pip install -r requirements/cn_models.txt
+#
+# 或安装特定提供商:
+#   pip install httpx pyjwt  # 智谱、百川
+#   pip install openai       # DeepSeek、通义千问、Moonshot、零一万物
+
+# ===================================
+# 核心依赖 (Core Dependencies)
+# ===================================
+
+# HTTP 客户端 - 用于智谱、百川等原生 API
+httpx>=0.24.0
+
+# JWT 认证 - 用于智谱 API 认证
+PyJWT>=2.8.0
+
+# OpenAI SDK - 兼容 DeepSeek、通义千问、Moonshot、零一万物
+openai>=1.0.0
+
+# ===================================
+# 智谱 GLM (Zhipu AI)
+# ===================================
+# API 文档: https://open.bigmodel.cn/dev/api
+#
+# 配置环境变量:
+#   export ZHIPU_API_KEY="your-api-key"
+#
+# 使用示例:
+#   from forgedan.adapters import ModelAdapterFactory
+#   adapter = ModelAdapterFactory.create_from_string("zhipu:glm-4", api_key="xxx.xxx")
+#
+# 注意: 智谱 API Key 格式为 "api_key_id.api_key_secret"
+
+# ===================================
+# 百川 (Baichuan AI)
+# ===================================
+# API 文档: https://platform.baichuan-ai.com/docs/api
+#
+# 配置环境变量:
+#   export BAICHUAN_API_KEY="your-api-key"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("baichuan:Baichuan2-Turbo", api_key="xxx")
+
+# ===================================
+# 通义千问 (Qwen / DashScope)
+# ===================================
+# API 文档: https://help.aliyun.com/document_detail/2712195.html
+#
+# 配置环境变量:
+#   export DASHSCOPE_API_KEY="your-api-key"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("qwen:qwen-max", api_key="xxx")
+#
+# 支持模型:
+#   - qwen-turbo: 速度优先
+#   - qwen-plus: 效果平衡
+#   - qwen-max: 效果最佳
+#   - qwen-max-longcontext: 100万上下文
+#   - qwen-vl-max: 多模态
+
+# ===================================
+# DeepSeek
+# ===================================
+# API 文档: https://platform.deepseek.com/api-docs
+#
+# 配置环境变量:
+#   export DEEPSEEK_API_KEY="your-api-key"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("deepseek:deepseek-chat", api_key="xxx")
+#
+# 支持模型:
+#   - deepseek-chat: 通用对话
+#   - deepseek-coder: 代码生成
+#   - deepseek-reasoner: 推理增强
+
+# ===================================
+# Moonshot (Kimi)
+# ===================================
+# API 文档: https://platform.moonshot.cn/docs
+#
+# 配置环境变量:
+#   export MOONSHOT_API_KEY="your-api-key"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("moonshot:moonshot-v1-128k", api_key="xxx")
+#
+# 支持模型:
+#   - moonshot-v1-8k: 8K 上下文
+#   - moonshot-v1-32k: 32K 上下文
+#   - moonshot-v1-128k: 128K 超长上下文
+
+# ===================================
+# 零一万物 (Yi)
+# ===================================
+# API 文档: https://platform.lingyiwanwu.com/docs
+#
+# 配置环境变量:
+#   export YI_API_KEY="your-api-key"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("yi:yi-large", api_key="xxx")
+#
+# 支持模型:
+#   - yi-large: 大模型
+#   - yi-medium: 中型模型
+#   - yi-vision: 多模态视觉
+#   - yi-large-rag: RAG 增强
+
+# ===================================
+# 可选依赖 (Optional)
+# ===================================
+
+# 多模态图片处理
+Pillow>=9.0.0
+
+# 异步增强
+aiofiles>=23.0.0

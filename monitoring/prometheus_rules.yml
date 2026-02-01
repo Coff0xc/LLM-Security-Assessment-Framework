@@ -1,0 +1,147 @@
+# Prometheus 告警规则
+# FORGEDAN LLM 安全评估框架
+
+groups:
+  - name: forgedan_alerts
+    interval: 15s
+    rules:
+      # 高错误率告警
+      - alert: HighQueryErrorRate
+        expr: |
+          sum(rate(forgedan_query_errors_total[5m]))
+          /
+          sum(rate(forgedan_queries_total[5m]))
+          > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: forgedan
+        annotations:
+          summary: "LLM 查询错误率过高"
+          description: "过去 5 分钟的查询错误率为 {{ $value | humanizePercentage }}"
+
+      # 攻击成功率异常
+      - alert: HighAttackSuccessRate
+        expr: |
+          sum(rate(forgedan_attacks_success_total[15m]))
+          /
+          sum(rate(forgedan_attacks_total[15m]))
+          > 0.8
+        for: 5m
+        labels:
+          severity: info
+          service: forgedan
+        annotations:
+          summary: "攻击成功率异常高"
+          description: "攻击成功率达到 {{ $value | humanizePercentage }}，可能目标模型防护较弱"
+
+      # 无活跃任务
+      - alert: NoActiveTasks
+        expr: forgedan_active_tasks{task_type="evolution"} == 0
+        for: 30m
+        labels:
+          severity: info
+          service: forgedan
+        annotations:
+          summary: "长时间无活跃任务"
+          description: "已超过 30 分钟没有运行中的任务"
+
+      # 高内存使用
+      - alert: HighMemoryUsage
+        expr: forgedan_memory_usage_bytes{type="resident"} > 2147483648
+        for: 5m
+        labels:
+          severity: warning
+          service: forgedan
+        annotations:
+          summary: "内存使用过高"
+          description: "当前内存使用 {{ $value | humanize1024 }}B"
+
+      # 高 CPU 使用
+      - alert: HighCpuUsage
+        expr: forgedan_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: forgedan
+        annotations:
+          summary: "CPU 使用率过高"
+          description: "当前 CPU 使用率 {{ $value }}%"
+
+      # 模型响应延迟高
+      - alert: HighModelLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(forgedan_model_latency_seconds_bucket[5m])) by (le, model)
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: forgedan
+        annotations:
+          summary: "模型响应延迟过高"
+          description: "模型 {{ $labels.model }} 的 P95 延迟超过 10 秒"
+
+      # 缓存命中率低
+      - alert: LowCacheHitRate
+        expr: |
+          sum(rate(forgedan_cache_hits_total[5m]))
+          /
+          (sum(rate(forgedan_cache_hits_total[5m])) + sum(rate(forgedan_cache_misses_total[5m])))
+          < 0.3
+        for: 10m
+        labels:
+          severity: info
+          service: forgedan
+        annotations:
+          summary: "缓存命中率过低"
+          description: "缓存命中率为 {{ $value | humanizePercentage }}，考虑调整缓存策略"
+
+      # 任务执行时间过长
+      - alert: LongRunningTask
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(forgedan_task_duration_seconds_bucket[1h])) by (le, task_type)
+          ) > 3600
+        for: 5m
+        labels:
+          severity: warning
+          service: forgedan
+        annotations:
+          summary: "任务执行时间过长"
+          description: "任务类型 {{ $labels.task_type }} 的 P95 执行时间超过 1 小时"
+
+  - name: forgedan_recording_rules
+    interval: 15s
+    rules:
+      # 攻击成功率
+      - record: forgedan:attack_success_rate
+        expr: |
+          sum(rate(forgedan_attacks_success_total[5m]))
+          /
+          sum(rate(forgedan_attacks_total[5m]))
+
+      # 查询错误率
+      - record: forgedan:query_error_rate
+        expr: |
+          sum(rate(forgedan_query_errors_total[5m]))
+          /
+          sum(rate(forgedan_queries_total[5m]))
+
+      # 缓存命中率
+      - record: forgedan:cache_hit_rate
+        expr: |
+          sum(rate(forgedan_cache_hits_total[5m]))
+          /
+          (sum(rate(forgedan_cache_hits_total[5m])) + sum(rate(forgedan_cache_misses_total[5m])))
+
+      # 平均模型延迟
+      - record: forgedan:avg_model_latency
+        expr: |
+          sum(rate(forgedan_model_latency_seconds_sum[5m]))
+          /
+          sum(rate(forgedan_model_latency_seconds_count[5m]))
+
+      # QPS
+      - record: forgedan:queries_per_second
+        expr: sum(rate(forgedan_queries_total[1m]))

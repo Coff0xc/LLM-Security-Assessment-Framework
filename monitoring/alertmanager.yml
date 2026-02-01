@@ -1,0 +1,105 @@
+# Alertmanager 配置文件
+# FORGEDAN LLM 安全评估框架告警配置
+
+global:
+  # 告警解决超时
+  resolve_timeout: 5m
+
+# 告警路由
+route:
+  # 默认接收器
+  receiver: 'default-receiver'
+  # 分组等待时间
+  group_wait: 30s
+  # 分组间隔
+  group_interval: 5m
+  # 重复间隔
+  repeat_interval: 4h
+  # 分组标签
+  group_by: ['alertname', 'severity', 'service']
+
+  # 子路由
+  routes:
+    # 严重告警 - 立即通知
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      group_wait: 10s
+      repeat_interval: 1h
+
+    # 警告 - 正常处理
+    - match:
+        severity: warning
+      receiver: 'warning-receiver'
+      repeat_interval: 4h
+
+    # 信息 - 仅记录
+    - match:
+        severity: info
+      receiver: 'info-receiver'
+      repeat_interval: 24h
+
+# 告警抑制
+inhibit_rules:
+  # 当 critical 告警触发时，抑制相同 alertname 的 warning 告警
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service']
+
+  # 当 warning 告警触发时，抑制相同 alertname 的 info 告警
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'service']
+
+# 接收器配置
+receivers:
+  # 默认接收器 - 仅记录
+  - name: 'default-receiver'
+    # 可以配置 webhook, email, slack 等
+    # webhook_configs:
+    #   - url: 'http://host.docker.internal:5000/api/alerts/webhook'
+    #     send_resolved: true
+
+  # 严重告警接收器
+  - name: 'critical-receiver'
+    # 示例: 发送到 Slack
+    # slack_configs:
+    #   - api_url: 'https://hooks.slack.com/services/xxx/yyy/zzz'
+    #     channel: '#forgedan-alerts'
+    #     title: '{{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    #     send_resolved: true
+
+    # 示例: 发送邮件
+    # email_configs:
+    #   - to: 'admin@example.com'
+    #     from: 'alertmanager@forgedan.local'
+    #     smarthost: 'smtp.example.com:587'
+    #     auth_username: 'alertmanager@example.com'
+    #     auth_password: 'password'
+    #     send_resolved: true
+
+    # 示例: Webhook
+    # webhook_configs:
+    #   - url: 'http://host.docker.internal:5000/api/alerts/webhook'
+    #     send_resolved: true
+    #     http_config:
+    #       basic_auth:
+    #         username: 'forgedan'
+    #         password: 'secret'
+
+  # 警告接收器
+  - name: 'warning-receiver'
+    # 配置同上
+
+  # 信息接收器
+  - name: 'info-receiver'
+    # 通常只记录，不发送通知
+
+# 模板文件 (可选)
+# templates:
+#   - '/etc/alertmanager/templates/*.tmpl'

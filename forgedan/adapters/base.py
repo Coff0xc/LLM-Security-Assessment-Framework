@@ -10,8 +10,20 @@ from enum import Enum
 
 class ModelProvider(str, Enum):
     """模型提供商枚举"""
+    # 国际模型
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    GEMINI = "gemini"
+
+    # 国产模型
+    DEEPSEEK = "deepseek"
+    ZHIPU = "zhipu"
+    BAICHUAN = "baichuan"
+    QWEN = "qwen"
+    MOONSHOT = "moonshot"
+    YI = "yi"
+
+    # 本地/自部署
     OLLAMA = "ollama"
     VLLM = "vllm"
     HUGGINGFACE = "huggingface"

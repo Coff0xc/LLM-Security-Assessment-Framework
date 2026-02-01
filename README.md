@@ -1,11 +1,13 @@
-# FORGEDAN - LLM安全评估框架
+# 🔓 LLM Black-box Jailbreak Framework
 
 <div align="center">
 
-**基于进化算法的大语言模型越狱测试工具**
+**基于进化算法的大语言模型黑盒越狱测试框架**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Paper](https://img.shields.io/badge/arXiv-2511.13548-b31b1b.svg)](https://arxiv.org/abs/2511.13548)
+[![GitHub](https://img.shields.io/badge/GitHub-llm--blackbox--jailbreak-blue?logo=github)](https://github.com/Coff0xc/llm-blackbox-jailbreak)
 
 </div>
 
@@ -27,7 +29,7 @@
 
 ## 简介
 
-**FORGEDAN** 是一个企业级的LLM安全评估框架，基于论文 [FORGEDAN: An Evolutionary Framework for Jailbreaking Aligned Large Language Models](https://arxiv.org/abs/2511.13548) 实现。
+**LLM Black-box Jailbreak Framework** 是一个企业级的LLM安全评估框架，基于论文 [FORGEDAN: An Evolutionary Framework for Jailbreaking Aligned Large Language Models](https://arxiv.org/abs/2511.13548) 实现的黑盒越狱测试工具。
 
 ### 什么是越狱测试？
 
@@ -186,8 +188,8 @@ if result.success:
 
 ```bash
 # 克隆仓库
-git clone https://github.com/Coff0xc/LLM-Security-Assessment-Framework.git
-cd LLM-Security-Assessment-Framework
+git clone https://github.com/Coff0xc/llm-blackbox-jailbreak.git
+cd llm-blackbox-jailbreak
 
 # 安装基础依赖
 pip install -r requirements/base.txt
@@ -777,8 +779,8 @@ mutator.strategies.append(MyMutation())
 
 ```bash
 # 克隆仓库
-git clone https://github.com/Coff0xc/LLM-Security-Assessment-Framework.git
-cd LLM-Security-Assessment-Framework
+git clone https://github.com/Coff0xc/llm-blackbox-jailbreak.git
+cd llm-blackbox-jailbreak
 
 # 安装开发依赖
 pip install -r requirements/dev.txt
@@ -804,8 +806,8 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ## 联系方式
 
-- **GitHub**: [Coff0xc/LLM-Security-Assessment-Framework](https://github.com/Coff0xc/LLM-Security-Assessment-Framework)
-- **Issues**: [提交问题](https://github.com/Coff0xc/LLM-Security-Assessment-Framework/issues)
+- **GitHub**: [Coff0xc/llm-blackbox-jailbreak](https://github.com/Coff0xc/llm-blackbox-jailbreak)
+- **Issues**: [提交问题](https://github.com/Coff0xc/llm-blackbox-jailbreak/issues)
 
 ---
 

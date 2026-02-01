@@ -1,0 +1,51 @@
+# 本地/自部署模型依赖
+# Local Deployment Dependencies
+# ==============================
+
+# ===================================
+# Ollama
+# ===================================
+# 文档: https://ollama.ai
+#
+# 安装 Ollama:
+#   curl -fsSL https://ollama.ai/install.sh | sh
+#
+# 下载模型:
+#   ollama pull llama2
+#   ollama pull mistral
+#   ollama pull codellama
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("ollama:llama2")
+#
+# 注意: Ollama 使用 OpenAI 兼容 API
+openai>=1.0.0
+
+# ===================================
+# vLLM
+# ===================================
+# 文档: https://docs.vllm.ai
+#
+# 安装:
+#   pip install vllm
+#
+# 启动服务:
+#   python -m vllm.entrypoints.openai.api_server --model meta-llama/Llama-2-7b-hf
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string(
+#       "vllm:meta-llama/Llama-2-7b-hf",
+#       base_url="http://localhost:8000/v1"
+#   )
+vllm>=0.3.0; sys_platform == "linux"
+
+# ===================================
+# HuggingFace Transformers
+# ===================================
+# 文档: https://huggingface.co/docs/transformers
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("huggingface:gpt2")
+transformers>=4.30.0
+accelerate>=0.20.0
+torch>=2.0.0

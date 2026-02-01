@@ -1,0 +1,42 @@
+# 国际大模型 SDK 依赖
+# International LLM Provider Dependencies
+# =======================================
+
+# ===================================
+# OpenAI
+# ===================================
+# API 文档: https://platform.openai.com/docs
+#
+# 配置环境变量:
+#   export OPENAI_API_KEY="sk-xxx"
+#
+# 使用示例:
+#   from forgedan.adapters import ModelAdapterFactory
+#   adapter = ModelAdapterFactory.create_from_string("openai:gpt-4", api_key="xxx")
+openai>=1.0.0
+
+# ===================================
+# Anthropic Claude
+# ===================================
+# API 文档: https://docs.anthropic.com
+#
+# 配置环境变量:
+#   export ANTHROPIC_API_KEY="sk-ant-xxx"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("anthropic:claude-3-opus", api_key="xxx")
+anthropic>=0.25.0
+
+# ===================================
+# Google Gemini
+# ===================================
+# API 文档: https://ai.google.dev/docs
+#
+# 配置环境变量:
+#   export GOOGLE_API_KEY="xxx"
+#
+# 使用示例:
+#   adapter = ModelAdapterFactory.create_from_string("gemini:gemini-1.5-pro", api_key="xxx")
+#
+# 注意: 需要配置安全设置以用于安全研究
+google-generativeai>=0.5.0

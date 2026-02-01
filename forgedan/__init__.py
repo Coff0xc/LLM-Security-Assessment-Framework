@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 FORGEDAN 包初始化
+
+ForgeDAN - LLM 安全评估框架
+包含文本攻击、多模态攻击、防御训练等模块
 """
 
 from .config import ForgeDanConfig
@@ -11,7 +14,13 @@ from .judge import DualJudge
 from .attack_logger import AttackLogger, AttackRecord
 from .visualizer import Visualizer
 
-__version__ = "1.1.0"
+# Defense 模块 (对抗训练数据生成)
+from . import defense
+
+# Multimodal 模块 (多模态攻击)
+from . import multimodal
+
+__version__ = "1.2.0"
 __all__ = [
     # 配置
     "ForgeDanConfig",
@@ -32,4 +41,8 @@ __all__ = [
     "AttackRecord",
     # 可视化
     "Visualizer",
+    # Defense
+    "defense",
+    # Multimodal
+    "multimodal",
 ]

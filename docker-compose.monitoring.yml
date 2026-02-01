@@ -1,0 +1,153 @@
+# FORGEDAN 监控服务 Docker Compose 配置
+#
+# 包含服务:
+# - Prometheus: 指标收集和存储
+# - Grafana: 可视化仪表板
+# - Alertmanager: 告警管理 (可选)
+# - Push Gateway: 批量任务指标推送 (可选)
+#
+# 使用方法:
+#   启动所有服务: docker-compose -f docker-compose.monitoring.yml up -d
+#   仅启动核心服务: docker-compose -f docker-compose.monitoring.yml up -d prometheus grafana
+#   查看日志: docker-compose -f docker-compose.monitoring.yml logs -f
+#   停止服务: docker-compose -f docker-compose.monitoring.yml down
+
+version: '3.8'
+
+services:
+  # ============== Prometheus ==============
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: forgedan-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      # Prometheus 配置文件
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # 告警规则
+      - ./monitoring/prometheus_rules.yml:/etc/prometheus/rules/forgedan.yml:ro
+      # 数据持久化
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - forgedan-network
+    extra_hosts:
+      # 允许访问宿主机上的服务 (Windows/Mac)
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============== Grafana ==============
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: forgedan-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # 管理员账户
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=forgedan123
+      # 允许匿名访问 (可选，生产环境建议关闭)
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      # 服务器配置
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+      # 日志
+      - GF_LOG_MODE=console
+      - GF_LOG_LEVEL=info
+      # 插件
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
+    volumes:
+      # 数据源配置
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      # 仪表板配置
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      # 仪表板文件
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # 数据持久化
+      - grafana_data:/var/lib/grafana
+    networks:
+      - forgedan-network
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============== Alertmanager (可选) ==============
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: forgedan-alertmanager
+    restart: unless-stopped
+    profiles:
+      - alerting
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--cluster.listen-address='
+    networks:
+      - forgedan-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============== Push Gateway (可选) ==============
+  pushgateway:
+    image: prom/pushgateway:v1.6.2
+    container_name: forgedan-pushgateway
+    restart: unless-stopped
+    profiles:
+      - pushgateway
+    ports:
+      - "9091:9091"
+    command:
+      - '--persistence.file=/pushgateway/metrics'
+      - '--persistence.interval=5m'
+    volumes:
+      - pushgateway_data:/pushgateway
+    networks:
+      - forgedan-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9091/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ============== 网络 ==============
+networks:
+  forgedan-network:
+    driver: bridge
+    name: forgedan-network
+
+# ============== 数据卷 ==============
+volumes:
+  prometheus_data:
+    name: forgedan-prometheus-data
+  grafana_data:
+    name: forgedan-grafana-data
+  alertmanager_data:
+    name: forgedan-alertmanager-data
+  pushgateway_data:
+    name: forgedan-pushgateway-data

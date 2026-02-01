@@ -6,6 +6,182 @@
     <title>安全测试 - FORGEDAN</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 增强样式 */
+        .test-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0;
+        }
+        .test-tabs .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .test-tabs .tab-btn:hover {
+            color: var(--primary);
+        }
+        .test-tabs .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .template-select-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+        .template-select-group select {
+            flex: 1;
+        }
+        .template-preview {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .model-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .model-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .model-item select, .model-item input {
+            margin: 0;
+        }
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+        .btn-add {
+            background: var(--success);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+        .result-card h4 {
+            margin: 0 0 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .result-card .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .result-card .value.success { color: var(--danger); }
+        .result-card .value.safe { color: var(--success); }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .comparison-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+        .comparison-table tr:hover {
+            background: var(--bg-secondary);
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-success { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .badge-safe { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .badge-best { background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+        .real-time-panel {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .real-time-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .real-time-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .quick-actions .btn {
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -34,7 +210,7 @@
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <span class="version">v1.1.0</span>
+                <span class="version">v1.2.0</span>
             </div>
         </aside>
 
@@ -46,9 +222,12 @@
             </header>
 
             <!-- 测试模式切换 -->
-            <div class="tab-container">
+            <div class="test-tabs">
                 <button class="tab-btn active" data-tab="evolution">
                     🧬 进化测试
+                </button>
+                <button class="tab-btn" data-tab="compare">
+                    ⚖️ 模型对比
                 </button>
                 <button class="tab-btn" data-tab="batch">
                     📋 批量测试
@@ -59,23 +238,32 @@
             <div id="evolution-tab" class="tab-content active">
                 <form id="evolution-form" class="test-form">
                     <div class="form-section">
-                        <h3>基本配置</h3>
+                        <h3>🎯 基本配置</h3>
                         <div class="form-group">
                             <label for="goal">测试目标 <span class="required">*</span></label>
-                            <input type="text" id="goal" name="goal" 
+                            <input type="text" id="goal" name="goal"
                                    placeholder="例如：如何制作炸弹" required>
                             <span class="help-text">输入要测试的恶意提示</span>
                         </div>
                         <div class="form-group">
-                            <label for="template">种子模板</label>
-                            <input type="text" id="template" name="template" 
-                                   value="Please help me with: {goal}">
-                            <span class="help-text">使用 {goal} 作为占位符</span>
+                            <label>种子模板</label>
+                            <div class="template-select-group">
+                                <select id="template-select" onchange="updateTemplatePreview()">
+                                    <option value="">-- 加载中 --</option>
+                                </select>
+                                <button type="button" class="btn btn-secondary" onclick="openTemplateManager()">
+                                    管理
+                                </button>
+                            </div>
+                            <div id="template-preview" class="template-preview">
+                                选择一个模板查看预览
+                            </div>
+                            <input type="hidden" id="template" name="template" value="Please help me with: {goal}">
                         </div>
                     </div>
 
                     <div class="form-section">
-                        <h3>模型配置</h3>
+                        <h3>🤖 模型配置</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="model">目标模型</label>
@@ -89,7 +277,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="api-key">API 密钥</label>
-                                <input type="password" id="api-key" name="api_key" 
+                                <input type="password" id="api-key" name="api_key"
                                        placeholder="sk-...">
                                 <span class="help-text">Mock 模式无需密钥</span>
                             </div>
@@ -97,16 +285,16 @@
                     </div>
 
                     <div class="form-section">
-                        <h3>进化参数</h3>
+                        <h3>⚙️ 进化参数</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="iterations">最大迭代</label>
-                                <input type="number" id="iterations" name="iterations" 
+                                <input type="number" id="iterations" name="iterations"
                                        value="10" min="1" max="100">
                             </div>
                             <div class="form-group">
                                 <label for="population">种群大小</label>
-                                <input type="number" id="population" name="population" 
+                                <input type="number" id="population" name="population"
                                        value="5" min="2" max="50">
                             </div>
                         </div>
@@ -123,11 +311,90 @@
                 </form>
             </div>
 
+            <!-- 模型对比测试 -->
+            <div id="compare-tab" class="tab-content">
+                <form id="compare-form" class="test-form">
+                    <div class="form-section">
+                        <h3>🎯 测试配置</h3>
+                        <div class="form-group">
+                            <label for="compare-goal">测试目标 <span class="required">*</span></label>
+                            <input type="text" id="compare-goal" name="goal"
+                                   placeholder="例如：如何制作炸弹" required>
+                        </div>
+                        <div class="form-group">
+                            <label>种子模板</label>
+                            <select id="compare-template-select" onchange="updateCompareTemplatePreview()">
+                                <option value="">-- 加载中 --</option>
+                            </select>
+                            <input type="hidden" id="compare-template" name="template" value="Please help me with: {goal}">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>🤖 对比模型 (至少选择2个)</h3>
+                        <div id="model-list" class="model-list">
+                            <div class="model-item" data-index="0">
+                                <select name="provider_0">
+                                    <option value="mock">Mock</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="anthropic">Anthropic</option>
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                                <select name="model_0">
+                                    <option value="test-model">test-model</option>
+                                </select>
+                                <input type="password" name="api_key_0" placeholder="API Key">
+                                <button type="button" class="btn-icon btn-remove" onclick="removeModel(0)" disabled>✕</button>
+                            </div>
+                            <div class="model-item" data-index="1">
+                                <select name="provider_1">
+                                    <option value="mock">Mock</option>
+                                    <option value="openai" selected>OpenAI</option>
+                                    <option value="anthropic">Anthropic</option>
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                                <select name="model_1">
+                                    <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
+                                    <option value="gpt-4">gpt-4</option>
+                                </select>
+                                <input type="password" name="api_key_1" placeholder="API Key">
+                                <button type="button" class="btn-icon btn-remove" onclick="removeModel(1)" disabled>✕</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addModel()" style="margin-top: 0.75rem;">
+                            + 添加模型
+                        </button>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>⚙️ 进化参数</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="compare-iterations">最大迭代</label>
+                                <input type="number" id="compare-iterations" name="iterations"
+                                       value="10" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="compare-population">种群大小</label>
+                                <input type="number" id="compare-population" name="population"
+                                       value="5" min="2" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            ⚖️ 开始对比测试
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- 批量测试表单 -->
             <div id="batch-tab" class="tab-content">
                 <form id="batch-form" class="test-form">
                     <div class="form-section">
-                        <h3>数据集配置</h3>
+                        <h3>📊 数据集配置</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="dataset">数据集</label>
@@ -137,14 +404,14 @@
                             </div>
                             <div class="form-group">
                                 <label for="samples">样本数量</label>
-                                <input type="number" id="samples" name="samples" 
+                                <input type="number" id="samples" name="samples"
                                        value="10" min="1" max="100">
                             </div>
                         </div>
                     </div>
 
                     <div class="form-section">
-                        <h3>模型配置</h3>
+                        <h3>🤖 模型配置</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="batch-model">目标模型</label>
@@ -169,29 +436,103 @@
                 </form>
             </div>
 
-            <!-- 测试结果 -->
-            <div id="test-result" class="result-container hidden">
-                <div class="result-header">
-                    <h3>测试结果</h3>
-                    <span id="result-status" class="status-badge">进行中</span>
+            <!-- 实时结果面板 -->
+            <div id="test-result" class="real-time-panel hidden">
+                <div class="real-time-header">
+                    <h3>
+                        <span class="pulse" id="status-pulse"></span>
+                        <span id="result-title">测试进行中</span>
+                    </h3>
+                    <span id="result-status" class="badge">进行中</span>
                 </div>
-                <div class="result-content">
-                    <div id="result-progress" class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 0%"></div>
-                        </div>
-                        <span class="progress-text">0%</span>
+
+                <div id="result-progress" class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
                     </div>
-                    <div id="result-summary" class="result-summary hidden">
-                        <!-- 结果摘要将在这里显示 -->
-                    </div>
+                    <span class="progress-text">0%</span>
+                </div>
+
+                <div id="result-details" class="result-details hidden">
+                    <!-- 动态填充结果卡片 -->
+                </div>
+
+                <div id="comparison-result" class="hidden">
+                    <h4 style="margin-top: 1rem;">模型对比结果</h4>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>模型</th>
+                                <th>状态</th>
+                                <th>适应度</th>
+                                <th>迭代数</th>
+                                <th>查询数</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-tbody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="quick-actions hidden" id="result-actions">
+                    <a href="/reports" class="btn btn-secondary">查看报告</a>
+                    <button class="btn btn-primary" onclick="resetTest()">新建测试</button>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- 模板管理弹窗 -->
+    <div id="template-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>模板管理</h3>
+                <button class="modal-close" onclick="closeTemplateManager()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="template-list" class="template-list">
+                    <!-- 动态加载模板列表 -->
+                </div>
+                <hr>
+                <h4>添加自定义模板</h4>
+                <form id="add-template-form">
+                    <div class="form-group">
+                        <label>名称</label>
+                        <input type="text" id="new-tpl-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>模板内容 (必须包含 {goal})</label>
+                        <textarea id="new-tpl-content" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>分类</label>
+                        <input type="text" id="new-tpl-category" value="custom">
+                    </div>
+                    <button type="submit" class="btn btn-primary">添加模板</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/main.js"></script>
     <script>
+        // 模型选项映射
+        const modelOptions = {
+            mock: ['test-model'],
+            openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'],
+            anthropic: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'],
+            ollama: ['llama2', 'mistral', 'mixtral']
+        };
+
+        let modelCount = 2;
+        let templates = [];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTemplates();
+            setupProviderListeners();
+        });
+
         // Tab 切换
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -202,75 +543,223 @@
             });
         });
 
-        // 进化测试表单
+        // 加载模板列表
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/templates');
+                templates = await response.json();
+
+                const selects = ['template-select', 'compare-template-select'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    select.innerHTML = templates.map(t =>
+                        `<option value="${t.id}" data-template="${encodeURIComponent(t.template)}">${t.name} ${t.is_builtin ? '(内置)' : ''}</option>`
+                    ).join('');
+                });
+
+                updateTemplatePreview();
+            } catch (e) {
+                console.error('加载模板失败:', e);
+            }
+        }
+
+        function updateTemplatePreview() {
+            const select = document.getElementById('template-select');
+            const preview = document.getElementById('template-preview');
+            const hidden = document.getElementById('template');
+
+            const option = select.selectedOptions[0];
+            if (option) {
+                const template = decodeURIComponent(option.dataset.template || '');
+                preview.textContent = template || '无预览';
+                hidden.value = template;
+            }
+        }
+
+        function updateCompareTemplatePreview() {
+            const select = document.getElementById('compare-template-select');
+            const hidden = document.getElementById('compare-template');
+
+            const option = select.selectedOptions[0];
+            if (option) {
+                hidden.value = decodeURIComponent(option.dataset.template || '');
+            }
+        }
+
+        // 模型选择联动
+        function setupProviderListeners() {
+            document.querySelectorAll('[name^="provider_"]').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const idx = e.target.name.split('_')[1];
+                    updateModelOptions(idx);
+                });
+            });
+        }
+
+        function updateModelOptions(idx) {
+            const provider = document.querySelector(`[name="provider_${idx}"]`).value;
+            const modelSelect = document.querySelector(`[name="model_${idx}"]`);
+            const options = modelOptions[provider] || [];
+
+            modelSelect.innerHTML = options.map(m =>
+                `<option value="${m}">${m}</option>`
+            ).join('');
+        }
+
+        function addModel() {
+            const list = document.getElementById('model-list');
+            const idx = modelCount++;
+
+            const item = document.createElement('div');
+            item.className = 'model-item';
+            item.dataset.index = idx;
+            item.innerHTML = `
+                <select name="provider_${idx}" onchange="updateModelOptions(${idx})">
+                    <option value="mock">Mock</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="ollama">Ollama</option>
+                </select>
+                <select name="model_${idx}">
+                    <option value="test-model">test-model</option>
+                </select>
+                <input type="password" name="api_key_${idx}" placeholder="API Key">
+                <button type="button" class="btn-icon btn-remove" onclick="removeModel(${idx})">✕</button>
+            `;
+            list.appendChild(item);
+            updateRemoveButtons();
+        }
+
+        function removeModel(idx) {
+            const item = document.querySelector(`.model-item[data-index="${idx}"]`);
+            if (item) item.remove();
+            updateRemoveButtons();
+        }
+
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.model-item');
+            items.forEach(item => {
+                const btn = item.querySelector('.btn-remove');
+                btn.disabled = items.length <= 2;
+            });
+        }
+
+        // 表单提交
         document.getElementById('evolution-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
-            
-            showResult();
-            
+
+            showResult('evolution');
+
             try {
                 const response = await fetch('/api/run', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
                 if (result.task_id) {
-                    pollTaskStatus(result.task_id);
+                    pollTaskStatus(result.task_id, 'evolution');
                 }
             } catch (error) {
                 showError(error.message);
             }
         });
 
-        // 批量测试表单
+        document.getElementById('compare-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 收集模型配置
+            const models = [];
+            document.querySelectorAll('.model-item').forEach(item => {
+                const idx = item.dataset.index;
+                models.push({
+                    provider: document.querySelector(`[name="provider_${idx}"]`).value,
+                    model: document.querySelector(`[name="model_${idx}"]`).value,
+                    api_key: document.querySelector(`[name="api_key_${idx}"]`).value
+                });
+            });
+
+            const data = {
+                goal: document.getElementById('compare-goal').value,
+                template: document.getElementById('compare-template').value,
+                models: models,
+                iterations: parseInt(document.getElementById('compare-iterations').value),
+                population: parseInt(document.getElementById('compare-population').value)
+            };
+
+            showResult('compare');
+
+            try {
+                const response = await fetch('/api/compare-models', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.task_id) {
+                    pollTaskStatus(result.task_id, 'compare');
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
         document.getElementById('batch-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
-            
-            showResult();
-            
+
+            showResult('batch');
+
             try {
                 const response = await fetch('/api/batch-test', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
                 if (result.task_id) {
-                    pollTaskStatus(result.task_id, true);
+                    pollTaskStatus(result.task_id, 'batch');
                 }
             } catch (error) {
                 showError(error.message);
             }
         });
 
-        function showResult() {
+        function showResult(type) {
             document.getElementById('test-result').classList.remove('hidden');
-            document.getElementById('result-summary').classList.add('hidden');
+            document.getElementById('result-details').classList.add('hidden');
+            document.getElementById('comparison-result').classList.add('hidden');
+            document.getElementById('result-actions').classList.add('hidden');
             document.getElementById('result-status').textContent = '进行中';
-            document.getElementById('result-status').className = 'status-badge running';
+            document.getElementById('result-status').className = 'badge';
+            document.getElementById('status-pulse').style.background = 'var(--success)';
+            document.getElementById('result-title').textContent = type === 'compare' ? '模型对比进行中' : '测试进行中';
+            updateProgress(0);
         }
 
-        async function pollTaskStatus(taskId, isBatch = false) {
+        async function pollTaskStatus(taskId, type) {
             const poll = async () => {
                 const response = await fetch(`/api/task/${taskId}`);
                 const task = await response.json();
-                
+
                 if (task.status === 'running') {
-                    if (isBatch && task.total) {
+                    if (task.total) {
                         const progress = (task.completed / task.total) * 100;
+                        updateProgress(progress);
+                    } else if (task.current_gen && task.max_gen) {
+                        const progress = (task.current_gen / task.max_gen) * 100;
                         updateProgress(progress);
                     }
                     setTimeout(poll, 1000);
                 } else if (task.status === 'completed') {
                     updateProgress(100);
-                    showCompleted(task, isBatch);
+                    showCompleted(task, type);
                 } else if (task.status === 'failed') {
                     showError(task.error);
                 } else {
@@ -285,71 +774,239 @@
             document.querySelector('.progress-text').textContent = `${Math.round(percent)}%`;
         }
 
-        function showCompleted(task, isBatch) {
+        function showCompleted(task, type) {
             const statusBadge = document.getElementById('result-status');
-            const summary = document.getElementById('result-summary');
-            
+            const details = document.getElementById('result-details');
+            const actions = document.getElementById('result-actions');
+            const pulse = document.getElementById('status-pulse');
+
             statusBadge.textContent = '已完成';
-            statusBadge.className = 'status-badge completed';
-            summary.classList.remove('hidden');
-            
-            if (isBatch) {
-                const s = task.summary;
-                summary.innerHTML = `
-                    <div class="summary-stats">
-                        <div class="summary-item">
-                            <span class="label">总样本</span>
-                            <span class="value">${s.total}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="label">拒绝</span>
-                            <span class="value success">${s.refused}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="label">未拒绝</span>
-                            <span class="value ${s.not_refused > 0 ? 'danger' : ''}">${s.not_refused}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="label">安全率</span>
-                            <span class="value">${s.refusal_rate.toFixed(1)}%</span>
-                        </div>
-                    </div>
-                `;
+            statusBadge.className = 'badge badge-safe';
+            pulse.style.background = 'var(--primary)';
+            pulse.style.animation = 'none';
+            document.getElementById('result-title').textContent = '测试完成';
+
+            details.classList.remove('hidden');
+            actions.classList.remove('hidden');
+
+            if (type === 'compare') {
+                showComparisonResult(task);
+            } else if (type === 'batch') {
+                showBatchResult(task);
             } else {
-                const r = task.result;
-                summary.innerHTML = `
-                    <div class="summary-stats">
-                        <div class="summary-item">
-                            <span class="label">状态</span>
-                            <span class="value ${r.success ? 'danger' : 'success'}">${r.success ? '越狱成功' : '防护有效'}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="label">适应度</span>
-                            <span class="value">${r.fitness.toFixed(4)}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="label">查询数</span>
-                            <span class="value">${r.queries}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="label">迭代</span>
-                            <span class="value">${r.generations}</span>
-                        </div>
-                    </div>
-                    ${task.report_path ? `<a href="${task.report_path}" class="btn btn-secondary" target="_blank">查看详细报告</a>` : ''}
-                `;
+                showEvolutionResult(task);
             }
+        }
+
+        function showEvolutionResult(task) {
+            const r = task.result;
+            const details = document.getElementById('result-details');
+
+            details.innerHTML = `
+                <div class="result-card">
+                    <h4>状态</h4>
+                    <div class="value ${r.success ? 'success' : 'safe'}">${r.success ? '越狱成功' : '防护有效'}</div>
+                </div>
+                <div class="result-card">
+                    <h4>最高适应度</h4>
+                    <div class="value">${r.fitness.toFixed(4)}</div>
+                </div>
+                <div class="result-card">
+                    <h4>总查询数</h4>
+                    <div class="value">${r.queries}</div>
+                </div>
+                <div class="result-card">
+                    <h4>迭代次数</h4>
+                    <div class="value">${r.generations}</div>
+                </div>
+            `;
+        }
+
+        function showBatchResult(task) {
+            const s = task.summary;
+            const details = document.getElementById('result-details');
+
+            details.innerHTML = `
+                <div class="result-card">
+                    <h4>总样本</h4>
+                    <div class="value">${s.total}</div>
+                </div>
+                <div class="result-card">
+                    <h4>拒绝数</h4>
+                    <div class="value safe">${s.refused}</div>
+                </div>
+                <div class="result-card">
+                    <h4>未拒绝</h4>
+                    <div class="value ${s.not_refused > 0 ? 'success' : ''}">${s.not_refused}</div>
+                </div>
+                <div class="result-card">
+                    <h4>安全率</h4>
+                    <div class="value">${s.refusal_rate.toFixed(1)}%</div>
+                </div>
+            `;
+        }
+
+        function showComparisonResult(task) {
+            const details = document.getElementById('result-details');
+            const comparison = document.getElementById('comparison-result');
+            const tbody = document.getElementById('comparison-tbody');
+            const c = task.comparison;
+
+            details.innerHTML = `
+                <div class="result-card">
+                    <h4>最脆弱模型</h4>
+                    <div class="value success">${c.most_vulnerable}</div>
+                </div>
+                <div class="result-card">
+                    <h4>最安全模型</h4>
+                    <div class="value safe">${c.most_secure}</div>
+                </div>
+                <div class="result-card">
+                    <h4>平均适应度</h4>
+                    <div class="value">${c.avg_fitness.toFixed(4)}</div>
+                </div>
+                <div class="result-card">
+                    <h4>平均查询数</h4>
+                    <div class="value">${Math.round(c.avg_queries)}</div>
+                </div>
+            `;
+
+            comparison.classList.remove('hidden');
+            tbody.innerHTML = task.results.map(r => `
+                <tr>
+                    <td>
+                        ${r.model}
+                        ${r.model === c.most_vulnerable ? '<span class="badge badge-success">最脆弱</span>' : ''}
+                        ${r.model === c.most_secure ? '<span class="badge badge-best">最安全</span>' : ''}
+                    </td>
+                    <td>
+                        <span class="badge ${r.success ? 'badge-success' : 'badge-safe'}">
+                            ${r.success ? '越狱成功' : '防护有效'}
+                        </span>
+                    </td>
+                    <td>${r.fitness.toFixed(4)}</td>
+                    <td>${r.generations}</td>
+                    <td>${r.queries}</td>
+                </tr>
+            `).join('');
         }
 
         function showError(message) {
             const statusBadge = document.getElementById('result-status');
-            const summary = document.getElementById('result-summary');
-            
+            const details = document.getElementById('result-details');
+            const pulse = document.getElementById('status-pulse');
+
             statusBadge.textContent = '失败';
-            statusBadge.className = 'status-badge failed';
-            summary.classList.remove('hidden');
-            summary.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+            statusBadge.className = 'badge badge-success';
+            pulse.style.background = 'var(--danger)';
+            pulse.style.animation = 'none';
+
+            details.classList.remove('hidden');
+            details.innerHTML = `<div class="result-card" style="grid-column: 1/-1;">
+                <h4>错误信息</h4>
+                <div class="value" style="font-size: 1rem; color: var(--danger);">❌ ${message}</div>
+            </div>`;
         }
+
+        function resetTest() {
+            document.getElementById('test-result').classList.add('hidden');
+            document.querySelectorAll('.test-form').forEach(f => f.reset());
+        }
+
+        // 模板管理
+        function openTemplateManager() {
+            document.getElementById('template-modal').classList.remove('hidden');
+            loadTemplateList();
+        }
+
+        function closeTemplateManager() {
+            document.getElementById('template-modal').classList.add('hidden');
+        }
+
+        async function loadTemplateList() {
+            const list = document.getElementById('template-list');
+            list.innerHTML = templates.map(t => `
+                <div class="template-item" style="padding: 0.5rem; border-bottom: 1px solid var(--border);">
+                    <strong>${t.name}</strong> ${t.is_builtin ? '<span class="badge badge-best">内置</span>' : ''}
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        ${t.template.substring(0, 50)}...
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('add-template-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                name: document.getElementById('new-tpl-name').value,
+                template: document.getElementById('new-tpl-content').value,
+                category: document.getElementById('new-tpl-category').value
+            };
+
+            try {
+                const response = await fetch('/api/templates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('模板添加成功');
+                    e.target.reset();
+                    loadTemplates();
+                    loadTemplateList();
+                } else {
+                    const err = await response.json();
+                    alert(err.error);
+                }
+            } catch (error) {
+                alert('添加失败: ' + error.message);
+            }
+        });
     </script>
+
+    <style>
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.hidden { display: none; }
+        .modal-content {
+            background: var(--bg);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-header h3 { margin: 0; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .modal-body {
+            padding: 1.5rem;
+        }
+    </style>
 </body>
 </html>

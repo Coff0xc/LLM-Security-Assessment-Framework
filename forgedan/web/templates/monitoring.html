@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGEDAN - 系统监控</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        .metric-card {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f1f3a 100%);
+            border: 1px solid #2a4a6d;
+        }
+        .alert-critical { background-color: #dc2626; }
+        .alert-warning { background-color: #f59e0b; }
+        .alert-info { background-color: #3b82f6; }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-gray-800 border-b border-gray-700 px-4 py-3">
+        <div class="flex items-center justify-between max-w-7xl mx-auto">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-xl font-bold text-blue-400">FORGEDAN</h1>
+                <span class="text-gray-400">|</span>
+                <span class="text-gray-300">系统监控</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-gray-300 hover:text-white">仪表盘</a>
+                <a href="/test" class="text-gray-300 hover:text-white">测试</a>
+                <a href="/reports" class="text-gray-300 hover:text-white">报告</a>
+                <a href="/settings" class="text-gray-300 hover:text-white">设置</a>
+                <span id="connection-status" class="flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                    <span class="text-sm text-gray-400">未连接</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- 监控状态概览 -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">监控状态</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- 监控开关状态 -->
+                <div class="metric-card rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400 text-sm">监控系统</span>
+                        <span id="monitoring-status" class="px-2 py-1 rounded text-xs bg-gray-600">检查中...</span>
+                    </div>
+                    <div class="mt-2">
+                        <span id="monitoring-enabled" class="text-2xl font-bold">-</span>
+                    </div>
+                </div>
+
+                <!-- 活跃收集器 -->
+                <div class="metric-card rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400 text-sm">收集器</span>
+                        <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span>
+                    </div>
+                    <div class="mt-2">
+                        <span id="collectors-count" class="text-2xl font-bold">0</span>
+                        <span class="text-gray-400 text-sm ml-1">个活跃</span>
+                    </div>
+                </div>
+
+                <!-- 告警规则 -->
+                <div class="metric-card rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400 text-sm">告警规则</span>
+                    </div>
+                    <div class="mt-2">
+                        <span id="alert-rules-count" class="text-2xl font-bold">0</span>
+                        <span class="text-gray-400 text-sm ml-1">条</span>
+                    </div>
+                </div>
+
+                <!-- 活跃告警 -->
+                <div class="metric-card rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400 text-sm">活跃告警</span>
+                    </div>
+                    <div class="mt-2">
+                        <span id="active-alerts-count" class="text-2xl font-bold text-yellow-400">0</span>
+                        <span class="text-gray-400 text-sm ml-1">个</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 核心指标 -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">核心指标</h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">攻击总数</span>
+                    <div class="mt-2">
+                        <span id="attacks-total" class="text-3xl font-bold text-blue-400">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">成功攻击</span>
+                    <div class="mt-2">
+                        <span id="attacks-success" class="text-3xl font-bold text-green-400">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">成功率</span>
+                    <div class="mt-2">
+                        <span id="success-rate" class="text-3xl font-bold text-yellow-400">0%</span>
+                    </div>
+                </div>
+
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">LLM 查询数</span>
+                    <div class="mt-2">
+                        <span id="queries-total" class="text-3xl font-bold text-purple-400">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">活跃任务</span>
+                    <div class="mt-2">
+                        <span id="active-tasks" class="text-3xl font-bold text-cyan-400">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- 适应度趋势 -->
+            <div class="metric-card rounded-lg p-4">
+                <h3 class="text-md font-semibold mb-4">适应度趋势</h3>
+                <canvas id="fitness-chart" height="200"></canvas>
+            </div>
+
+            <!-- LLM 延迟分布 -->
+            <div class="metric-card rounded-lg p-4">
+                <h3 class="text-md font-semibold mb-4">LLM 延迟分布</h3>
+                <canvas id="latency-chart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- 系统资源 & 缓存 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- 任务统计 -->
+            <div class="metric-card rounded-lg p-4">
+                <h3 class="text-md font-semibold mb-4">任务统计</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">总创建</span>
+                        <span id="task-total-created" class="font-mono">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">已完成</span>
+                        <span id="task-total-completed" class="font-mono text-green-400">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">失败</span>
+                        <span id="task-total-failed" class="font-mono text-red-400">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">去重拒绝</span>
+                        <span id="task-duplicates" class="font-mono text-yellow-400">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 缓存统计 -->
+            <div class="metric-card rounded-lg p-4">
+                <h3 class="text-md font-semibold mb-4">缓存统计</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">命中</span>
+                        <span id="cache-hits" class="font-mono text-green-400">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">未命中</span>
+                        <span id="cache-misses" class="font-mono text-red-400">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">命中率</span>
+                        <span id="cache-hit-rate" class="font-mono text-blue-400">0%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">当前大小</span>
+                        <span id="cache-size" class="font-mono">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 性能指标 -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">响应性能</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">平均响应时间</span>
+                    <div class="mt-2">
+                        <span id="perf-avg" class="text-2xl font-bold">0</span>
+                        <span class="text-gray-400 text-sm ml-1">ms</span>
+                    </div>
+                </div>
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">P50</span>
+                    <div class="mt-2">
+                        <span id="perf-p50" class="text-2xl font-bold">0</span>
+                        <span class="text-gray-400 text-sm ml-1">ms</span>
+                    </div>
+                </div>
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">P95</span>
+                    <div class="mt-2">
+                        <span id="perf-p95" class="text-2xl font-bold">0</span>
+                        <span class="text-gray-400 text-sm ml-1">ms</span>
+                    </div>
+                </div>
+                <div class="metric-card rounded-lg p-4">
+                    <span class="text-gray-400 text-sm">P99</span>
+                    <div class="mt-2">
+                        <span id="perf-p99" class="text-2xl font-bold">0</span>
+                        <span class="text-gray-400 text-sm ml-1">ms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 告警列表 -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4">告警列表</h2>
+            <div class="metric-card rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">名称</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">严重性</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">状态</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">当前值</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">触发时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alerts-table-body" class="divide-y divide-gray-700">
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-center text-gray-400">暂无告警</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Prometheus 端点信息 -->
+        <div class="metric-card rounded-lg p-4">
+            <h3 class="text-md font-semibold mb-4">Prometheus 端点</h3>
+            <div class="space-y-2 font-mono text-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-400">指标端点:</span>
+                    <a href="/metrics" target="_blank" class="text-blue-400 hover:underline">/metrics</a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-400">JSON 格式:</span>
+                    <a href="/metrics/json" target="_blank" class="text-blue-400 hover:underline">/metrics/json</a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-400">监控状态:</span>
+                    <a href="/api/monitoring/status" target="_blank" class="text-blue-400 hover:underline">/api/monitoring/status</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // WebSocket 连接
+        let socket = null;
+        let fitnessChart = null;
+        let latencyChart = null;
+        const fitnessHistory = [];
+        const maxHistoryPoints = 50;
+
+        // 初始化图表
+        function initCharts() {
+            // 适应度趋势图
+            const fitnessCtx = document.getElementById('fitness-chart').getContext('2d');
+            fitnessChart = new Chart(fitnessCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '适应度',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+
+            // 延迟分布图
+            const latencyCtx = document.getElementById('latency-chart').getContext('2d');
+            latencyChart = new Chart(latencyCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['<100ms', '100-500ms', '500ms-1s', '1s-2s', '>2s'],
+                    datasets: [{
+                        label: '请求数',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(234, 179, 8, 0.7)',
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(34, 197, 94)',
+                            'rgb(59, 130, 246)',
+                            'rgb(234, 179, 8)',
+                            'rgb(249, 115, 22)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connection-status');
+            if (connected) {
+                statusEl.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 pulse-dot"></span>
+                    <span class="text-sm text-green-400">已连接</span>
+                `;
+            } else {
+                statusEl.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                    <span class="text-sm text-gray-400">未连接</span>
+                `;
+            }
+        }
+
+        // 初始化 WebSocket
+        function initWebSocket() {
+            try {
+                socket = io('/monitoring');
+
+                socket.on('connect', () => {
+                    console.log('监控 WebSocket 已连接');
+                    updateConnectionStatus(true);
+                    socket.emit('subscribe_metrics', {});
+                });
+
+                socket.on('disconnect', () => {
+                    console.log('监控 WebSocket 断开');
+                    updateConnectionStatus(false);
+                });
+
+                socket.on('monitoring_update', (data) => {
+                    updateMetrics(data);
+                });
+
+                socket.on('alert', (alert) => {
+                    console.log('收到告警:', alert);
+                    loadAlerts();
+                });
+
+                socket.on('current_metrics', (data) => {
+                    updateMetrics(data);
+                });
+
+            } catch (e) {
+                console.warn('WebSocket 不可用，使用轮询模式');
+                updateConnectionStatus(false);
+            }
+        }
+
+        // 更新指标显示
+        function updateMetrics(data) {
+            // 更新任务统计
+            if (data.tasks) {
+                document.getElementById('task-total-created').textContent = data.tasks.total_created || 0;
+                document.getElementById('task-total-completed').textContent = data.tasks.total_completed || 0;
+                document.getElementById('task-total-failed').textContent = data.tasks.total_failed || 0;
+                document.getElementById('task-duplicates').textContent = data.tasks.duplicates_rejected || 0;
+                document.getElementById('active-tasks').textContent = data.tasks.current_running || 0;
+            }
+
+            // 更新缓存统计
+            if (data.cache) {
+                document.getElementById('cache-hits').textContent = data.cache.hits || 0;
+                document.getElementById('cache-misses').textContent = data.cache.misses || 0;
+                document.getElementById('cache-hit-rate').textContent = (data.cache.hit_rate || 0) + '%';
+                document.getElementById('cache-size').textContent = data.cache.size || 0;
+            }
+
+            // 更新性能统计
+            if (data.performance) {
+                document.getElementById('perf-avg').textContent = data.performance.avg_response_time || 0;
+                document.getElementById('perf-p50').textContent = data.performance.p50_response_time || 0;
+                document.getElementById('perf-p95').textContent = data.performance.p95_response_time || 0;
+                document.getElementById('perf-p99').textContent = data.performance.p99_response_time || 0;
+            }
+
+            // 更新核心指标
+            if (data.metrics) {
+                document.getElementById('attacks-total').textContent = data.metrics.attacks_total || 0;
+                document.getElementById('attacks-success').textContent = data.metrics.attacks_success || 0;
+                document.getElementById('queries-total').textContent = data.metrics.queries_total || 0;
+
+                const total = data.metrics.attacks_total || 0;
+                const success = data.metrics.attacks_success || 0;
+                const rate = total > 0 ? ((success / total) * 100).toFixed(1) : 0;
+                document.getElementById('success-rate').textContent = rate + '%';
+
+                // 更新适应度图表
+                if (data.metrics.fitness_score !== undefined) {
+                    updateFitnessChart(data.metrics.fitness_score);
+                }
+            }
+        }
+
+        // 更新适应度图表
+        function updateFitnessChart(fitness) {
+            const now = new Date().toLocaleTimeString();
+            fitnessHistory.push({ time: now, value: fitness });
+
+            if (fitnessHistory.length > maxHistoryPoints) {
+                fitnessHistory.shift();
+            }
+
+            fitnessChart.data.labels = fitnessHistory.map(h => h.time);
+            fitnessChart.data.datasets[0].data = fitnessHistory.map(h => h.value);
+            fitnessChart.update('none');
+        }
+
+        // 加载监控状态
+        async function loadMonitoringStatus() {
+            try {
+                const response = await fetch('/api/monitoring/status');
+                const data = await response.json();
+
+                const statusEl = document.getElementById('monitoring-status');
+                const enabledEl = document.getElementById('monitoring-enabled');
+
+                if (data.enabled) {
+                    statusEl.className = 'px-2 py-1 rounded text-xs bg-green-600';
+                    statusEl.textContent = '运行中';
+                    enabledEl.textContent = '已启用';
+
+                    if (data.collectors) {
+                        document.getElementById('collectors-count').textContent = data.collectors.count || 0;
+                    }
+                    if (data.alerts) {
+                        document.getElementById('alert-rules-count').textContent = data.alerts.rules_count || 0;
+                        document.getElementById('active-alerts-count').textContent = data.alerts.active_alerts || 0;
+                    }
+                } else {
+                    statusEl.className = 'px-2 py-1 rounded text-xs bg-gray-600';
+                    statusEl.textContent = '未启用';
+                    enabledEl.textContent = '已禁用';
+                }
+            } catch (e) {
+                console.error('加载监控状态失败:', e);
+            }
+        }
+
+        // 加载告警列表
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/monitoring/alerts');
+                const data = await response.json();
+
+                const tbody = document.getElementById('alerts-table-body');
+
+                if (!data.alerts || data.alerts.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-center text-gray-400">暂无告警</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = data.alerts.map(alert => {
+                    const severityClass = {
+                        'critical': 'bg-red-600',
+                        'warning': 'bg-yellow-600',
+                        'info': 'bg-blue-600'
+                    }[alert.severity] || 'bg-gray-600';
+
+                    const stateClass = {
+                        'firing': 'text-red-400',
+                        'pending': 'text-yellow-400',
+                        'resolved': 'text-green-400',
+                        'ok': 'text-gray-400'
+                    }[alert.state] || 'text-gray-400';
+
+                    return `
+                        <tr class="hover:bg-gray-800">
+                            <td class="px-4 py-3">${alert.name}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-xs ${severityClass}">${alert.severity}</span>
+                            </td>
+                            <td class="px-4 py-3 ${stateClass}">${alert.state}</td>
+                            <td class="px-4 py-3 font-mono">${alert.value !== null ? alert.value.toFixed(2) : '-'}</td>
+                            <td class="px-4 py-3 text-gray-400">${alert.fired_at || '-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('active-alerts-count').textContent = data.active_count || 0;
+            } catch (e) {
+                console.error('加载告警失败:', e);
+            }
+        }
+
+        // 加载 JSON 指标
+        async function loadJsonMetrics() {
+            try {
+                const response = await fetch('/metrics/json');
+                const data = await response.json();
+
+                if (data.monitoring_enabled && data.metrics) {
+                    // 更新攻击指标
+                    if (data.metrics.attacks) {
+                        document.getElementById('attacks-total').textContent = data.metrics.attacks.total || 0;
+                        document.getElementById('attacks-success').textContent = data.metrics.attacks.success || 0;
+                        document.getElementById('success-rate').textContent = (data.metrics.attacks.success_rate || 0).toFixed(1) + '%';
+                    }
+
+                    if (data.metrics.queries) {
+                        document.getElementById('queries-total').textContent = data.metrics.queries.total || 0;
+                    }
+
+                    if (data.metrics.evolution) {
+                        document.getElementById('active-tasks').textContent = data.metrics.evolution.active_tasks || 0;
+                        updateFitnessChart(data.metrics.evolution.fitness_score || 0);
+                    }
+
+                    // 更新延迟直方图
+                    if (data.metrics.llm && data.metrics.llm.latency_histogram) {
+                        updateLatencyChart(data.metrics.llm.latency_histogram);
+                    }
+                }
+
+                // 更新其他统计
+                if (data.task_stats) {
+                    document.getElementById('task-total-created').textContent = data.task_stats.total_created || 0;
+                    document.getElementById('task-total-completed').textContent = data.task_stats.total_completed || 0;
+                    document.getElementById('task-total-failed').textContent = data.task_stats.total_failed || 0;
+                    document.getElementById('task-duplicates').textContent = data.task_stats.duplicates_rejected || 0;
+                }
+
+                if (data.cache_stats) {
+                    document.getElementById('cache-hits').textContent = data.cache_stats.hits || 0;
+                    document.getElementById('cache-misses').textContent = data.cache_stats.misses || 0;
+                    document.getElementById('cache-hit-rate').textContent = (data.cache_stats.hit_rate || 0) + '%';
+                    document.getElementById('cache-size').textContent = data.cache_stats.size || 0;
+                }
+
+                if (data.performance_stats) {
+                    document.getElementById('perf-avg').textContent = data.performance_stats.avg_response_time || 0;
+                    document.getElementById('perf-p50').textContent = data.performance_stats.p50_response_time || 0;
+                    document.getElementById('perf-p95').textContent = data.performance_stats.p95_response_time || 0;
+                    document.getElementById('perf-p99').textContent = data.performance_stats.p99_response_time || 0;
+                }
+            } catch (e) {
+                console.error('加载指标失败:', e);
+            }
+        }
+
+        // 更新延迟直方图
+        function updateLatencyChart(buckets) {
+            if (!buckets) return;
+
+            // 将桶数据转换为图表数据
+            // buckets 格式: { 0.1: count, 0.5: count, ... }
+            const chartData = [0, 0, 0, 0, 0];
+
+            for (const [threshold, count] of Object.entries(buckets)) {
+                const t = parseFloat(threshold);
+                if (t <= 0.1) chartData[0] += count;
+                else if (t <= 0.5) chartData[1] += count;
+                else if (t <= 1.0) chartData[2] += count;
+                else if (t <= 2.0) chartData[3] += count;
+                else chartData[4] += count;
+            }
+
+            latencyChart.data.datasets[0].data = chartData;
+            latencyChart.update('none');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            initWebSocket();
+            loadMonitoringStatus();
+            loadAlerts();
+            loadJsonMetrics();
+
+            // 定期刷新
+            setInterval(loadMonitoringStatus, 30000);  // 30秒
+            setInterval(loadAlerts, 10000);  // 10秒
+            setInterval(loadJsonMetrics, 5000);  // 5秒
+        });
+    </script>
+</body>
+</html>

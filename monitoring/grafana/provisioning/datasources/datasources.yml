@@ -1,0 +1,23 @@
+# Grafana 数据源配置
+# 自动配置 Prometheus 数据源
+
+apiVersion: 1
+
+datasources:
+  # Prometheus 数据源
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: "2.45.0"
+      timeInterval: "15s"
+      # 启用 Exemplars
+      exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: tempo
