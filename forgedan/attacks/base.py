@@ -141,13 +141,33 @@ class BaseAttack(ABC):
         self.start_time = None
     
     def get_info(self) -> Dict[str, Any]:
-        """获取攻击器信息"""
+        """获取攻击器信息（实例方法）"""
+        return self.get_info_static()
+
+    @classmethod
+    def get_info_static(cls) -> Dict[str, Any]:
+        """获取攻击方法信息（类方法，供注册表使用）"""
         return {
-            'name': self.name,
-            'description': self.description,
-            'config': {
-                'max_iterations': self.config.max_iterations,
-                'target_output': self.config.target_output,
-                'verbose': self.config.verbose
-            }
+            'name': cls.name,
+            'description': cls.description,
+            'paper': '',
+            'type': 'base',
+        }
+
+    @classmethod
+    def get_params_schema(cls) -> Dict[str, Any]:
+        """
+        获取参数 JSON Schema（供前端动态生成表单）
+
+        子类应覆盖此方法返回各自的特有参数。
+        """
+        return {
+            'type': 'object',
+            'properties': {
+                'max_iterations': {
+                    'type': 'integer',
+                    'default': 20,
+                    'description': '最大迭代次数',
+                },
+            },
         }

@@ -41,6 +41,36 @@ class PAIRAttack(BaseAttack):
     
     name = "PAIR"
     description = "对话式自动迭代攻击"
+
+    @classmethod
+    def get_info_static(cls) -> Dict[str, Any]:
+        return {
+            'name': cls.name,
+            'description': cls.description,
+            'paper': 'Jailbreaking black box large language models in twenty queries',
+            'type': 'prompt_based',
+        }
+
+    @classmethod
+    def get_params_schema(cls) -> Dict[str, Any]:
+        return {
+            'type': 'object',
+            'properties': {
+                'attacker_model': {
+                    'type': 'string', 'default': '',
+                    'description': '攻击者 LLM 模型名称',
+                },
+                'max_rounds': {
+                    'type': 'integer', 'default': 5,
+                    'description': '每个攻击流的最大对话轮数',
+                },
+                'temperature': {
+                    'type': 'number', 'default': 1.0,
+                    'description': 'LLM 采样温度',
+                    'minimum': 0.0, 'maximum': 2.0,
+                },
+            },
+        }
     
     # 攻击策略模板
     ATTACK_STRATEGIES = [

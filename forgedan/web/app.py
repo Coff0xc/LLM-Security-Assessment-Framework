@@ -21,6 +21,7 @@ import os
 import json
 import asyncio
 import hashlib
+import hmac
 import time
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -526,8 +527,15 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     default_log_dir = package_dir / 'logs' / 'attacks'
     default_report_dir = package_dir / 'reports'
 
+    # 安全生成 SECRET_KEY
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        import secrets
+        secret_key = secrets.token_hex(32)
+        print("WARNING: SECRET_KEY 未设置，已生成随机密钥。生产环境请设置 SECRET_KEY 环境变量。")
+
     app.config.update(
-        SECRET_KEY=os.environ.get('SECRET_KEY', 'forgedan-secret-key'),
+        SECRET_KEY=secret_key,
         LOG_DIR=os.environ.get('LOG_DIR', str(default_log_dir)),
         REPORT_DIR=os.environ.get('REPORT_DIR', str(default_report_dir)),
         PROJECT_ROOT=str(package_dir),
@@ -552,7 +560,8 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     # 初始化 SocketIO
     global socketio
     if HAS_SOCKETIO:
-        socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+        cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')
+        socketio = SocketIO(app, cors_allowed_origins=cors_origins.split(','), async_mode='threading')
 
     # 初始化速率限制器
     limiter = None
@@ -573,7 +582,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
     if HAS_MONITORING and global_metrics:
         # 初始化收集器注册表
-        collector_registry = CollectorRegistry(global_metrics, collection_interval=15.0)
+        collector_registry = CollectorRegistry(global_metrics, default_interval=15.0)
 
         # 添加系统资源收集器
         system_collector = SystemCollector(global_metrics)
@@ -736,6 +745,12 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
     # ============== 安全机制 ==============
 
+    def mask_api_key(key: str) -> str:
+        """脱敏API密钥，仅保留前4位和后4位"""
+        if not key or len(key) <= 8:
+            return '***'
+        return f"{key[:4]}...{key[-4:]}"
+
     # API 密钥认证 (可选)
     API_KEY = os.environ.get('FORGEDAN_API_KEY', '')
 
@@ -744,8 +759,8 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         @wraps(f)
         def decorated(*args, **kwargs):
             if API_KEY:  # 仅在设置了 API 密钥时启用认证
-                provided_key = request.headers.get('X-API-Key') or request.args.get('api_key')
-                if provided_key != API_KEY:
+                provided_key = request.headers.get('X-API-Key', '')
+                if not hmac.compare_digest(provided_key, API_KEY):
                     return jsonify({'error': '无效的 API 密钥'}), 401
             return f(*args, **kwargs)
         return decorated
@@ -1510,7 +1525,13 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     @app.route('/api/reports/<path:filename>')
     def get_report(filename):
         """获取报告内容"""
-        return send_from_directory(app.config['REPORT_DIR'], filename)
+        # 路径遍历防护
+        if '..' in filename or filename.startswith(('/', '\\')):
+            return jsonify({'error': '非法文件名'}), 400
+        safe_name = Path(filename).name
+        if safe_name != filename:
+            return jsonify({'error': '非法文件名'}), 400
+        return send_from_directory(app.config['REPORT_DIR'], safe_name)
 
     @app.route('/api/logs')
     @cached(ttl=30)

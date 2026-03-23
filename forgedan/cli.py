@@ -28,7 +28,7 @@ load_dotenv()
 
 
 @click.group()
-@click.version_option(version="1.1.0", prog_name="FORGEDAN")
+@click.version_option(version="1.2.0", prog_name="FORGEDAN")
 def cli():
     """
     FORGEDAN - LLM安全评估框架
@@ -87,7 +87,12 @@ def cli():
     is_flag=True,
     help="显示详细输出"
 )
-def run(goal, template, model, api_key, iterations, population, elite, output, verbose):
+@click.option(
+    "--quick", "-q",
+    is_flag=True,
+    help="快速演示模式 (3轮迭代, 小种群, 适合快速体验)"
+)
+def run(goal, template, model, api_key, iterations, population, elite, output, verbose, quick):
     """
     运行安全评估测试
 
@@ -99,6 +104,13 @@ def run(goal, template, model, api_key, iterations, population, elite, output, v
     """
     from forgedan import ForgeDAN_Engine, ForgeDanConfig
     from forgedan.adapters import ModelAdapterFactory
+
+    # 快速模式覆盖参数
+    if quick:
+        iterations = 3
+        population = 3
+        elite = 1
+        click.echo(click.style("[快速模式] 3轮迭代, 3种群, 适合快速体验", fg="yellow"))
 
     click.echo(click.style("=" * 60, fg="cyan"))
     click.echo(click.style("FORGEDAN 安全评估", fg="cyan", bold=True))
@@ -418,7 +430,7 @@ def info():
     click.echo(click.style("=" * 60, fg="cyan"))
 
     click.echo("""
-版本: 1.1.0
+版本: 1.2.0
 作者: Coff0xc
 GitHub: https://github.com/Coff0xc/LLM-Security-Assessment-Framework
 
@@ -471,7 +483,7 @@ def web(host, port, debug):
     try:
         from forgedan.web.app import create_app
 
-        app = create_app()
+        app, socketio_instance = create_app()
         click.echo(click.style("=" * 60, fg="cyan"))
         click.echo(click.style("FORGEDAN Web 界面", fg="cyan", bold=True))
         click.echo(click.style("=" * 60, fg="cyan"))

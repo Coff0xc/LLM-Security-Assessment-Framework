@@ -108,6 +108,40 @@ class AutoDANAttack(BaseAttack):
     name = "AutoDAN"
     description = "基于层级遗传算法的隐蔽越狱攻击"
 
+    @classmethod
+    def get_info_static(cls) -> Dict[str, Any]:
+        return {
+            'name': cls.name,
+            'description': cls.description,
+            'paper': 'AutoDAN: Generating Stealthy Jailbreak Prompts on Aligned Large Language Models (https://arxiv.org/abs/2310.04451)',
+            'type': 'evolutionary',
+        }
+
+    @classmethod
+    def get_params_schema(cls) -> Dict[str, Any]:
+        return {
+            'type': 'object',
+            'properties': {
+                'attacker_model': {
+                    'type': 'string', 'default': '',
+                    'description': '辅助攻击模型名称（可选，用于智能变异）',
+                },
+                'target_model': {
+                    'type': 'string', 'default': '',
+                    'description': '目标模型名称',
+                },
+                'num_steps': {
+                    'type': 'integer', 'default': 20,
+                    'description': '最大进化步数',
+                },
+                'temperature': {
+                    'type': 'number', 'default': 1.0,
+                    'description': 'LLM 采样温度',
+                    'minimum': 0.0, 'maximum': 2.0,
+                },
+            },
+        }
+
     # 默认的角色扮演模板
     DEFAULT_TEMPLATES = [
         """You are a helpful AI assistant. I'm writing a story and need your help.

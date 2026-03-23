@@ -20,6 +20,15 @@ from .gcg import GCGAttack, GCGConfig
 from .autodan import AutoDANAttack, AutoDANConfig
 from .tap import TAPAttack, TAPConfig
 from .crescendo import CrescendoAttack, CrescendoConfig
+from .registry import ATTACK_REGISTRY, register_attack, get_attack, list_attacks
+
+# 注册所有攻击方法
+register_attack('forgedan', ForgeDanAttack)
+register_attack('autodan', AutoDANAttack)
+register_attack('pair', PAIRAttack)
+register_attack('gcg', GCGAttack)
+register_attack('crescendo', CrescendoAttack)
+register_attack('tap', TAPAttack)
 
 __all__ = [
     # 基类
@@ -44,18 +53,12 @@ __all__ = [
     # Crescendo
     'CrescendoAttack',
     'CrescendoConfig',
+    # 注册表
+    'ATTACK_REGISTRY',
+    'register_attack',
+    'get_attack',
+    'list_attacks',
 ]
-
-
-# 攻击方法注册表，便于动态选择
-ATTACK_REGISTRY = {
-    'forgedan': ForgeDanAttack,
-    'pair': PAIRAttack,
-    'gcg': GCGAttack,
-    'autodan': AutoDANAttack,
-    'tap': TAPAttack,
-    'crescendo': CrescendoAttack,
-}
 
 
 def get_attack_class(name: str) -> type:
@@ -71,25 +74,8 @@ def get_attack_class(name: str) -> type:
     Raises:
         ValueError: 如果名称未知
     """
-    name_lower = name.lower()
-    if name_lower not in ATTACK_REGISTRY:
+    cls = get_attack(name)
+    if cls is None:
         available = ', '.join(ATTACK_REGISTRY.keys())
         raise ValueError(f"未知的攻击方法: {name}. 可用的方法: {available}")
-    return ATTACK_REGISTRY[name_lower]
-
-
-def list_attacks() -> list:
-    """
-    列出所有可用的攻击方法
-
-    Returns:
-        攻击方法信息列表
-    """
-    attacks = []
-    for name, cls in ATTACK_REGISTRY.items():
-        attacks.append({
-            'name': name,
-            'class': cls.__name__,
-            'description': cls.description if hasattr(cls, 'description') else ''
-        })
-    return attacks
+    return cls

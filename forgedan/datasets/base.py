@@ -18,6 +18,7 @@ class HarmCategory(str, Enum):
     MISINFORMATION = "misinformation"  # 虚假信息
     PRIVACY_VIOLATION = "privacy_violation"  # 隐私侵犯
     PROFANITY = "profanity"  # 脏话
+    MALWARE = "malware"  # 恶意软件
     OTHER = "other"  # 其他
 
 
@@ -33,6 +34,19 @@ class DatasetSample:
     def __post_init__(self):
         if isinstance(self.category, str):
             self.category = HarmCategory(self.category)
+
+    def to_dict(self) -> dict:
+        """转为字典"""
+        result = {"goal": self.goal}
+        if self.target is not None:
+            result["target"] = self.target
+        if self.category is not None:
+            result["category"] = self.category.value if isinstance(self.category, HarmCategory) else self.category
+        if self.severity is not None:
+            result["severity"] = self.severity
+        if self.metadata:
+            result["metadata"] = self.metadata
+        return result
 
 
 @dataclass
@@ -55,6 +69,20 @@ class Dataset(ABC):
         self.path = path
         self._samples: List[DatasetSample] = []
         self._metadata: Optional[DatasetMetadata] = None
+        self._name: Optional[str] = None
+
+    @property
+    def name(self) -> str:
+        """数据集名称"""
+        if self._name is not None:
+            return self._name
+        if self._metadata:
+            return self._metadata.name
+        return ""
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value
 
     @abstractmethod
     def load(self) -> List[DatasetSample]:
@@ -105,3 +133,19 @@ class Dataset(ABC):
 
     def __iter__(self):
         return iter(self.get_samples())
+
+
+class SafetyDataset(Dataset):
+    """便利数据集类 - 直接从样本列表创建"""
+
+    def __init__(self, name: str = "", samples: list = None, path: str = None):
+        super().__init__(path)
+        self._name = name
+        self._samples = samples or []
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def load(self) -> List[DatasetSample]:
+        return self._samples

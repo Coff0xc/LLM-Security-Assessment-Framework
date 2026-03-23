@@ -46,6 +46,39 @@ class GCGAttack(BaseAttack):
     
     name = "GCG"
     description = "梯度引导攻击（黑盒近似版）"
+
+    @classmethod
+    def get_info_static(cls) -> Dict[str, Any]:
+        return {
+            'name': cls.name,
+            'description': cls.description,
+            'paper': 'Universal and transferable adversarial attacks on aligned language models',
+            'type': 'gradient_based',
+        }
+
+    @classmethod
+    def get_params_schema(cls) -> Dict[str, Any]:
+        return {
+            'type': 'object',
+            'properties': {
+                'suffix_length': {
+                    'type': 'integer', 'default': 20,
+                    'description': '对抗性后缀长度',
+                },
+                'num_steps': {
+                    'type': 'integer', 'default': 100,
+                    'description': '优化步数',
+                },
+                'topk': {
+                    'type': 'integer', 'default': 256,
+                    'description': '选择前 k 个 token',
+                },
+                'batch_size': {
+                    'type': 'integer', 'default': 256,
+                    'description': '每轮候选数量',
+                },
+            },
+        }
     
     # 可用字符集
     CHARSET = string.ascii_letters + string.digits + " !.,?:;-_()"
@@ -250,6 +283,6 @@ class GCGAttack(BaseAttack):
     
     def get_info(self) -> Dict[str, Any]:
         """获取攻击器信息"""
-        info = super().get_info()
+        info = self.get_info_static()
         info['note'] = "This is a black-box approximation of GCG. Full GCG requires model gradients."
         return info

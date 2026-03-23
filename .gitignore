@@ -48,6 +48,8 @@ nul
 node_modules/
 package-lock.json
 .npm/
+frontend/dist/
+frontend/node_modules/
 
 # 报告输出（可选）
 reports/*.html

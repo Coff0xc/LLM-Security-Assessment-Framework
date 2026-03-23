@@ -110,6 +110,32 @@ class CrescendoAttack(BaseAttack):
     name = "Crescendo"
     description = "多轮对话渐进式越狱攻击"
 
+    @classmethod
+    def get_info_static(cls) -> Dict[str, Any]:
+        return {
+            'name': cls.name,
+            'description': cls.description,
+            'paper': 'Crescendo: Multi-Turn LLM Jailbreaking (https://arxiv.org/abs/2404.01833)',
+            'type': 'multi_turn',
+        }
+
+    @classmethod
+    def get_params_schema(cls) -> Dict[str, Any]:
+        return {
+            'type': 'object',
+            'properties': {
+                'max_rounds': {
+                    'type': 'integer', 'default': 10,
+                    'description': '最大对话轮数',
+                },
+                'escalation_strategy': {
+                    'type': 'string', 'default': 'adaptive',
+                    'description': '升级策略 (adaptive / linear / aggressive)',
+                    'enum': ['adaptive', 'linear', 'aggressive'],
+                },
+            },
+        }
+
     # 话题类别和模板
     TOPIC_CATEGORIES = {
         'general': [

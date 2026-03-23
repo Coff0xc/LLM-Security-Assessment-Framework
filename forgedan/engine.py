@@ -22,7 +22,6 @@ FORGEDAN 核心引擎 (增强版)
 
 import asyncio
 import json
-import pickle
 import random
 import time
 import uuid
@@ -110,13 +109,24 @@ class Checkpoint:
     model_name: str
     mutator_stats: Dict[str, Any]
 
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为可JSON序列化的字典"""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Checkpoint':
+        """从字典创建检查点"""
+        return cls(**data)
+
     def save(self, filepath: Union[str, Path]) -> bool:
-        """保存检查点"""
+        """保存检查点（JSON格式，避免pickle反序列化RCE）"""
         try:
             path = Path(filepath)
+            if path.suffix not in ('.json', '.checkpoint'):
+                path = path.with_suffix('.json')
             path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, 'wb') as f:
-                pickle.dump(self, f)
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
             logger.info(f"检查点已保存: {path}")
             return True
         except Exception as e:
@@ -125,10 +135,11 @@ class Checkpoint:
 
     @classmethod
     def load(cls, filepath: Union[str, Path]) -> Optional['Checkpoint']:
-        """加载检查点"""
+        """加载检查点（JSON格式）"""
         try:
-            with open(filepath, 'rb') as f:
-                checkpoint = pickle.load(f)
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            checkpoint = cls.from_dict(data)
             logger.info(f"检查点已加载: {filepath}")
             return checkpoint
         except Exception as e:
@@ -325,18 +336,18 @@ class ForgeDAN_Engine:
             return cached_response
 
         # 熔断器检查
-        if not self._circuit_breaker.can_execute():
+        if not self._circuit_breaker.allow_request():
             logger.warning("熔断器开启，跳过LLM查询")
             return "[Circuit Breaker Open]"
 
         try:
             self.total_queries += 1
             response = self.target_llm(prompt)
-            self._circuit_breaker.record_success()
+            self._circuit_breaker._record_success()
             self._response_cache.set(prompt, response)
             return response
         except Exception as e:
-            self._circuit_breaker.record_failure()
+            self._circuit_breaker._record_failure(e)
             logger.error(f"LLM查询失败: {e}")
             raise
 
@@ -396,7 +407,7 @@ class ForgeDAN_Engine:
                 candidate.response = self._query_llm(candidate.prompt)
             candidate.fitness = self.fitness_evaluator.calculate(
                 candidate.response, target_output
-            )
+            ).score
             return candidate
 
         if parallel and len(candidates) > 1:
@@ -429,7 +440,7 @@ class ForgeDAN_Engine:
                     candidate.response = await self._query_llm_async(candidate.prompt)
                 candidate.fitness = self.fitness_evaluator.calculate(
                     candidate.response, target_output
-                )
+                ).score
                 return candidate
 
         tasks = [evaluate_single(c) for c in candidates]
@@ -747,7 +758,9 @@ class ForgeDAN_Engine:
                 break
 
             # 越狱判断
-            is_jailbreak, details = self.judge.judge(best_candidate.response, goal)
+            judge_result = self.judge.judge(best_candidate.response, goal)
+            is_jailbreak = judge_result.is_jailbreak
+            details = judge_result.details
 
             if is_jailbreak:
                 logger.info(f"成功! 在第 {gen + 1} 代找到越狱提示")
@@ -921,7 +934,8 @@ class ForgeDAN_Engine:
                     break
 
                 # 越狱判断
-                is_jailbreak, _ = self.judge.judge(best_candidate.response, goal)
+                judge_result = self.judge.judge(best_candidate.response, goal)
+                is_jailbreak = judge_result.is_jailbreak
                 if is_jailbreak:
                     logger.info(f"成功! 在第 {gen + 1} 代找到越狱提示")
                     return EvolutionResult(

@@ -20,6 +20,9 @@ from . import defense
 # Multimodal 模块 (多模态攻击)
 from . import multimodal
 
+# WebScan 模块 (网站安全测试)
+from . import webscan
+
 __version__ = "1.2.0"
 __all__ = [
     # 配置
@@ -45,4 +48,6 @@ __all__ = [
     "defense",
     # Multimodal
     "multimodal",
+    # WebScan
+    "webscan",
 ]

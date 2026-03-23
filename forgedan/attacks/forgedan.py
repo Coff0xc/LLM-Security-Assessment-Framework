@@ -38,6 +38,40 @@ class ForgeDanAttack(BaseAttack):
     
     name = "ForgeDAN"
     description = "进化算法驱动的黑盒越狱攻击"
+
+    @classmethod
+    def get_info_static(cls) -> Dict[str, Any]:
+        return {
+            'name': cls.name,
+            'description': cls.description,
+            'paper': 'FORGEDAN: An Evolutionary Framework for Jailbreaking Aligned Large Language Models',
+            'type': 'evolutionary',
+        }
+
+    @classmethod
+    def get_params_schema(cls) -> Dict[str, Any]:
+        return {
+            'type': 'object',
+            'properties': {
+                'population_size': {
+                    'type': 'integer', 'default': 10,
+                    'description': '种群大小',
+                },
+                'max_iterations': {
+                    'type': 'integer', 'default': 20,
+                    'description': '最大迭代次数',
+                },
+                'elite_size': {
+                    'type': 'integer', 'default': 2,
+                    'description': '精英个体数量',
+                },
+                'mutation_rate': {
+                    'type': 'number', 'default': 0.3,
+                    'description': '变异概率',
+                    'minimum': 0.0, 'maximum': 1.0,
+                },
+            },
+        }
     
     def __init__(
         self,

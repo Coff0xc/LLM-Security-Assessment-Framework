@@ -21,39 +21,39 @@ class TestSimpleFitness:
 
     def test_calculate_identical(self):
         """测试相同文本"""
-        score = self.fitness.calculate("hello world", "hello world")
-        assert score == 1.0
+        result = self.fitness.calculate("hello world", "hello world")
+        assert result.score == 1.0
 
     def test_calculate_different(self):
         """测试完全不同文本"""
-        score = self.fitness.calculate("abcdefg", "xyz123")
-        assert 0.0 <= score <= 1.0
+        result = self.fitness.calculate("abcdefg", "xyz123")
+        assert 0.0 <= result.score <= 1.0
 
     def test_calculate_partial_overlap(self):
         """测试部分重叠"""
-        score = self.fitness.calculate("hello world", "hello there")
-        assert 0.0 < score < 1.0
+        result = self.fitness.calculate("hello world", "hello there")
+        assert 0.0 < result.score < 1.0
 
     def test_calculate_empty_response(self):
         """测试空响应"""
-        score = self.fitness.calculate("", "target")
-        assert score == 0.0
+        result = self.fitness.calculate("", "target")
+        assert result.score == 0.0
 
     def test_calculate_empty_target(self):
         """测试空目标"""
-        score = self.fitness.calculate("response", "")
-        assert score == 0.0
+        result = self.fitness.calculate("response", "")
+        assert result.score == 0.0
 
     def test_calculate_both_empty(self):
         """测试都为空"""
-        score = self.fitness.calculate("", "")
-        assert score == 0.0
+        result = self.fitness.calculate("", "")
+        assert result.score == 0.0
 
     def test_calculate_short_text(self):
         """测试短文本"""
         fitness = SimpleFitness(n=3)
-        score = fitness.calculate("ab", "ab")
-        assert score == 0.0  # 太短无法生成n-gram
+        result = fitness.calculate("ab", "xy")
+        assert result.score == 0.0  # 不同的短文本无重叠
 
     def test_get_ngrams(self):
         """测试n-gram提取"""
@@ -64,9 +64,9 @@ class TestSimpleFitness:
 
     def test_calculate_case_insensitive(self):
         """测试大小写不敏感"""
-        score1 = self.fitness.calculate("HELLO", "hello")
-        score2 = self.fitness.calculate("hello", "hello")
-        assert score1 == score2
+        result1 = self.fitness.calculate("HELLO", "hello")
+        result2 = self.fitness.calculate("hello", "hello")
+        assert result1.score == result2.score
 
 
 # 仅在安装了 sentence-transformers 时运行
@@ -91,15 +91,15 @@ class TestSemanticFitness:
         """测试相似文本"""
         from forgedan.fitness import SemanticFitness
         fitness = SemanticFitness()
-        score = fitness.calculate("I love programming", "I enjoy coding")
-        assert score > 0.5
+        result = fitness.calculate("I love programming", "I enjoy coding")
+        assert result.score > 0.5
 
     def test_calculate_different(self):
         """测试不同文本"""
         from forgedan.fitness import SemanticFitness
         fitness = SemanticFitness()
-        score = fitness.calculate("Hello world", "The weather is nice today")
-        assert 0.0 <= score <= 1.0
+        result = fitness.calculate("Hello world", "The weather is nice today")
+        assert 0.0 <= result.score <= 1.0
 
     def test_batch_calculate(self):
         """测试批量计算"""

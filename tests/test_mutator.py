@@ -208,7 +208,7 @@ class TestMutator:
     def test_initialization(self):
         """测试初始化"""
         mutator = Mutator()
-        assert len(mutator.strategies) == 8
+        assert len(mutator.strategies) == 15
 
     def test_mutate_single(self):
         """测试单次变异"""
@@ -228,7 +228,7 @@ class TestMutator:
         """测试获取策略名称"""
         mutator = Mutator()
         names = mutator.get_strategy_names()
-        assert len(names) == 8
+        assert len(names) == 15
         assert "homoglyph_substitution" in names
         assert "synonym_replacement" in names
 

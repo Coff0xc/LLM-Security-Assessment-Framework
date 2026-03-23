@@ -15,6 +15,11 @@ flask-limiter>=3.0.0
 # 可选: OpenAI API 支持
 openai>=1.0.0
 
+# 网站测试
+httpx>=0.24.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
 # 工具库
 tqdm>=4.60.0
 pydantic>=2.0.0
