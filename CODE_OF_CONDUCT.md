@@ -20,7 +20,7 @@ We pledge to make participation in our project a harassment-free experience for 
 
 ## Enforcement
 
-Instances of abusive behavior may be reported to the project team at conduct@coff0xc.xyz. All complaints will be reviewed and investigated.
+Instances of abusive behavior may be reported to the project team at https://github.com/Coff0xc/LLM-Security-Assessment-Framework/issues. All complaints will be reviewed and investigated.
 
 ## Attribution
 

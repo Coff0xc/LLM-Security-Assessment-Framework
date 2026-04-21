@@ -362,7 +362,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## Security
 
-For security vulnerabilities, please see [SECURITY.md](SECURITY.md) or email security@coff0xc.xyz.
+For security vulnerabilities, please see [SECURITY.md](SECURITY.md) or use [GitHub Security Advisories](https://github.com/Coff0xc/LLM-Security-Assessment-Framework/security/advisories/new).
 
 **Disclaimer**: This tool is designed for authorized security testing and research purposes only. Always obtain proper authorization before testing any system. The authors are not responsible for any misuse.
 
