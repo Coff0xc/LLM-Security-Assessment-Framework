@@ -3,6 +3,7 @@
 # FORGEDAN
 
 ### Report-first LLM Security Assessment Framework
+### 面向报告交付的 LLM 安全评估框架
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -12,8 +13,11 @@
 [![Report Pack](https://img.shields.io/badge/report%20pack-schema%20verified-2ea44f.svg)]()
 
 **Reproducible suites | Evidence-rich report packs | QA receipts | Archive verification**
+**可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
 
-[Quick Start](#quick-start) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development)
+[English](README.md) · [简体中文](README.zh-CN.md)
+
+[Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development)
 
 </div>
 
@@ -25,22 +29,28 @@
 
 The framework still includes evolutionary jailbreak attacks, model adapters, WebScan utilities, a REST API, and a Vue dashboard. The primary project goal, however, is **assessment report production and handoff confidence**, not a commercial security platform.
 
+**中文对照**：FORGEDAN 现在的核心定位是“生成可审计、可复核、可交接的 LLM 安全评估报告”。它保留越狱攻击、模型适配器、WebScan、REST API 和 Vue 仪表盘，但项目重点不是商业化平台，而是让评估团队能稳定产出带证据、带风险登记、带 QA 回执、带归档校验的报告交付物。
+
 ### Key Capabilities
 
-| Category | Features |
-|----------|----------|
-| **Report Suites** | YAML suite definitions, inline or imported cases, replay caches, deterministic seeds, policy gates, preflight readiness checks |
-| **Report Artifacts** | Markdown/HTML reports, executive summaries, evidence CSVs, case matrices, risk registers, coverage summaries, release notes, public bundle indexes |
-| **Evidence Integrity** | JSON Schemas, artifact manifests, SHA256/size checks, cross-artifact consistency checks, redacted-publication leak checks |
-| **Handoff QA** | QA receipt JSON/Markdown, acceptance criteria, reviewer decisions, owner/due-date tracking, strict handoff CI gates |
-| **Assessment Coverage** | Prompt injection, jailbreak roleplay, system prompt leakage, secrets/PII exposure, Agent/MCP/tool policy risk, model artifact and serialization signals |
-| **Baseline Engine** | FORGEDAN, AutoDAN, PAIR, GCG, Crescendo, TAP, model adapters, WebScan, CLI, REST API, Vue dashboard |
+| Category | Features | 中文对照 |
+|----------|----------|----------|
+| **Report Suites** | YAML suite definitions, inline or imported cases, replay caches, deterministic seeds, policy gates, preflight readiness checks | YAML 套件、内联/导入用例、响应缓存、确定性种子、策略门禁、运行前预检 |
+| **Report Artifacts** | Markdown/HTML reports, executive summaries, evidence CSVs, case matrices, risk registers, coverage summaries, release notes, public bundle indexes | Markdown/HTML 报告、执行摘要、证据矩阵、用例矩阵、风险登记、覆盖率摘要、发布说明、交付索引 |
+| **Evidence Integrity** | JSON Schemas, artifact manifests, SHA256/size checks, cross-artifact consistency checks, redacted-publication leak checks | JSON Schema、制品清单、SHA256/大小校验、跨制品一致性校验、脱敏发布泄漏检查 |
+| **Handoff QA** | QA receipt JSON/Markdown, acceptance criteria, reviewer decisions, owner/due-date tracking, strict handoff CI gates | QA 回执、验收准则、评审决策、风险 owner/到期日、严格交接 CI 门禁 |
+| **Assessment Coverage** | Prompt injection, jailbreak roleplay, system prompt leakage, secrets/PII exposure, Agent/MCP/tool policy risk, model artifact and serialization signals | Prompt Injection、越狱角色扮演、系统提示泄漏、敏感信息/PII、Agent/MCP/工具策略风险、模型制品与序列化信号 |
+| **Baseline Engine** | FORGEDAN, AutoDAN, PAIR, GCG, Crescendo, TAP, model adapters, WebScan, CLI, REST API, Vue dashboard | FORGEDAN/AutoDAN/PAIR/GCG/Crescendo/TAP、模型适配器、WebScan、CLI、REST API、Vue 仪表盘 |
 
 ### Repository About
 
 Use this wording for the GitHub repository sidebar:
 
 > Report-first LLM security assessment framework for reproducible red-team suites, evidence packs, QA receipts, schemas, and archive verification.
+
+中文：
+
+> 面向报告交付的 LLM 安全评估框架，用于生成可复现红队套件、证据包、QA 回执、Schema 合约和可校验归档。
 
 Suggested topics:
 
@@ -71,6 +81,25 @@ docs/                     # Landscape scan, lint roadmap, and repository metadat
 tests/                    # Pytest coverage for suite/report/scanner/schema behavior
 frontend/                 # Vue 3 SPA dashboard
 ```
+
+---
+
+## Screenshots
+
+The screenshots below are generated from `examples/ready-for-handoff-suite.yml`
+and show the repository's current report-delivery workflow.
+
+### Report Pack Overview
+
+![Report pack overview](docs/screenshots/report-overview.png)
+
+### QA Receipt
+
+![QA receipt handoff readiness](docs/screenshots/qa-receipt.png)
+
+### Archive Verification
+
+![Archive verification](docs/screenshots/archive-verification.png)
 
 ---
 
