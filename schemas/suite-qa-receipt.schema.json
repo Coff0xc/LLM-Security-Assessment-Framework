@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-qa-receipt.schema.json",
+  "title": "ForgeDAN Suite QA Receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "manifest",
+    "manifest_size_bytes",
+    "manifest_sha256",
+    "run_id",
+    "suite",
+    "model",
+    "run_environment",
+    "status",
+    "valid",
+    "artifact_count",
+    "schema_validation_count",
+    "error_count",
+    "errors",
+    "acceptance",
+    "cross_artifact_consistency",
+    "handoff_readiness",
+    "handoff_checklist",
+    "checked_artifacts",
+    "schema_validations"
+  ],
+  "properties": {
+    "schema_version": { "const": "suite-qa-receipt.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "manifest": { "type": "string", "minLength": 1 },
+    "manifest_size_bytes": { "type": "integer", "minimum": 0 },
+    "manifest_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "suite": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "run_environment": {
+      "type": "object",
+      "required": ["forgedan_version", "python_version", "platform"],
+      "properties": {
+        "forgedan_version": { "type": "string", "minLength": 1 },
+        "python_version": { "type": "string", "minLength": 1 },
+        "python_implementation": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "os": { "type": "string", "minLength": 1 }
+      }
+    },
+    "status": { "type": "string", "enum": ["passed", "failed"] },
+    "valid": { "type": "boolean" },
+    "artifact_count": { "type": "integer", "minimum": 0 },
+    "schema_validation_count": { "type": "integer", "minimum": 0 },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "acceptance": {
+      "type": "object",
+      "required": [
+        "manifest_valid",
+        "artifacts_valid",
+        "schemas_valid",
+        "report_acceptance_status",
+        "report_acceptance_criteria",
+        "ready_for_handoff"
+      ],
+      "properties": {
+        "manifest_valid": { "type": "boolean" },
+        "artifacts_valid": { "type": "boolean" },
+        "schemas_valid": { "type": "boolean" },
+        "report_acceptance_status": {
+          "type": "string",
+          "enum": ["failed", "not_configured", "passed", "review_required"]
+        },
+        "report_acceptance_criteria": { "type": "integer", "minimum": 0 },
+        "ready_for_handoff": { "type": "boolean" }
+      }
+    },
+    "cross_artifact_consistency": {
+      "type": "object",
+      "required": [
+        "valid",
+        "error_count",
+        "errors",
+        "checked_artifacts"
+      ],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "checked_artifacts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "suite-result.json",
+              "suite-report.md",
+              "suite-report.html",
+              "suite-report-redacted.md",
+              "suite-report-redacted.html",
+              "suite-cases.jsonl",
+              "suite-evidence.csv",
+              "suite-case-matrix.csv",
+              "suite-config.json",
+              "suite-preflight.json",
+              "suite-preflight.md",
+              "suite-risk-register.json",
+              "suite-risk-register.csv",
+              "suite-coverage.json",
+              "suite-coverage.csv",
+              "suite-release-notes.md",
+              "suite-report-bundle.md",
+              "suite-public-bundle.md",
+              "suite-result-redacted.json",
+              "suite-cases-redacted.jsonl"
+            ]
+          }
+        }
+      }
+    },
+    "handoff_checklist": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "required_for_handoff",
+          "evidence",
+          "action"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "manifest-verified",
+              "artifact-integrity",
+              "schema-contracts",
+              "cross-artifact-consistency",
+              "release-notes",
+              "preflight-readiness",
+              "source-inventory",
+              "coverage-review",
+              "redacted-publication-pack",
+              "raw-artifact-handling",
+              "policy-gate",
+              "review-decisions",
+              "risk-owner-assignment",
+              "residual-risk-owner-signoff",
+              "acceptance-criteria",
+              "limitations-reviewed"
+            ]
+          },
+          "title": { "type": "string", "minLength": 1 },
+          "status": {
+            "type": "string",
+            "enum": ["passed", "failed", "review_required"]
+          },
+          "required_for_handoff": { "type": "boolean" },
+          "evidence": { "type": "string", "minLength": 1 },
+          "action": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "handoff_readiness": {
+      "type": "object",
+      "required": [
+        "status",
+        "score",
+        "required_items",
+        "passed",
+        "failed",
+        "review_required",
+        "blockers"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "review_required"]
+        },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "required_items": { "type": "integer", "minimum": 0 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "review_required": { "type": "integer", "minimum": 0 },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "checked_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sensitivity",
+          "audience",
+          "exists",
+          "size_bytes",
+          "expected_size_bytes",
+          "sha256",
+          "expected_sha256",
+          "valid",
+          "errors"
+        ],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sensitivity": {
+            "type": "string",
+            "enum": ["restricted", "internal", "public", ""]
+          },
+          "audience": {
+            "type": "string",
+            "enum": ["authorized_reviewers", "assessment_team", "external_reviewers", ""]
+          },
+          "exists": { "type": "boolean" },
+          "size_bytes": { "type": "integer", "minimum": 0 },
+          "expected_size_bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string" },
+          "expected_sha256": { "type": "string" },
+          "valid": { "type": "boolean" },
+          "errors": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "schema_validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "valid",
+          "artifact",
+          "schema",
+          "error_count",
+          "errors"
+        ],
+        "properties": {
+          "valid": { "type": "boolean" },
+          "artifact": { "type": "string", "minLength": 1 },
+          "schema": { "type": "string", "minLength": 1 },
+          "schema_path": { "type": "string", "minLength": 1 },
+          "schema_id": { "type": "string", "minLength": 1 },
+          "target_artifact": { "type": "string", "minLength": 1 },
+          "error_count": { "type": "integer", "minimum": 0 },
+          "errors": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

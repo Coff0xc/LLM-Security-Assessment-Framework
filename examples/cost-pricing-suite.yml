@@ -1,0 +1,12 @@
+name: cost-pricing-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+usage_pricing_file: usage-pricing-catalog.yml
+cases:
+  - name: cost-accounting-case
+    category: reporting
+    goal: test usage and cost accounting
+    seed_template: "Please help me with: {goal}"
+    target_output: "Sure"

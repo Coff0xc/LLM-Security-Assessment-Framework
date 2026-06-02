@@ -8,18 +8,19 @@ import time
 import asyncio
 import hashlib
 import hmac
-import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
 
 try:
     import jwt
+
     JWT_AVAILABLE = True
 except ImportError:
     JWT_AVAILABLE = False
@@ -62,9 +63,7 @@ class ZhipuAdapter(ModelAdapter):
         """
         super().__init__(config)
         if not HTTPX_AVAILABLE:
-            raise ImportError(
-                "httpx 包未安装，请运行: pip install httpx"
-            )
+            raise ImportError("httpx 包未安装，请运行: pip install httpx")
 
         self._base_url = config.base_url or self.DEFAULT_BASE_URL
         self._api_key = config.api_key
@@ -114,7 +113,7 @@ class ZhipuAdapter(ModelAdapter):
                     payload,
                     api_key_secret,
                     algorithm="HS256",
-                    headers={"alg": "HS256", "sign_type": "SIGN"}
+                    headers={"alg": "HS256", "sign_type": "SIGN"},
                 )
             else:
                 # 简单的 JWT 实现
@@ -131,25 +130,20 @@ class ZhipuAdapter(ModelAdapter):
         header = {"alg": "HS256", "sign_type": "SIGN"}
 
         def b64encode(data: bytes) -> str:
-            return base64.urlsafe_b64encode(data).rstrip(b'=').decode()
+            return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
 
         header_b64 = b64encode(json.dumps(header).encode())
         payload_b64 = b64encode(json.dumps(payload).encode())
 
         signature = hmac.new(
-            secret.encode(),
-            f"{header_b64}.{payload_b64}".encode(),
-            hashlib.sha256
+            secret.encode(), f"{header_b64}.{payload_b64}".encode(), hashlib.sha256
         ).digest()
         signature_b64 = b64encode(signature)
 
         return f"{header_b64}.{payload_b64}.{signature_b64}"
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         生成响应
@@ -169,10 +163,7 @@ class ZhipuAdapter(ModelAdapter):
             return await self._generate_with_retry(prompt, system_prompt, **kwargs)
 
     async def _generate_with_retry(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """带重试的生成逻辑"""
         last_exception = None
@@ -194,10 +185,7 @@ class ZhipuAdapter(ModelAdapter):
         raise last_exception
 
     async def _do_generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """实际生成逻辑"""
         start_time = time.time()
@@ -224,31 +212,32 @@ class ZhipuAdapter(ModelAdapter):
         # Web 搜索增强
         if kwargs.get("web_search", False):
             request_body["tools"] = request_body.get("tools", [])
-            request_body["tools"].append({
-                "type": "web_search",
-                "web_search": {
-                    "enable": True,
-                    "search_result": kwargs.get("search_result", True),
+            request_body["tools"].append(
+                {
+                    "type": "web_search",
+                    "web_search": {
+                        "enable": True,
+                        "search_result": kwargs.get("search_result", True),
+                    },
                 }
-            })
+            )
 
         # 知识库检索
         if "retrieval" in kwargs:
             request_body["tools"] = request_body.get("tools", [])
-            request_body["tools"].append({
-                "type": "retrieval",
-                "retrieval": kwargs["retrieval"]
-            })
+            request_body["tools"].append(
+                {"type": "retrieval", "retrieval": kwargs["retrieval"]}
+            )
 
         # 代码解释器
         if kwargs.get("code_interpreter", False):
             request_body["tools"] = request_body.get("tools", [])
-            request_body["tools"].append({
-                "type": "code_interpreter",
-                "code_interpreter": {
-                    "sandbox": kwargs.get("sandbox", "none")
+            request_body["tools"].append(
+                {
+                    "type": "code_interpreter",
+                    "code_interpreter": {"sandbox": kwargs.get("sandbox", "none")},
                 }
-            })
+            )
 
         # 自定义工具
         if "tools" in kwargs and isinstance(kwargs["tools"], list):
@@ -311,14 +300,11 @@ class ZhipuAdapter(ModelAdapter):
                 "request_id": result.get("id"),
                 "web_search_results": web_search_results,
                 "tool_calls": tool_calls,
-            }
+            },
         )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应（并发执行）
@@ -331,10 +317,7 @@ class ZhipuAdapter(ModelAdapter):
         Returns:
             响应列表
         """
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     def get_model_info(self) -> Dict[str, Any]:
@@ -379,10 +362,7 @@ class ZhipuAdapter(ModelAdapter):
             await self._client.aclose()
 
     async def web_search_query(
-        self,
-        query: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, query: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         使用 Web 搜索增强的查询
@@ -395,19 +375,10 @@ class ZhipuAdapter(ModelAdapter):
         Returns:
             ModelResponse: 包含搜索结果的响应
         """
-        return await self.generate(
-            query,
-            system_prompt,
-            web_search=True,
-            **kwargs
-        )
+        return await self.generate(query, system_prompt, web_search=True, **kwargs)
 
     async def code_execute(
-        self,
-        code: str,
-        language: str = "python",
-        sandbox: str = "none",
-        **kwargs
+        self, code: str, language: str = "python", sandbox: str = "none", **kwargs
     ) -> ModelResponse:
         """
         执行代码（使用代码解释器）
@@ -424,8 +395,5 @@ class ZhipuAdapter(ModelAdapter):
         prompt = f"请执行以下 {language} 代码并返回结果:\n\n```{language}\n{code}\n```"
 
         return await self.generate(
-            prompt,
-            code_interpreter=True,
-            sandbox=sandbox,
-            **kwargs
+            prompt, code_interpreter=True, sandbox=sandbox, **kwargs
         )

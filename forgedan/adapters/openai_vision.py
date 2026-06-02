@@ -14,17 +14,17 @@ from typing import Any, Dict, List, Optional
 
 try:
     from openai import AsyncOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
 
-from .base import ModelConfig, ModelResponse
+from .base import ModelConfig
 from .multimodal_base import (
     MultimodalAdapter,
     MultimodalResponse,
     MultimodalMessage,
     ImageInput,
-    ImageDetail,
     VisionCapabilities,
     estimate_image_tokens,
 )
@@ -80,7 +80,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
         prompt: str,
         images: List[ImageInput],
         system_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> MultimodalResponse:
         """
         使用图像生成响应
@@ -103,17 +103,11 @@ class OpenAIVisionAdapter(MultimodalAdapter):
             messages = []
 
             if system_prompt:
-                messages.append({
-                    "role": "system",
-                    "content": system_prompt
-                })
+                messages.append({"role": "system", "content": system_prompt})
 
             # 构建用户消息内容
             user_content = self._build_user_content(prompt, images, **kwargs)
-            messages.append({
-                "role": "user",
-                "content": user_content
-            })
+            messages.append({"role": "user", "content": user_content})
 
             # API 参数
             params = self._build_api_params(messages, **kwargs)
@@ -124,8 +118,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
 
                 # 估算图像 token
                 image_tokens = sum(
-                    estimate_image_tokens(img, self.config.model)
-                    for img in images
+                    estimate_image_tokens(img, self.config.model) for img in images
                 )
 
                 return MultimodalResponse(
@@ -133,7 +126,9 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                     model=response.model,
                     provider="openai",
                     prompt_tokens=response.usage.prompt_tokens if response.usage else 0,
-                    completion_tokens=response.usage.completion_tokens if response.usage else 0,
+                    completion_tokens=(
+                        response.usage.completion_tokens if response.usage else 0
+                    ),
                     total_tokens=response.usage.total_tokens if response.usage else 0,
                     latency=latency,
                     image_tokens=image_tokens,
@@ -145,7 +140,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                     vision_metadata={
                         "detail_level": kwargs.get("detail", "auto"),
                         "image_count": len(images),
-                    }
+                    },
                 )
 
             except Exception as e:
@@ -158,9 +153,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                 )
 
     async def generate_from_messages(
-        self,
-        messages: List[MultimodalMessage],
-        **kwargs
+        self, messages: List[MultimodalMessage], **kwargs
     ) -> MultimodalResponse:
         """
         从多模态消息列表生成响应
@@ -181,30 +174,21 @@ class OpenAIVisionAdapter(MultimodalAdapter):
 
             for msg in messages:
                 if msg.role == "system":
-                    api_messages.append({
-                        "role": "system",
-                        "content": msg.text or ""
-                    })
+                    api_messages.append({"role": "system", "content": msg.text or ""})
                 elif msg.role == "user":
                     if msg.has_images():
                         content = self._build_user_content(
-                            msg.text or "",
-                            msg.images,
-                            **kwargs
+                            msg.text or "", msg.images, **kwargs
                         )
                         total_images += len(msg.images)
                     else:
                         content = msg.text or ""
 
-                    api_messages.append({
-                        "role": "user",
-                        "content": content
-                    })
+                    api_messages.append({"role": "user", "content": content})
                 elif msg.role == "assistant":
-                    api_messages.append({
-                        "role": "assistant",
-                        "content": msg.text or ""
-                    })
+                    api_messages.append(
+                        {"role": "assistant", "content": msg.text or ""}
+                    )
 
             # API 参数
             params = self._build_api_params(api_messages, **kwargs)
@@ -216,8 +200,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                 # 收集所有图像用于 token 估算
                 all_images = [img for msg in messages for img in msg.images]
                 image_tokens = sum(
-                    estimate_image_tokens(img, self.config.model)
-                    for img in all_images
+                    estimate_image_tokens(img, self.config.model) for img in all_images
                 )
 
                 return MultimodalResponse(
@@ -225,7 +208,9 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                     model=response.model,
                     provider="openai",
                     prompt_tokens=response.usage.prompt_tokens if response.usage else 0,
-                    completion_tokens=response.usage.completion_tokens if response.usage else 0,
+                    completion_tokens=(
+                        response.usage.completion_tokens if response.usage else 0
+                    ),
                     total_tokens=response.usage.total_tokens if response.usage else 0,
                     latency=latency,
                     image_tokens=image_tokens,
@@ -237,7 +222,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                     },
                     vision_metadata={
                         "total_images": total_images,
-                    }
+                    },
                 )
 
             except Exception as e:
@@ -250,20 +235,14 @@ class OpenAIVisionAdapter(MultimodalAdapter):
                 )
 
     def _build_user_content(
-        self,
-        text: str,
-        images: List[ImageInput],
-        **kwargs
+        self, text: str, images: List[ImageInput], **kwargs
     ) -> List[Dict[str, Any]]:
         """构建用户消息内容"""
         content = []
 
         # 添加文本
         if text:
-            content.append({
-                "type": "text",
-                "text": text
-            })
+            content.append({"type": "text", "text": text})
 
         # 添加图像
         detail = kwargs.get("detail", self._default_detail.value)
@@ -277,9 +256,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
         return content
 
     def _build_api_params(
-        self,
-        messages: List[Dict[str, Any]],
-        **kwargs
+        self, messages: List[Dict[str, Any]], **kwargs
     ) -> Dict[str, Any]:
         """构建 API 调用参数"""
         params = {
@@ -331,7 +308,7 @@ class OpenAIVisionAdapter(MultimodalAdapter):
         self,
         image: ImageInput,
         question: str = "Describe this image in detail.",
-        detail: str = "auto"
+        detail: str = "auto",
     ) -> str:
         """
         分析图像的便捷方法
@@ -345,16 +322,14 @@ class OpenAIVisionAdapter(MultimodalAdapter):
             str: 分析结果
         """
         response = await self.generate_with_images(
-            prompt=question,
-            images=[image],
-            detail=detail
+            prompt=question, images=[image], detail=detail
         )
         return response.content
 
     async def compare_images(
         self,
         images: List[ImageInput],
-        comparison_prompt: str = "Compare these images and describe the differences."
+        comparison_prompt: str = "Compare these images and describe the differences.",
     ) -> str:
         """
         比较多张图像
@@ -367,16 +342,12 @@ class OpenAIVisionAdapter(MultimodalAdapter):
             str: 比较结果
         """
         response = await self.generate_with_images(
-            prompt=comparison_prompt,
-            images=images,
-            detail="high"
+            prompt=comparison_prompt, images=images, detail="high"
         )
         return response.content
 
     async def extract_text_from_image(
-        self,
-        image: ImageInput,
-        language: str = "any"
+        self, image: ImageInput, language: str = "any"
     ) -> str:
         """
         从图像中提取文本（OCR）
@@ -390,19 +361,14 @@ class OpenAIVisionAdapter(MultimodalAdapter):
         """
         prompt = f"Extract all text visible in this image. Language hint: {language}"
         response = await self.generate_with_images(
-            prompt=prompt,
-            images=[image],
-            detail="high"
+            prompt=prompt, images=[image], detail="high"
         )
         return response.content
 
 
 # 工厂函数
 def create_openai_vision_adapter(
-    api_key: str,
-    model: str = "gpt-4o",
-    base_url: Optional[str] = None,
-    **kwargs
+    api_key: str, model: str = "gpt-4o", base_url: Optional[str] = None, **kwargs
 ) -> OpenAIVisionAdapter:
     """
     创建 OpenAI Vision 适配器
@@ -440,6 +406,7 @@ if __name__ == "__main__":
     # 如果有 API key，运行简单测试
     api_key = os.environ.get("OPENAI_API_KEY")
     if api_key:
+
         async def test():
             adapter = create_openai_vision_adapter(api_key)
             print(f"模型信息: {adapter.get_model_info()}")

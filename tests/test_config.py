@@ -8,6 +8,15 @@ from pydantic import ValidationError
 from forgedan.config import ForgeDanConfig
 
 
+def test_root_package_import_does_not_eager_load_optional_webscan():
+    """导入核心包时不应强制加载 WebScan 可选依赖。"""
+    import sys
+    import forgedan
+
+    assert forgedan.ForgeDanConfig is ForgeDanConfig
+    assert "forgedan.webscan" not in sys.modules
+
+
 class TestForgeDanConfig:
     """配置类测试"""
 
@@ -22,11 +31,7 @@ class TestForgeDanConfig:
 
     def test_custom_values(self):
         """测试自定义值"""
-        config = ForgeDanConfig(
-            max_iterations=50,
-            population_size=20,
-            elite_size=5
-        )
+        config = ForgeDanConfig(max_iterations=50, population_size=20, elite_size=5)
         assert config.max_iterations == 50
         assert config.population_size == 20
         assert config.elite_size == 5
@@ -34,10 +39,7 @@ class TestForgeDanConfig:
     def test_elite_size_validation(self):
         """测试精英数验证"""
         with pytest.raises(ValidationError):
-            ForgeDanConfig(
-                population_size=10,
-                elite_size=15  # 大于种群大小
-            )
+            ForgeDanConfig(population_size=10, elite_size=15)  # 大于种群大小
 
     def test_max_iterations_range(self):
         """测试迭代次数范围"""
@@ -91,7 +93,7 @@ class TestForgeDanConfig:
         config = ForgeDanConfig(
             target_api_url="https://api.example.com",
             target_api_key="test-key",
-            target_model="gpt-4"
+            target_model="gpt-4",
         )
         assert config.target_api_url == "https://api.example.com"
         assert config.target_api_key == "test-key"

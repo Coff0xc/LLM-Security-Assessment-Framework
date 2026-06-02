@@ -19,27 +19,18 @@ class TestModelConfig:
 
     def test_basic_config(self):
         """测试基本配置"""
-        config = ModelConfig(
-            provider=ModelProvider.MOCK,
-            model="test-model"
-        )
+        config = ModelConfig(provider=ModelProvider.MOCK, model="test-model")
         assert config.provider == ModelProvider.MOCK
         assert config.model == "test-model"
 
     def test_string_provider(self):
         """测试字符串提供商"""
-        config = ModelConfig(
-            provider="mock",
-            model="test-model"
-        )
+        config = ModelConfig(provider="mock", model="test-model")
         assert config.provider == ModelProvider.MOCK
 
     def test_default_values(self):
         """测试默认值"""
-        config = ModelConfig(
-            provider=ModelProvider.MOCK,
-            model="test"
-        )
+        config = ModelConfig(provider=ModelProvider.MOCK, model="test")
         assert config.timeout == 60
         assert config.max_retries == 3
         assert config.temperature == 1.0
@@ -50,22 +41,14 @@ class TestModelResponse:
 
     def test_basic_response(self):
         """测试基本响应"""
-        response = ModelResponse(
-            content="Hello",
-            model="test-model",
-            provider="mock"
-        )
+        response = ModelResponse(content="Hello", model="test-model", provider="mock")
         assert response.content == "Hello"
         assert response.model == "test-model"
         assert response.provider == "mock"
 
     def test_default_values(self):
         """测试默认值"""
-        response = ModelResponse(
-            content="Test",
-            model="model",
-            provider="mock"
-        )
+        response = ModelResponse(content="Test", model="model", provider="mock")
         assert response.prompt_tokens == 0
         assert response.completion_tokens == 0
         assert response.latency == 0.0
@@ -80,10 +63,7 @@ class TestMockAdapter:
         config = ModelConfig(
             provider=ModelProvider.MOCK,
             model="mock-model",
-            extra_params={
-                "refusal_rate": 0.5,
-                "response_delay": 0.01
-            }
+            extra_params={"refusal_rate": 0.5, "response_delay": 0.01},
         )
         return MockAdapter(config)
 
@@ -100,8 +80,7 @@ class TestMockAdapter:
         """测试带系统提示的生成"""
         async with adapter:
             response = await adapter.generate(
-                "Hello",
-                system_prompt="You are a helpful assistant."
+                "Hello", system_prompt="You are a helpful assistant."
             )
             assert isinstance(response, ModelResponse)
 
@@ -140,10 +119,7 @@ class TestModelAdapterFactory:
 
     def test_create_mock_adapter(self):
         """测试创建Mock适配器"""
-        config = ModelConfig(
-            provider=ModelProvider.MOCK,
-            model="test"
-        )
+        config = ModelConfig(provider=ModelProvider.MOCK, model="test")
         adapter = ModelAdapterFactory.create(config)
         assert isinstance(adapter, MockAdapter)
 
@@ -155,8 +131,7 @@ class TestModelAdapterFactory:
     def test_create_from_string_with_params(self):
         """测试带参数的字符串创建"""
         adapter = ModelAdapterFactory.create_from_string(
-            "mock:test-model",
-            extra_params={"refusal_rate": 0.8}
+            "mock:test-model", extra_params={"refusal_rate": 0.8}
         )
         assert adapter.config.extra_params.get("refusal_rate") == 0.8
 

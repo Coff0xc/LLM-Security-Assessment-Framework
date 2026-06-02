@@ -14,7 +14,6 @@ import asyncio
 import hashlib
 import json
 import time
-import math
 from collections import OrderedDict
 from pathlib import Path
 from typing import TypeVar, Callable, Any, Optional, Dict, Generic, List
@@ -29,24 +28,26 @@ from .exceptions import (
     APIError,
     RateLimitError,
     TimeoutError,
-    CacheError,
 )
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 # ============ 熔断器状态枚举 ============
 
+
 class CircuitState(Enum):
     """熔断器状态"""
-    CLOSED = "closed"      # 正常工作
-    OPEN = "open"          # 熔断，拒绝请求
+
+    CLOSED = "closed"  # 正常工作
+    OPEN = "open"  # 熔断，拒绝请求
     HALF_OPEN = "half_open"  # 半开，允许部分请求
 
 
 @dataclass
 class CircuitBreakerStats:
     """熔断器统计"""
+
     total_calls: int = 0
     successful_calls: int = 0
     failed_calls: int = 0
@@ -82,7 +83,7 @@ class CircuitBreaker:
         recovery_timeout: float = 30.0,
         half_open_max_calls: int = 3,
         success_threshold: int = 2,
-        excluded_exceptions: tuple = ()
+        excluded_exceptions: tuple = (),
     ):
         """
         初始化熔断器
@@ -115,8 +116,10 @@ class CircuitBreaker:
         """获取当前状态（考虑超时自动转换）"""
         with self._lock:
             if self._state == CircuitState.OPEN:
-                if self._last_failure_time and \
-                   time.time() - self._last_failure_time >= self.recovery_timeout:
+                if (
+                    self._last_failure_time
+                    and time.time() - self._last_failure_time >= self.recovery_timeout
+                ):
                     self._transition_to(CircuitState.HALF_OPEN)
             return self._state
 
@@ -132,11 +135,13 @@ class CircuitBreaker:
             self._failure_count = 0
 
         # 记录状态变化
-        self._stats.state_changes.append({
-            'from': old_state.value,
-            'to': new_state.value,
-            'time': datetime.now().isoformat()
-        })
+        self._stats.state_changes.append(
+            {
+                "from": old_state.value,
+                "to": new_state.value,
+                "time": datetime.now().isoformat(),
+            }
+        )
 
         logger.info(f"熔断器状态变化: {old_state.value} -> {new_state.value}")
 
@@ -192,15 +197,18 @@ class CircuitBreaker:
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
         return {
-            'state': self.state.value,
-            'total_calls': self._stats.total_calls,
-            'successful_calls': self._stats.successful_calls,
-            'failed_calls': self._stats.failed_calls,
-            'rejected_calls': self._stats.rejected_calls,
-            'failure_count': self._failure_count,
-            'success_rate': self._stats.successful_calls / self._stats.total_calls
-                           if self._stats.total_calls > 0 else 0,
-            'state_changes': self._stats.state_changes[-10:]  # 最近10次状态变化
+            "state": self.state.value,
+            "total_calls": self._stats.total_calls,
+            "successful_calls": self._stats.successful_calls,
+            "failed_calls": self._stats.failed_calls,
+            "rejected_calls": self._stats.rejected_calls,
+            "failure_count": self._failure_count,
+            "success_rate": (
+                self._stats.successful_calls / self._stats.total_calls
+                if self._stats.total_calls > 0
+                else 0
+            ),
+            "state_changes": self._stats.state_changes[-10:],  # 最近10次状态变化
         }
 
     def reset(self):
@@ -214,6 +222,7 @@ class CircuitBreaker:
 
     def __call__(self, func: Callable) -> Callable:
         """装饰器用法"""
+
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             if not self.allow_request():
@@ -247,6 +256,7 @@ class CircuitBreaker:
 
 # ============ 重试机制 ============
 
+
 async def retry_with_backoff(
     func: Callable[..., T],
     max_retries: int = 3,
@@ -254,7 +264,7 @@ async def retry_with_backoff(
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
     exceptions: tuple = (Exception,),
-    circuit_breaker: Optional[CircuitBreaker] = None
+    circuit_breaker: Optional[CircuitBreaker] = None,
 ) -> T:
     """
     带指数退避的重试函数（支持熔断器）
@@ -297,8 +307,8 @@ async def retry_with_backoff(
                 raise
 
             # 计算延迟时间（带抖动）
-            jitter = 0.1 * base_delay * (backoff_factor ** attempt)
-            delay = min(base_delay * (backoff_factor ** attempt), max_delay)
+            jitter = 0.1 * base_delay * (backoff_factor**attempt)
+            delay = min(base_delay * (backoff_factor**attempt), max_delay)
             delay += jitter * (0.5 - time.time() % 1)  # 添加随机抖动
 
             # 如果是速率限制错误，使用服务器建议的等待时间
@@ -316,7 +326,7 @@ def async_retry(
     base_delay: float = 1.0,
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
-    circuit_breaker: Optional[CircuitBreaker] = None
+    circuit_breaker: Optional[CircuitBreaker] = None,
 ):
     """
     异步重试装饰器（支持熔断器）
@@ -335,6 +345,7 @@ def async_retry(
         async def call_api():
             ...
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -344,14 +355,22 @@ def async_retry(
                 base_delay=base_delay,
                 max_delay=max_delay,
                 backoff_factor=backoff_factor,
-                exceptions=(APIError, TimeoutError, asyncio.TimeoutError, ConnectionError),
-                circuit_breaker=circuit_breaker
+                exceptions=(
+                    APIError,
+                    TimeoutError,
+                    asyncio.TimeoutError,
+                    ConnectionError,
+                ),
+                circuit_breaker=circuit_breaker,
             )
+
         return wrapper
+
     return decorator
 
 
 # ============ LRU 缓存实现 (增强版) ============
+
 
 class LRUCache(Generic[T]):
     """
@@ -377,10 +396,7 @@ class LRUCache(Generic[T]):
     """
 
     def __init__(
-        self,
-        max_size: int = 1000,
-        ttl: Optional[float] = None,
-        name: str = "default"
+        self, max_size: int = 1000, ttl: Optional[float] = None, name: str = "default"
     ):
         """
         初始化 LRU 缓存
@@ -393,7 +409,9 @@ class LRUCache(Generic[T]):
         self.max_size = max_size
         self.ttl = ttl
         self.name = name
-        self._cache: OrderedDict[str, tuple] = OrderedDict()  # key -> (value, timestamp, access_count)
+        self._cache: OrderedDict[str, tuple] = (
+            OrderedDict()
+        )  # key -> (value, timestamp, access_count)
         self._lock = Lock()
 
         # 增强统计信息
@@ -411,7 +429,7 @@ class LRUCache(Generic[T]):
 
         使用 SHA256 哈希确保键的唯一性和稳定性
         """
-        return hashlib.sha256(key.encode('utf-8')).hexdigest()
+        return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
     def _is_expired(self, timestamp: float) -> bool:
         """检查条目是否过期"""
@@ -491,7 +509,9 @@ class LRUCache(Generic[T]):
             # 添加新条目
             self._cache[cache_key] = (value, timestamp, 0)
 
-    def get_or_set(self, key: str, factory: Callable[[], T], ttl: Optional[float] = None) -> T:
+    def get_or_set(
+        self, key: str, factory: Callable[[], T], ttl: Optional[float] = None
+    ) -> T:
         """
         获取值，如果不存在则使用工厂函数创建并缓存
 
@@ -615,17 +635,19 @@ class LRUCache(Generic[T]):
         with self._lock:
             total = self._hits + self._misses
             hit_rate = self._hits / total if total > 0 else 0.0
-            avg_access_time = self._total_access_time / self._access_count if self._access_count > 0 else 0.0
+            avg_access_time = (
+                self._total_access_time / self._access_count
+                if self._access_count > 0
+                else 0.0
+            )
             uptime = time.time() - self._created_at
 
             # 计算热点键
             hot_keys = []
             for key, (_, _, access_count) in sorted(
-                self._cache.items(),
-                key=lambda x: x[1][2],
-                reverse=True
+                self._cache.items(), key=lambda x: x[1][2], reverse=True
             )[:5]:
-                hot_keys.append({'key': key[:16] + '...', 'access_count': access_count})
+                hot_keys.append({"key": key[:16] + "...", "access_count": access_count})
 
             return {
                 "name": self.name,
@@ -640,7 +662,7 @@ class LRUCache(Generic[T]):
                 "avg_access_time_ms": avg_access_time * 1000,
                 "ttl": self.ttl,
                 "uptime_seconds": uptime,
-                "hot_keys": hot_keys
+                "hot_keys": hot_keys,
             }
 
     def __len__(self) -> int:
@@ -673,30 +695,32 @@ class LRUCache(Generic[T]):
                 for key, (value, timestamp, access_count) in self._cache.items():
                     if not self._is_expired(timestamp):
                         valid_entries[key] = {
-                            'value': value,
-                            'timestamp': timestamp,
-                            'access_count': access_count
+                            "value": value,
+                            "timestamp": timestamp,
+                            "access_count": access_count,
                         }
 
                 data = {
-                    'name': self.name,
-                    'max_size': self.max_size,
-                    'ttl': self.ttl,
-                    'entries': valid_entries,
-                    'stats': {
-                        'hits': self._hits,
-                        'misses': self._misses,
-                        'evictions': self._evictions,
-                        'expired': self._expired
+                    "name": self.name,
+                    "max_size": self.max_size,
+                    "ttl": self.ttl,
+                    "entries": valid_entries,
+                    "stats": {
+                        "hits": self._hits,
+                        "misses": self._misses,
+                        "evictions": self._evictions,
+                        "expired": self._expired,
                     },
-                    'saved_at': datetime.now().isoformat()
+                    "saved_at": datetime.now().isoformat(),
                 }
 
             Path(filepath).parent.mkdir(parents=True, exist_ok=True)
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
-            logger.info(f"缓存 '{self.name}' 已保存到 {filepath}，共 {len(valid_entries)} 条")
+            logger.info(
+                f"缓存 '{self.name}' 已保存到 {filepath}，共 {len(valid_entries)} 条"
+            )
             return True
 
         except Exception as e:
@@ -718,34 +742,34 @@ class LRUCache(Generic[T]):
                 logger.debug(f"缓存文件不存在: {filepath}")
                 return False
 
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             with self._lock:
                 # 加载配置
-                self.max_size = data.get('max_size', self.max_size)
-                self.ttl = data.get('ttl', self.ttl)
-                self.name = data.get('name', self.name)
+                self.max_size = data.get("max_size", self.max_size)
+                self.ttl = data.get("ttl", self.ttl)
+                self.name = data.get("name", self.name)
 
                 # 加载统计
-                stats = data.get('stats', {})
-                self._hits = stats.get('hits', 0)
-                self._misses = stats.get('misses', 0)
-                self._evictions = stats.get('evictions', 0)
-                self._expired = stats.get('expired', 0)
+                stats = data.get("stats", {})
+                self._hits = stats.get("hits", 0)
+                self._misses = stats.get("misses", 0)
+                self._evictions = stats.get("evictions", 0)
+                self._expired = stats.get("expired", 0)
 
                 # 加载条目（过滤过期的）
                 self._cache.clear()
-                entries = data.get('entries', {})
+                entries = data.get("entries", {})
                 loaded_count = 0
 
                 for key, entry in entries.items():
-                    timestamp = entry.get('timestamp', 0)
+                    timestamp = entry.get("timestamp", 0)
                     if not self._is_expired(timestamp):
                         self._cache[key] = (
-                            entry['value'],
+                            entry["value"],
                             timestamp,
-                            entry.get('access_count', 0)
+                            entry.get("access_count", 0),
                         )
                         loaded_count += 1
 
@@ -757,7 +781,13 @@ class LRUCache(Generic[T]):
             return False
 
     @classmethod
-    def from_file(cls, filepath: str, max_size: int = 1000, ttl: Optional[float] = None, name: str = "default") -> 'LRUCache':
+    def from_file(
+        cls,
+        filepath: str,
+        max_size: int = 1000,
+        ttl: Optional[float] = None,
+        name: str = "default",
+    ) -> "LRUCache":
         """
         从文件创建缓存实例
 
@@ -777,6 +807,7 @@ class LRUCache(Generic[T]):
 
 # ============ 速率限制器 ============
 
+
 class RateLimiter:
     """
     令牌桶速率限制器（增强版）
@@ -790,9 +821,7 @@ class RateLimiter:
     """
 
     def __init__(
-        self,
-        requests_per_second: float = 10.0,
-        burst_size: Optional[int] = None
+        self, requests_per_second: float = 10.0, burst_size: Optional[int] = None
     ):
         """
         初始化速率限制器
@@ -834,8 +863,7 @@ class RateLimiter:
 
                 # 补充令牌
                 self._tokens = min(
-                    self.burst_size,
-                    self._tokens + elapsed * self.requests_per_second
+                    self.burst_size, self._tokens + elapsed * self.requests_per_second
                 )
 
                 if self._tokens >= tokens:
@@ -861,8 +889,7 @@ class RateLimiter:
         self._last_update = now
 
         self._tokens = min(
-            self.burst_size,
-            self._tokens + elapsed * self.requests_per_second
+            self.burst_size, self._tokens + elapsed * self.requests_per_second
         )
 
         if self._tokens >= tokens:
@@ -880,16 +907,21 @@ class RateLimiter:
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
         return {
-            'requests_per_second': self.requests_per_second,
-            'burst_size': self.burst_size,
-            'current_tokens': self._tokens,
-            'total_acquired': self._total_acquired,
-            'total_waited_seconds': self._total_waited,
-            'avg_wait_time': self._total_waited / self._total_acquired if self._total_acquired > 0 else 0
+            "requests_per_second": self.requests_per_second,
+            "burst_size": self.burst_size,
+            "current_tokens": self._tokens,
+            "total_acquired": self._total_acquired,
+            "total_waited_seconds": self._total_waited,
+            "avg_wait_time": (
+                self._total_waited / self._total_acquired
+                if self._total_acquired > 0
+                else 0
+            ),
         }
 
 
 # ============ 请求去重器 ============
+
 
 class RequestDeduplicator:
     """
@@ -971,20 +1003,23 @@ class RequestDeduplicator:
         Returns:
             请求的哈希值
         """
-        content = json.dumps([args, sorted(kwargs.items())], sort_keys=True, default=str)
+        content = json.dumps(
+            [args, sorted(kwargs.items())], sort_keys=True, default=str
+        )
         return hashlib.md5(content.encode()).hexdigest()
 
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
         return {
-            'window_seconds': self.window,
-            'current_entries': len(self._requests),
-            'max_entries': self.max_entries,
-            'duplicates_blocked': self._duplicates_blocked
+            "window_seconds": self.window,
+            "current_entries": len(self._requests),
+            "max_entries": self.max_entries,
+            "duplicates_blocked": self._duplicates_blocked,
         }
 
 
 # ============ 辅助函数 ============
+
 
 def truncate_string(s: str, max_length: int = 100, suffix: str = "...") -> str:
     """
@@ -1000,7 +1035,7 @@ def truncate_string(s: str, max_length: int = 100, suffix: str = "...") -> str:
     """
     if len(s) <= max_length:
         return s
-    return s[:max_length - len(suffix)] + suffix
+    return s[: max_length - len(suffix)] + suffix
 
 
 def safe_json_serialize(obj: Any) -> Any:
@@ -1027,7 +1062,7 @@ def safe_json_serialize(obj: Any) -> Any:
 
 def compute_hash(content: str) -> str:
     """计算内容的哈希值"""
-    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
 def format_duration(seconds: float) -> str:

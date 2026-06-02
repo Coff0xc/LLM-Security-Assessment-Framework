@@ -11,19 +11,13 @@ FORGEDAN 分布式工作节点模块
 """
 
 import asyncio
-import json
-import os
-import platform
 import signal
-import sys
 import time
 import uuid
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from dataclasses import dataclass, field
-from multiprocessing import cpu_count, Process, Queue
-from pathlib import Path
+from dataclasses import dataclass
+from multiprocessing import cpu_count, Process
 from typing import Optional, List, Dict, Any, Callable
-import threading
 
 from .config import WorkerConfig
 
@@ -31,7 +25,8 @@ from .config import WorkerConfig
 @dataclass
 class WorkerState:
     """工作节点状态"""
-    status: str = "idle"                    # idle / running / stopping
+
+    status: str = "idle"  # idle / running / stopping
     current_tasks: int = 0
     total_completed: int = 0
     total_failed: int = 0
@@ -120,13 +115,16 @@ class DistributedWorker:
         # 创建 HTTP 会话
         try:
             import aiohttp
+
             self._session = aiohttp.ClientSession()
         except ImportError:
             print("[Worker] 警告: aiohttp 未安装")
             raise ImportError("需要安装 aiohttp: pip install aiohttp")
 
         # 创建线程池
-        self._thread_pool = ThreadPoolExecutor(max_workers=self.config.max_concurrent_tasks)
+        self._thread_pool = ThreadPoolExecutor(
+            max_workers=self.config.max_concurrent_tasks
+        )
 
         # 注册到协调器
         success = await self._register()
@@ -156,11 +154,15 @@ class DistributedWorker:
 
         # 等待当前任务完成（优雅退出）
         if self._current_tasks:
-            print(f"[Worker {self.worker_name}] 等待 {len(self._current_tasks)} 个任务完成...")
+            print(
+                f"[Worker {self.worker_name}] 等待 {len(self._current_tasks)} 个任务完成..."
+            )
             try:
                 await asyncio.wait_for(
-                    asyncio.gather(*self._current_tasks.values(), return_exceptions=True),
-                    timeout=self.config.graceful_shutdown_timeout
+                    asyncio.gather(
+                        *self._current_tasks.values(), return_exceptions=True
+                    ),
+                    timeout=self.config.graceful_shutdown_timeout,
                 )
             except asyncio.TimeoutError:
                 print(f"[Worker {self.worker_name}] 超时，强制停止任务")
@@ -333,7 +335,6 @@ class DistributedWorker:
             else:
                 # 使用默认引擎
                 from forgedan import ForgeDAN_Engine, ForgeDanConfig
-                from forgedan.adapters import ModelAdapterFactory
 
                 config = ForgeDanConfig()
                 engine = ForgeDAN_Engine(config=config, enable_logging=False)
@@ -341,6 +342,7 @@ class DistributedWorker:
                 # 使用 Mock 模式（实际使用时应配置真实 LLM）
                 def mock_llm(prompt: str) -> str:
                     import random
+
                     if random.random() < 0.7:
                         return "I cannot help with that request."
                     return f"Sure, here is how to {prompt[:30]}..."
@@ -351,7 +353,8 @@ class DistributedWorker:
             async def progress_callback(progress_data: Dict[str, Any]):
                 await self._report_progress(
                     task_id=task_id,
-                    progress=progress_data.get("current_generation", 0) / progress_data.get("max_generations", 1),
+                    progress=progress_data.get("current_generation", 0)
+                    / progress_data.get("max_generations", 1),
                     current_generation=progress_data.get("current_generation", 0),
                     best_fitness=progress_data.get("best_fitness", 0.0),
                 )
@@ -367,10 +370,7 @@ class DistributedWorker:
                 )
 
             loop = asyncio.get_event_loop()
-            evolution_result = await loop.run_in_executor(
-                self._thread_pool,
-                run_engine
-            )
+            evolution_result = await loop.run_in_executor(self._thread_pool, run_engine)
 
             success = evolution_result.success
             result = {
@@ -385,6 +385,7 @@ class DistributedWorker:
 
         except Exception as e:
             import traceback
+
             error = f"{str(e)}\n{traceback.format_exc()}"
             print(f"[Worker {self.worker_name}] 任务执行失败: {e}")
 
@@ -405,7 +406,9 @@ class DistributedWorker:
         else:
             self._state.total_failed += 1
 
-        print(f"[Worker {self.worker_name}] 任务完成: {task_id[:8]} ({'成功' if success else '失败'}) 耗时: {duration:.1f}s")
+        print(
+            f"[Worker {self.worker_name}] 任务完成: {task_id[:8]} ({'成功' if success else '失败'}) 耗时: {duration:.1f}s"
+        )
 
     async def _report_progress(
         self,
@@ -429,10 +432,10 @@ class DistributedWorker:
             if self.config.coordinator_token:
                 headers["Authorization"] = f"Bearer {self.config.coordinator_token}"
 
-            async with self._session.post(url, json=data, headers=headers) as resp:
+            async with self._session.post(url, json=data, headers=headers):
                 pass  # 忽略响应
 
-        except Exception as e:
+        except Exception:
             pass  # 进度上报失败不影响任务执行
 
     async def _report_result(
@@ -487,6 +490,7 @@ class DistributedWorker:
         """获取 CPU 使用率"""
         try:
             import psutil
+
             return psutil.cpu_percent() / 100.0
         except ImportError:
             return 0.0
@@ -495,6 +499,7 @@ class DistributedWorker:
         """获取内存使用率"""
         try:
             import psutil
+
             return psutil.virtual_memory().percent / 100.0
         except ImportError:
             return 0.0
@@ -509,7 +514,9 @@ class DistributedWorker:
             "max_concurrent": self.config.max_concurrent_tasks,
             "total_completed": self._state.total_completed,
             "total_failed": self._state.total_failed,
-            "uptime": time.time() - self._state.start_time if self._state.start_time else 0,
+            "uptime": (
+                time.time() - self._state.start_time if self._state.start_time else 0
+            ),
             "cpu_usage": self._state.cpu_usage,
             "memory_usage": self._state.memory_usage,
         }

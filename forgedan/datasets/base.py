@@ -10,6 +10,7 @@ from enum import Enum
 
 class HarmCategory(str, Enum):
     """有害内容类别"""
+
     VIOLENCE = "violence"  # 暴力
     HATE_SPEECH = "hate_speech"  # 仇恨言论
     ILLEGAL_ACTIVITY = "illegal_activity"  # 非法活动
@@ -25,6 +26,7 @@ class HarmCategory(str, Enum):
 @dataclass
 class DatasetSample:
     """数据集样本"""
+
     goal: str  # 恶意目标/请求
     target: Optional[str] = None  # 期望的有害响应（可选）
     category: Optional[HarmCategory] = None  # 类别
@@ -41,7 +43,11 @@ class DatasetSample:
         if self.target is not None:
             result["target"] = self.target
         if self.category is not None:
-            result["category"] = self.category.value if isinstance(self.category, HarmCategory) else self.category
+            result["category"] = (
+                self.category.value
+                if isinstance(self.category, HarmCategory)
+                else self.category
+            )
         if self.severity is not None:
             result["severity"] = self.severity
         if self.metadata:
@@ -52,6 +58,7 @@ class DatasetSample:
 @dataclass
 class DatasetMetadata:
     """数据集元数据"""
+
     name: str
     version: str
     description: str
@@ -110,16 +117,20 @@ class Dataset(ABC):
         """按类别过滤"""
         return [s for s in self.get_samples() if s.category == category]
 
-    def filter_by_severity(self, min_severity: int, max_severity: int = 5) -> List[DatasetSample]:
+    def filter_by_severity(
+        self, min_severity: int, max_severity: int = 5
+    ) -> List[DatasetSample]:
         """按严重程度过滤"""
         return [
-            s for s in self.get_samples()
+            s
+            for s in self.get_samples()
             if s.severity and min_severity <= s.severity <= max_severity
         ]
 
     def sample(self, n: int, seed: Optional[int] = None) -> List[DatasetSample]:
         """随机采样"""
         import random
+
         if seed is not None:
             random.seed(seed)
         samples = self.get_samples()

@@ -7,7 +7,6 @@
 
 from typing import Dict, Type, List, Any, Optional
 
-
 ATTACK_REGISTRY: Dict[str, Type] = {}
 
 
@@ -44,12 +43,18 @@ def list_attacks() -> List[Dict[str, Any]]:
     """
     result = []
     for name, cls in ATTACK_REGISTRY.items():
-        info = cls.get_info_static() if hasattr(cls, 'get_info_static') else {
-            'name': getattr(cls, 'name', name),
-            'description': getattr(cls, 'description', ''),
-        }
-        result.append({
-            'name': name,
-            'info': info,
-        })
+        info = (
+            cls.get_info_static()
+            if hasattr(cls, "get_info_static")
+            else {
+                "name": getattr(cls, "name", name),
+                "description": getattr(cls, "description", ""),
+            }
+        )
+        result.append(
+            {
+                "name": name,
+                "info": info,
+            }
+        )
     return result

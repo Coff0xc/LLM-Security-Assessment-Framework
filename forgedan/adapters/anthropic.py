@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     from anthropic import AsyncAnthropic
+
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
@@ -30,10 +31,7 @@ class AnthropicAdapter(ModelAdapter):
         )
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """生成单个响应"""
         start_time = time.time()
@@ -67,21 +65,16 @@ class AnthropicAdapter(ModelAdapter):
             metadata={
                 "stop_reason": response.stop_reason,
                 "response_id": response.id,
-            }
+            },
         )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """批量生成响应"""
         import asyncio
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks)
 
     def get_model_info(self) -> Dict[str, Any]:

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-comparison.schema.json",
+  "title": "ForgeDAN Suite Comparison",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "baseline_run_id",
+    "current_run_id",
+    "baseline_name",
+    "current_name",
+    "deltas",
+    "policy_domain_deltas",
+    "policy_passed_changed",
+    "regression_count",
+    "regressions"
+  ],
+  "properties": {
+    "baseline_run_id": { "type": "string" },
+    "current_run_id": { "type": "string" },
+    "baseline_name": { "type": "string" },
+    "current_name": { "type": "string" },
+    "deltas": {
+      "type": "object",
+      "required": ["attack_success_rate", "prompt_findings", "response_findings", "max_risk_score"]
+    },
+    "policy_domain_deltas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["policy_domain", "baseline", "current", "delta"],
+        "properties": {
+          "policy_domain": { "type": "string", "minLength": 1 },
+          "baseline": { "type": "integer", "minimum": 0 },
+          "current": { "type": "integer", "minimum": 0 },
+          "delta": { "type": "integer" }
+        }
+      }
+    },
+    "policy_passed_changed": { "type": "boolean" },
+    "regression_count": { "type": "integer", "minimum": 0 },
+    "regressions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["case", "metric", "baseline", "current"]
+      }
+    }
+  }
+}

@@ -23,41 +23,41 @@ from .crescendo import CrescendoAttack, CrescendoConfig
 from .registry import ATTACK_REGISTRY, register_attack, get_attack, list_attacks
 
 # 注册所有攻击方法
-register_attack('forgedan', ForgeDanAttack)
-register_attack('autodan', AutoDANAttack)
-register_attack('pair', PAIRAttack)
-register_attack('gcg', GCGAttack)
-register_attack('crescendo', CrescendoAttack)
-register_attack('tap', TAPAttack)
+register_attack("forgedan", ForgeDanAttack)
+register_attack("autodan", AutoDANAttack)
+register_attack("pair", PAIRAttack)
+register_attack("gcg", GCGAttack)
+register_attack("crescendo", CrescendoAttack)
+register_attack("tap", TAPAttack)
 
 __all__ = [
     # 基类
-    'BaseAttack',
-    'AttackResult',
-    'AttackConfig',
+    "BaseAttack",
+    "AttackResult",
+    "AttackConfig",
     # ForgeDAN
-    'ForgeDanAttack',
-    'ForgeDanConfig',
+    "ForgeDanAttack",
+    "ForgeDanConfig",
     # PAIR
-    'PAIRAttack',
-    'PAIRConfig',
+    "PAIRAttack",
+    "PAIRConfig",
     # GCG
-    'GCGAttack',
-    'GCGConfig',
+    "GCGAttack",
+    "GCGConfig",
     # AutoDAN
-    'AutoDANAttack',
-    'AutoDANConfig',
+    "AutoDANAttack",
+    "AutoDANConfig",
     # TAP
-    'TAPAttack',
-    'TAPConfig',
+    "TAPAttack",
+    "TAPConfig",
     # Crescendo
-    'CrescendoAttack',
-    'CrescendoConfig',
+    "CrescendoAttack",
+    "CrescendoConfig",
     # 注册表
-    'ATTACK_REGISTRY',
-    'register_attack',
-    'get_attack',
-    'list_attacks',
+    "ATTACK_REGISTRY",
+    "register_attack",
+    "get_attack",
+    "list_attacks",
 ]
 
 
@@ -76,6 +76,6 @@ def get_attack_class(name: str) -> type:
     """
     cls = get_attack(name)
     if cls is None:
-        available = ', '.join(ATTACK_REGISTRY.keys())
+        available = ", ".join(ATTACK_REGISTRY.keys())
         raise ValueError(f"未知的攻击方法: {name}. 可用的方法: {available}")
     return cls

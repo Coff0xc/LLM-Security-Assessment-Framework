@@ -26,36 +26,37 @@ from typing import (
 from enum import Enum
 from collections import Counter
 
-from .training_data_generator import TrainingSample, SampleType, ResponseType
+from .training_data_generator import TrainingSample, SampleType
 
 
 @dataclass
 class DatasetConfig:
     """数据集配置"""
+
     # 基本信息
     name: str = "safety_dataset"
     version: str = "1.0.0"
     description: str = ""
 
     # 质量过滤
-    min_prompt_length: int = 10           # 最小提示长度
-    max_prompt_length: int = 4096         # 最大提示长度
-    min_response_length: int = 5          # 最小响应长度
-    max_response_length: int = 4096       # 最大响应长度
+    min_prompt_length: int = 10  # 最小提示长度
+    max_prompt_length: int = 4096  # 最大提示长度
+    min_response_length: int = 5  # 最小响应长度
+    max_response_length: int = 4096  # 最大响应长度
 
     # 去重设置
-    enable_dedup: bool = True              # 启用去重
-    dedup_method: str = "hash"             # 去重方法 (hash, similarity)
-    similarity_threshold: float = 0.95     # 相似度阈值 (用于similarity方法)
+    enable_dedup: bool = True  # 启用去重
+    dedup_method: str = "hash"  # 去重方法 (hash, similarity)
+    similarity_threshold: float = 0.95  # 相似度阈值 (用于similarity方法)
 
     # 平衡设置
-    balance_by_type: bool = False          # 按类型平衡
-    balance_by_category: bool = False      # 按类别平衡
-    max_samples_per_category: int = 1000   # 每类别最大样本数
+    balance_by_type: bool = False  # 按类型平衡
+    balance_by_category: bool = False  # 按类别平衡
+    max_samples_per_category: int = 1000  # 每类别最大样本数
 
     # 验证设置
-    validate_format: bool = True           # 验证格式
-    validate_content: bool = True          # 验证内容
+    validate_format: bool = True  # 验证格式
+    validate_content: bool = True  # 验证内容
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
@@ -65,6 +66,7 @@ class DatasetConfig:
 @dataclass
 class DatasetStats:
     """数据集统计信息"""
+
     total_samples: int = 0
     unique_samples: int = 0
     duplicates_removed: int = 0
@@ -113,8 +115,16 @@ class QualityFilter:
 
         # 必须包含的拒绝关键词 (用于验证拒绝响应)
         self.refusal_keywords = [
-            "cannot", "can't", "unable", "won't", "refuse",
-            "inappropriate", "harmful", "不能", "无法", "抱歉"
+            "cannot",
+            "can't",
+            "unable",
+            "won't",
+            "refuse",
+            "inappropriate",
+            "harmful",
+            "不能",
+            "无法",
+            "抱歉",
         ]
 
     def filter_by_length(self, sample: TrainingSample) -> bool:
@@ -235,7 +245,9 @@ class Deduplicator:
         content = f"{sample.prompt}|{sample.response}"
         return hashlib.md5(content.encode()).hexdigest()
 
-    def _compute_similarity(self, sample1: TrainingSample, sample2: TrainingSample) -> float:
+    def _compute_similarity(
+        self, sample1: TrainingSample, sample2: TrainingSample
+    ) -> float:
         """
         计算两个样本的相似度
 
@@ -252,7 +264,11 @@ class Deduplicator:
 
         return intersection / union if union > 0 else 0.0
 
-    def is_duplicate(self, sample: TrainingSample, existing_samples: Optional[List[TrainingSample]] = None) -> bool:
+    def is_duplicate(
+        self,
+        sample: TrainingSample,
+        existing_samples: Optional[List[TrainingSample]] = None,
+    ) -> bool:
         """
         检查是否重复
 
@@ -282,7 +298,9 @@ class Deduplicator:
 
         return False
 
-    def deduplicate(self, samples: List[TrainingSample]) -> Tuple[List[TrainingSample], int]:
+    def deduplicate(
+        self, samples: List[TrainingSample]
+    ) -> Tuple[List[TrainingSample], int]:
         """
         对样本列表去重
 
@@ -324,7 +342,7 @@ class CategoryBalancer:
     def balance_by_type(
         self,
         samples: List[TrainingSample],
-        target_distribution: Optional[Dict[str, float]] = None
+        target_distribution: Optional[Dict[str, float]] = None,
     ) -> List[TrainingSample]:
         """
         按样本类型平衡
@@ -353,7 +371,9 @@ class CategoryBalancer:
 
         for sample_type, group_samples in groups.items():
             ratio = target_distribution.get(sample_type.value, 1.0 / len(groups))
-            target_count = min(int(total * ratio), len(group_samples), self.max_per_category)
+            target_count = min(
+                int(total * ratio), len(group_samples), self.max_per_category
+            )
 
             if target_count < len(group_samples):
                 selected = random.sample(group_samples, target_count)
@@ -366,9 +386,7 @@ class CategoryBalancer:
         return balanced
 
     def balance_by_category(
-        self,
-        samples: List[TrainingSample],
-        categories: Optional[List[str]] = None
+        self, samples: List[TrainingSample], categories: Optional[List[str]] = None
     ) -> List[TrainingSample]:
         """
         按有害类别平衡
@@ -411,9 +429,7 @@ class CategoryBalancer:
         return balanced
 
     def undersample(
-        self,
-        samples: List[TrainingSample],
-        group_by: str = "sample_type"
+        self, samples: List[TrainingSample], group_by: str = "sample_type"
     ) -> List[TrainingSample]:
         """
         下采样到最小类别大小
@@ -450,9 +466,7 @@ class CategoryBalancer:
         return balanced
 
     def oversample(
-        self,
-        samples: List[TrainingSample],
-        group_by: str = "sample_type"
+        self, samples: List[TrainingSample], group_by: str = "sample_type"
     ) -> List[TrainingSample]:
         """
         上采样到最大类别大小
@@ -484,7 +498,9 @@ class CategoryBalancer:
         for group_samples in groups.values():
             if len(group_samples) < max_count:
                 # 重复采样
-                additional = random.choices(group_samples, k=max_count - len(group_samples))
+                additional = random.choices(
+                    group_samples, k=max_count - len(group_samples)
+                )
                 selected = group_samples + additional
             else:
                 selected = group_samples[:max_count]
@@ -536,7 +552,7 @@ class SafetyDataset:
         self._filter = QualityFilter(self.config)
         self._deduplicator = Deduplicator(
             method=self.config.dedup_method,
-            similarity_threshold=self.config.similarity_threshold
+            similarity_threshold=self.config.similarity_threshold,
         )
         self._balancer = CategoryBalancer(
             max_per_category=self.config.max_samples_per_category
@@ -612,7 +628,9 @@ class SafetyDataset:
 
         # 2. 去重
         if self.config.enable_dedup:
-            unique_samples, duplicates = self._deduplicator.deduplicate(filtered_samples)
+            unique_samples, duplicates = self._deduplicator.deduplicate(
+                filtered_samples
+            )
             self._stats.duplicates_removed = duplicates
         else:
             unique_samples = filtered_samples
@@ -669,10 +687,7 @@ class SafetyDataset:
                 "mean": sum(response_lengths) / len(response_lengths),
             }
 
-    def filter_by(
-        self,
-        predicate: Callable[[TrainingSample], bool]
-    ) -> "SafetyDataset":
+    def filter_by(self, predicate: Callable[[TrainingSample], bool]) -> "SafetyDataset":
         """
         自定义过滤
 
@@ -688,10 +703,7 @@ class SafetyDataset:
         return new_dataset
 
     def sample(
-        self,
-        n: int,
-        stratify_by: Optional[str] = None,
-        seed: Optional[int] = None
+        self, n: int, stratify_by: Optional[str] = None, seed: Optional[int] = None
     ) -> List[TrainingSample]:
         """
         随机采样
@@ -735,7 +747,7 @@ class SafetyDataset:
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
         test_ratio: float = 0.1,
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
     ) -> Tuple["SafetyDataset", "SafetyDataset", "SafetyDataset"]:
         """
         划分数据集
@@ -760,8 +772,8 @@ class SafetyDataset:
         n_val = int(n * val_ratio)
 
         train_samples = shuffled[:n_train]
-        val_samples = shuffled[n_train:n_train + n_val]
-        test_samples = shuffled[n_train + n_val:]
+        val_samples = shuffled[n_train : n_train + n_val]
+        test_samples = shuffled[n_train + n_val :]
 
         train_dataset = SafetyDataset(config=self.config)
         train_dataset.add_samples(train_samples)

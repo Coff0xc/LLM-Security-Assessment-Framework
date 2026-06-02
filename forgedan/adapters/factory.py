@@ -21,8 +21,11 @@
     vision_adapter = ModelAdapterFactory.create_vision_adapter("openai", "gpt-4o", api_key="...")
 """
 
-from typing import Dict, Type, Optional
+from typing import Dict, Optional, TYPE_CHECKING, Type
 from .base import ModelAdapter, ModelConfig, ModelProvider
+
+if TYPE_CHECKING:
+    from .multimodal_base import MultimodalAdapter
 
 # 延迟导入，避免循环依赖和未安装依赖的问题
 _adapter_cache: Dict[ModelProvider, Type[ModelAdapter]] = {}
@@ -46,60 +49,71 @@ def _get_adapter_class(provider: ModelProvider) -> Type[ModelAdapter]:
     try:
         if provider == ModelProvider.OPENAI:
             from .openai import OpenAIAdapter
+
             adapter_class = OpenAIAdapter
 
         elif provider == ModelProvider.ANTHROPIC:
             from .anthropic import AnthropicAdapter
+
             adapter_class = AnthropicAdapter
 
         elif provider == ModelProvider.GEMINI:
             from .gemini import GeminiAdapter
+
             adapter_class = GeminiAdapter
 
         elif provider == ModelProvider.DEEPSEEK:
             from .deepseek import DeepSeekAdapter
+
             adapter_class = DeepSeekAdapter
 
         elif provider == ModelProvider.ZHIPU:
             from .zhipu import ZhipuAdapter
+
             adapter_class = ZhipuAdapter
 
         elif provider == ModelProvider.BAICHUAN:
             from .baichuan import BaichuanAdapter
+
             adapter_class = BaichuanAdapter
 
         elif provider == ModelProvider.QWEN:
             from .qwen import QwenAdapter
+
             adapter_class = QwenAdapter
 
         elif provider == ModelProvider.MOONSHOT:
             from .moonshot import MoonshotAdapter
+
             adapter_class = MoonshotAdapter
 
         elif provider == ModelProvider.YI:
             from .yi import YiAdapter
+
             adapter_class = YiAdapter
 
         elif provider == ModelProvider.OLLAMA:
             from .ollama import OllamaAdapter
+
             adapter_class = OllamaAdapter
 
         elif provider == ModelProvider.VLLM:
             from .vllm import VLLMAdapter
+
             adapter_class = VLLMAdapter
 
         elif provider == ModelProvider.HUGGINGFACE:
             from .huggingface import HuggingFaceAdapter
+
             adapter_class = HuggingFaceAdapter
 
         elif provider == ModelProvider.MOCK:
             from .mock import MockAdapter
+
             adapter_class = MockAdapter
 
     except ImportError as e:
-        raise ImportError(
-            f"无法加载 {provider.value} 适配器，请检查依赖是否安装: {e}"
-        )
+        raise ImportError(f"无法加载 {provider.value} 适配器，请检查依赖是否安装: {e}")
 
     if adapter_class:
         _adapter_cache[provider] = adapter_class
@@ -119,47 +133,39 @@ class ModelAdapterFactory:
         "gpt-3.5-turbo": ModelProvider.OPENAI,
         "o1-preview": ModelProvider.OPENAI,
         "o1-mini": ModelProvider.OPENAI,
-
         # Anthropic 模型
         "claude-3-opus": ModelProvider.ANTHROPIC,
         "claude-3-sonnet": ModelProvider.ANTHROPIC,
         "claude-3-haiku": ModelProvider.ANTHROPIC,
         "claude-3.5-sonnet": ModelProvider.ANTHROPIC,
-
         # Gemini 模型
         "gemini-pro": ModelProvider.GEMINI,
         "gemini-1.5-pro": ModelProvider.GEMINI,
         "gemini-1.5-flash": ModelProvider.GEMINI,
-
         # DeepSeek 模型
         "deepseek-chat": ModelProvider.DEEPSEEK,
         "deepseek-coder": ModelProvider.DEEPSEEK,
         "deepseek-reasoner": ModelProvider.DEEPSEEK,
-
         # 智谱 GLM 模型
         "glm-4": ModelProvider.ZHIPU,
         "glm-4-plus": ModelProvider.ZHIPU,
         "glm-4-air": ModelProvider.ZHIPU,
         "glm-4-flash": ModelProvider.ZHIPU,
         "glm-3-turbo": ModelProvider.ZHIPU,
-
         # 百川模型
         "baichuan2-turbo": ModelProvider.BAICHUAN,
         "baichuan3-turbo": ModelProvider.BAICHUAN,
         "baichuan4": ModelProvider.BAICHUAN,
-
         # 通义千问模型
         "qwen-turbo": ModelProvider.QWEN,
         "qwen-plus": ModelProvider.QWEN,
         "qwen-max": ModelProvider.QWEN,
         "qwen-vl-max": ModelProvider.QWEN,
         "qwen-coder-turbo": ModelProvider.QWEN,
-
         # Moonshot 模型
         "moonshot-v1-8k": ModelProvider.MOONSHOT,
         "moonshot-v1-32k": ModelProvider.MOONSHOT,
         "moonshot-v1-128k": ModelProvider.MOONSHOT,
-
         # 零一万物模型
         "yi-large": ModelProvider.YI,
         "yi-medium": ModelProvider.YI,
@@ -193,8 +199,7 @@ class ModelAdapterFactory:
         if adapter_class is None:
             supported = [p.value for p in ModelProvider]
             raise ValueError(
-                f"不支持的模型提供商: {config.provider}. "
-                f"支持的提供商: {supported}"
+                f"不支持的模型提供商: {config.provider}. " f"支持的提供商: {supported}"
             )
 
         return adapter_class(config)
@@ -235,11 +240,7 @@ class ModelAdapterFactory:
                 # 默认使用 OpenAI
                 provider = ModelProvider.OPENAI
 
-        config = ModelConfig(
-            provider=provider,
-            model=model,
-            **kwargs
-        )
+        config = ModelConfig(provider=provider, model=model, **kwargs)
 
         return cls.create(config)
 
@@ -286,9 +287,7 @@ class ModelAdapterFactory:
 
     @classmethod
     def register_adapter(
-        cls,
-        provider: ModelProvider,
-        adapter_class: Type[ModelAdapter]
+        cls, provider: ModelProvider, adapter_class: Type[ModelAdapter]
     ):
         """
         注册自定义适配器
@@ -319,13 +318,24 @@ class ModelAdapterFactory:
             ModelProvider.OPENAI: {
                 "name": "OpenAI",
                 "website": "https://platform.openai.com",
-                "models": ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-3.5-turbo", "o1-preview"],
+                "models": [
+                    "gpt-4",
+                    "gpt-4-turbo",
+                    "gpt-4o",
+                    "gpt-3.5-turbo",
+                    "o1-preview",
+                ],
                 "features": ["streaming", "function_calling", "vision"],
             },
             ModelProvider.ANTHROPIC: {
                 "name": "Anthropic",
                 "website": "https://console.anthropic.com",
-                "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "claude-3.5-sonnet"],
+                "models": [
+                    "claude-3-opus",
+                    "claude-3-sonnet",
+                    "claude-3-haiku",
+                    "claude-3.5-sonnet",
+                ],
                 "features": ["streaming", "vision"],
             },
             ModelProvider.GEMINI: {
@@ -344,7 +354,12 @@ class ModelAdapterFactory:
                 "name": "智谱 AI",
                 "website": "https://open.bigmodel.cn",
                 "models": ["glm-4", "glm-4-plus", "glm-4-air", "glm-3-turbo"],
-                "features": ["streaming", "web_search", "code_interpreter", "retrieval"],
+                "features": [
+                    "streaming",
+                    "web_search",
+                    "code_interpreter",
+                    "retrieval",
+                ],
             },
             ModelProvider.BAICHUAN: {
                 "name": "百川",
@@ -356,7 +371,12 @@ class ModelAdapterFactory:
                 "name": "通义千问",
                 "website": "https://dashscope.console.aliyun.com",
                 "models": ["qwen-turbo", "qwen-plus", "qwen-max", "qwen-vl-max"],
-                "features": ["streaming", "multimodal", "long_context", "code_generation"],
+                "features": [
+                    "streaming",
+                    "multimodal",
+                    "long_context",
+                    "code_generation",
+                ],
             },
             ModelProvider.MOONSHOT: {
                 "name": "Moonshot (Kimi)",
@@ -384,15 +404,13 @@ class ModelAdapterFactory:
             },
         }
 
-        return info.get(provider, {"name": provider.value, "models": [], "features": []})
+        return info.get(
+            provider, {"name": provider.value, "models": [], "features": []}
+        )
 
     @classmethod
     def create_vision_adapter(
-        cls,
-        provider: str,
-        model: str,
-        api_key: str,
-        **kwargs
+        cls, provider: str, model: str, api_key: str, **kwargs
     ) -> "MultimodalAdapter":
         """
         创建多模态（视觉）适配器
@@ -418,28 +436,23 @@ class ModelAdapterFactory:
 
         if provider_lower == "openai":
             from .openai_vision import OpenAIVisionAdapter
+
             config = ModelConfig(
-                provider=ModelProvider.OPENAI,
-                model=model,
-                api_key=api_key,
-                **kwargs
+                provider=ModelProvider.OPENAI, model=model, api_key=api_key, **kwargs
             )
             return OpenAIVisionAdapter(config)
 
         elif provider_lower == "gemini" or provider_lower == "google":
             from .gemini_vision import GeminiVisionAdapter
+
             config = ModelConfig(
-                provider=ModelProvider.GEMINI,
-                model=model,
-                api_key=api_key,
-                **kwargs
+                provider=ModelProvider.GEMINI, model=model, api_key=api_key, **kwargs
             )
             return GeminiVisionAdapter(config)
 
         else:
             raise ValueError(
-                f"不支持的视觉模型提供商: {provider}. "
-                f"支持: openai, gemini"
+                f"不支持的视觉模型提供商: {provider}. " f"支持: openai, gemini"
             )
 
     @classmethod
@@ -463,4 +476,3 @@ class ModelAdapterFactory:
                 "gemini-1.5-flash",
             ],
         }
-

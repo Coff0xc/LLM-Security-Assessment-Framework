@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Union
 
 try:
     from openai import AsyncOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -54,9 +55,7 @@ class YiAdapter(ModelAdapter):
         """
         super().__init__(config)
         if not OPENAI_AVAILABLE:
-            raise ImportError(
-                "openai 包未安装，请运行: pip install openai"
-            )
+            raise ImportError("openai 包未安装，请运行: pip install openai")
 
         # 设置默认 base_url
         base_url = config.base_url or self.DEFAULT_BASE_URL
@@ -80,7 +79,7 @@ class YiAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         生成响应
@@ -112,10 +111,7 @@ class YiAdapter(ModelAdapter):
         return "vision" in self.config.model.lower()
 
     async def _generate_with_retry(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """带重试的生成逻辑"""
         last_exception = None
@@ -137,10 +133,7 @@ class YiAdapter(ModelAdapter):
         raise last_exception
 
     async def _do_generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """实际生成逻辑"""
         start_time = time.time()
@@ -194,13 +187,11 @@ class YiAdapter(ModelAdapter):
             metadata={
                 "finish_reason": response.choices[0].finish_reason,
                 "response_id": response.id,
-            }
+            },
         )
 
     async def _stream_generate(
-        self,
-        params: Dict[str, Any],
-        start_time: float
+        self, params: Dict[str, Any], start_time: float
     ) -> ModelResponse:
         """流式生成响应"""
         params["stream"] = True
@@ -224,7 +215,7 @@ class YiAdapter(ModelAdapter):
             completion_tokens=0,
             total_tokens=0,
             latency=latency,
-            metadata={"streamed": True}
+            metadata={"streamed": True},
         )
 
     async def _vision_generate(
@@ -232,7 +223,7 @@ class YiAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         视觉模型生成（处理图片输入）
@@ -247,10 +238,7 @@ class YiAdapter(ModelAdapter):
             for img in images:
                 img_url = self._process_image(img)
                 if img_url:
-                    content.append({
-                        "type": "image_url",
-                        "image_url": {"url": img_url}
-                    })
+                    content.append({"type": "image_url", "image_url": {"url": img_url}})
 
         # 添加文本
         content.append({"type": "text", "text": prompt})
@@ -296,7 +284,7 @@ class YiAdapter(ModelAdapter):
                 "finish_reason": response.choices[0].finish_reason,
                 "response_id": response.id,
                 "multimodal": True,
-            }
+            },
         )
 
     def _process_image(self, image: Union[str, bytes, Path]) -> Optional[str]:
@@ -314,7 +302,9 @@ class YiAdapter(ModelAdapter):
                 return f"data:image/jpeg;base64,{base64.b64encode(image).decode()}"
             elif isinstance(image, Path):
                 with open(image, "rb") as f:
-                    return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
+                    return (
+                        f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
+                    )
             elif isinstance(image, str):
                 if image.startswith(("http://", "https://")):
                     return image
@@ -329,10 +319,7 @@ class YiAdapter(ModelAdapter):
             return None
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应（并发执行）
@@ -345,10 +332,7 @@ class YiAdapter(ModelAdapter):
         Returns:
             响应列表
         """
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     def get_model_info(self) -> Dict[str, Any]:
@@ -391,10 +375,7 @@ class YiAdapter(ModelAdapter):
             await self._client.close()
 
     async def rag_query(
-        self,
-        query: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, query: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         使用 RAG 增强的查询
@@ -418,10 +399,7 @@ class YiAdapter(ModelAdapter):
             self.config.model = original_model
 
     async def image_understanding(
-        self,
-        images: List[Union[str, bytes, Path]],
-        question: str,
-        **kwargs
+        self, images: List[Union[str, bytes, Path]], question: str, **kwargs
     ) -> ModelResponse:
         """
         图片理解

@@ -10,6 +10,7 @@ from enum import Enum
 
 class ModelProvider(str, Enum):
     """模型提供商枚举"""
+
     # 国际模型
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
@@ -35,6 +36,7 @@ class ModelProvider(str, Enum):
 @dataclass
 class ModelConfig:
     """模型配置"""
+
     provider: ModelProvider
     model: str
     api_key: Optional[str] = None
@@ -56,6 +58,7 @@ class ModelConfig:
 @dataclass
 class ModelResponse:
     """模型响应"""
+
     content: str
     model: str
     provider: str
@@ -75,10 +78,7 @@ class ModelAdapter(ABC):
 
     @abstractmethod
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         生成单个响应
@@ -95,10 +95,7 @@ class ModelAdapter(ABC):
 
     @abstractmethod
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应

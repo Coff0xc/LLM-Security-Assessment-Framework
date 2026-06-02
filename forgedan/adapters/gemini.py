@@ -13,6 +13,7 @@ from pathlib import Path
 try:
     import google.generativeai as genai
     from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -33,12 +34,16 @@ class GeminiAdapter(ModelAdapter):
     """
 
     # 默认安全设置（宽松模式，用于安全研究）
-    DEFAULT_SAFETY_SETTINGS = {
-        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-    } if GEMINI_AVAILABLE else {}
+    DEFAULT_SAFETY_SETTINGS = (
+        {
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+        if GEMINI_AVAILABLE
+        else {}
+    )
 
     def __init__(self, config: ModelConfig):
         """
@@ -58,8 +63,7 @@ class GeminiAdapter(ModelAdapter):
 
         # 获取安全设置
         self._safety_settings = config.extra_params.get(
-            "safety_settings",
-            self.DEFAULT_SAFETY_SETTINGS
+            "safety_settings", self.DEFAULT_SAFETY_SETTINGS
         )
 
         # 创建模型实例
@@ -88,7 +92,7 @@ class GeminiAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         生成响应
@@ -114,7 +118,7 @@ class GeminiAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """带重试的生成逻辑"""
         last_exception = None
@@ -134,7 +138,7 @@ class GeminiAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """实际生成逻辑"""
         start_time = time.time()
@@ -181,7 +185,7 @@ class GeminiAdapter(ModelAdapter):
                 contents,
                 generation_config=generation_config if generation_config else None,
                 safety_settings=safety_settings,
-            )
+            ),
         )
 
         latency = time.time() - start_time
@@ -196,9 +200,11 @@ class GeminiAdapter(ModelAdapter):
         # 计算 token（Gemini API 可能不直接返回）
         prompt_tokens = 0
         completion_tokens = 0
-        if hasattr(response, 'usage_metadata'):
-            prompt_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0)
-            completion_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0)
+        if hasattr(response, "usage_metadata"):
+            prompt_tokens = getattr(response.usage_metadata, "prompt_token_count", 0)
+            completion_tokens = getattr(
+                response.usage_metadata, "candidates_token_count", 0
+            )
 
         return ModelResponse(
             content=content,
@@ -209,12 +215,20 @@ class GeminiAdapter(ModelAdapter):
             total_tokens=prompt_tokens + completion_tokens,
             latency=latency,
             metadata={
-                "finish_reason": response.candidates[0].finish_reason.name if response.candidates else "unknown",
+                "finish_reason": (
+                    response.candidates[0].finish_reason.name
+                    if response.candidates
+                    else "unknown"
+                ),
                 "safety_ratings": [
                     {"category": r.category.name, "probability": r.probability.name}
-                    for r in (response.candidates[0].safety_ratings if response.candidates else [])
+                    for r in (
+                        response.candidates[0].safety_ratings
+                        if response.candidates
+                        else []
+                    )
                 ],
-            }
+            },
         )
 
     async def _stream_generate(
@@ -222,7 +236,7 @@ class GeminiAdapter(ModelAdapter):
         contents: List,
         generation_config: Dict,
         safety_settings: Dict,
-        start_time: float
+        start_time: float,
     ) -> AsyncIterator[str]:
         """
         流式生成响应
@@ -237,7 +251,7 @@ class GeminiAdapter(ModelAdapter):
                 generation_config=generation_config if generation_config else None,
                 safety_settings=safety_settings,
                 stream=True,
-            )
+            ),
         )
 
         full_content = []
@@ -256,7 +270,7 @@ class GeminiAdapter(ModelAdapter):
             completion_tokens=0,
             total_tokens=0,
             latency=latency,
-            metadata={"streamed": True}
+            metadata={"streamed": True},
         )
 
     def _process_image(self, image: Union[str, bytes, Path]) -> Optional[Dict]:
@@ -274,23 +288,22 @@ class GeminiAdapter(ModelAdapter):
                 # 直接使用 bytes
                 return {
                     "mime_type": "image/jpeg",
-                    "data": base64.b64encode(image).decode()
+                    "data": base64.b64encode(image).decode(),
                 }
-            elif isinstance(image, Path) or (isinstance(image, str) and Path(image).exists()):
+            elif isinstance(image, Path) or (
+                isinstance(image, str) and Path(image).exists()
+            ):
                 # 从文件读取
                 path = Path(image)
                 mime_type = self._get_mime_type(path.suffix)
                 with open(path, "rb") as f:
                     return {
                         "mime_type": mime_type,
-                        "data": base64.b64encode(f.read()).decode()
+                        "data": base64.b64encode(f.read()).decode(),
                     }
             elif isinstance(image, str):
                 # 假设是 base64 字符串
-                return {
-                    "mime_type": "image/jpeg",
-                    "data": image
-                }
+                return {"mime_type": "image/jpeg", "data": image}
         except Exception as e:
             # 图片处理失败，记录错误但不中断
             print(f"Warning: Failed to process image: {e}")
@@ -308,10 +321,7 @@ class GeminiAdapter(ModelAdapter):
         return mime_map.get(suffix.lower(), "image/jpeg")
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应（并发执行）
@@ -324,10 +334,7 @@ class GeminiAdapter(ModelAdapter):
         Returns:
             响应列表
         """
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks)
 
     def get_model_info(self) -> Dict[str, Any]:
@@ -336,12 +343,14 @@ class GeminiAdapter(ModelAdapter):
             "provider": "gemini",
             "model": self.config.model,
             "supports_streaming": True,
-            "supports_multimodal": "1.5" in self.config.model or "vision" in self.config.model.lower(),
+            "supports_multimodal": "1.5" in self.config.model
+            or "vision" in self.config.model.lower(),
             "supports_function_calling": True,
-            "safety_settings": {
-                cat.name: thresh.name
-                for cat, thresh in self._safety_settings.items()
-            } if self._safety_settings else {},
+            "safety_settings": (
+                {cat.name: thresh.name for cat, thresh in self._safety_settings.items()}
+                if self._safety_settings
+                else {}
+            ),
         }
 
     async def health_check(self) -> bool:
@@ -385,8 +394,16 @@ class GeminiAdapter(ModelAdapter):
         }
 
         self._safety_settings = {
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: threshold_map.get(hate_speech, HarmBlockThreshold.BLOCK_NONE),
-            HarmCategory.HARM_CATEGORY_HARASSMENT: threshold_map.get(harassment, HarmBlockThreshold.BLOCK_NONE),
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: threshold_map.get(sexually_explicit, HarmBlockThreshold.BLOCK_NONE),
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: threshold_map.get(dangerous_content, HarmBlockThreshold.BLOCK_NONE),
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: threshold_map.get(
+                hate_speech, HarmBlockThreshold.BLOCK_NONE
+            ),
+            HarmCategory.HARM_CATEGORY_HARASSMENT: threshold_map.get(
+                harassment, HarmBlockThreshold.BLOCK_NONE
+            ),
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: threshold_map.get(
+                sexually_explicit, HarmBlockThreshold.BLOCK_NONE
+            ),
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: threshold_map.get(
+                dangerous_content, HarmBlockThreshold.BLOCK_NONE
+            ),
         }

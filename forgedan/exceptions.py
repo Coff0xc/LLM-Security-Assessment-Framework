@@ -19,7 +19,7 @@ class ForgeDanException(Exception):
         self,
         message: str,
         details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None
+        cause: Optional[Exception] = None,
     ):
         self.message = message
         self.details = details or {}
@@ -40,27 +40,23 @@ class ForgeDanException(Exception):
             "type": self.__class__.__name__,
             "message": self.message,
             "details": self.details,
-            "cause": str(self.cause) if self.cause else None
+            "cause": str(self.cause) if self.cause else None,
         }
 
 
 # ============ 配置相关异常 ============
 
+
 class ConfigurationError(ForgeDanException):
     """配置错误"""
+
     pass
 
 
 class ValidationError(ConfigurationError):
     """参数验证错误"""
 
-    def __init__(
-        self,
-        field: str,
-        value: Any,
-        reason: str,
-        **kwargs
-    ):
+    def __init__(self, field: str, value: Any, reason: str, **kwargs):
         self.field = field
         self.value = value
         self.reason = reason
@@ -70,8 +66,10 @@ class ValidationError(ConfigurationError):
 
 # ============ 适配器相关异常 ============
 
+
 class AdapterError(ForgeDanException):
     """适配器错误基类"""
+
     pass
 
 
@@ -83,15 +81,17 @@ class APIError(AdapterError):
         message: str,
         status_code: Optional[int] = None,
         response_body: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         self.status_code = status_code
         self.response_body = response_body
         details = kwargs.pop("details", {})
-        details.update({
-            "status_code": status_code,
-            "response_body": response_body[:500] if response_body else None
-        })
+        details.update(
+            {
+                "status_code": status_code,
+                "response_body": response_body[:500] if response_body else None,
+            }
+        )
         super().__init__(message, details=details, **kwargs)
 
 
@@ -102,7 +102,7 @@ class RateLimitError(APIError):
         self,
         message: str = "API速率限制",
         retry_after: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ):
         self.retry_after = retry_after
         details = kwargs.pop("details", {})
@@ -119,6 +119,7 @@ class AuthenticationError(APIError):
 
 class ConnectionError(AdapterError):
     """连接错误"""
+
     pass
 
 
@@ -129,7 +130,7 @@ class TimeoutError(AdapterError):
         self,
         message: str = "请求超时",
         timeout_seconds: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ):
         self.timeout_seconds = timeout_seconds
         details = kwargs.pop("details", {})
@@ -144,13 +145,17 @@ class ModelNotFoundError(AdapterError):
         self.model_name = model_name
         self.provider = provider
         message = f"模型未找到: {provider}/{model_name}"
-        super().__init__(message, details={"model": model_name, "provider": provider}, **kwargs)
+        super().__init__(
+            message, details={"model": model_name, "provider": provider}, **kwargs
+        )
 
 
 # ============ 引擎相关异常 ============
 
+
 class EngineError(ForgeDanException):
     """引擎错误基类"""
+
     pass
 
 
@@ -163,15 +168,18 @@ class TargetLLMNotSetError(EngineError):
 
 class EvolutionError(EngineError):
     """进化算法错误"""
+
     pass
 
 
 class PopulationError(EvolutionError):
     """种群相关错误"""
+
     pass
 
 
 # ============ 变异相关异常 ============
+
 
 class MutationError(ForgeDanException):
     """变异错误"""
@@ -181,7 +189,7 @@ class MutationError(ForgeDanException):
         strategy_name: str,
         message: str,
         original_text: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         self.strategy_name = strategy_name
         self.original_text = original_text
@@ -195,20 +203,25 @@ class MutationError(ForgeDanException):
 
 # ============ 判断器相关异常 ============
 
+
 class JudgeError(ForgeDanException):
     """判断器错误"""
+
     pass
 
 
 class JailbreakDetectionError(JudgeError):
     """越狱检测错误"""
+
     pass
 
 
 # ============ 数据集相关异常 ============
 
+
 class DatasetError(ForgeDanException):
     """数据集错误"""
+
     pass
 
 
@@ -234,17 +247,20 @@ class DatasetFormatError(DatasetError):
 
 # ============ 缓存相关异常 ============
 
+
 class CacheError(ForgeDanException):
     """缓存错误"""
+
     pass
 
 
 # ============ 辅助函数 ============
 
+
 def wrap_exception(
     exception: Exception,
     wrapper_class: type = ForgeDanException,
-    message: Optional[str] = None
+    message: Optional[str] = None,
 ) -> ForgeDanException:
     """
     将普通异常包装为 ForgeDan 异常

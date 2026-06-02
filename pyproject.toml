@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "forgedan"
 version = "1.2.0"
-description = "FORGEDAN - LLM Security Assessment Framework based on Evolutionary Algorithms"
+description = "FORGEDAN - Report-first LLM security assessment framework"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
@@ -40,6 +40,9 @@ cn-models = [
     "aiofiles>=23.0",
 ]
 web = [
+    "httpx>=0.24",
+    "beautifulsoup4>=4.12",
+    "lxml>=4.9",
     "flask>=3.0",
     "flask-socketio>=5.3",
     "python-socketio>=5.0",
@@ -67,6 +70,9 @@ forgedan = "forgedan.cli:cli"
 
 [tool.setuptools.packages.find]
 include = ["forgedan*"]
+
+[tool.black]
+target-version = ["py39"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

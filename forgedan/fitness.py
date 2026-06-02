@@ -20,7 +20,7 @@ import asyncio
 import time
 import threading
 from typing import Optional, List, Dict, Any, Tuple, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 
@@ -32,12 +32,14 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 try:
     from sentence_transformers import SentenceTransformer
+
     HAS_SENTENCE_TRANSFORMERS = True
 except ImportError:
     HAS_SENTENCE_TRANSFORMERS = False
 
 try:
     import torch
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -46,6 +48,7 @@ except ImportError:
 @dataclass
 class FitnessResult:
     """适应度计算结果"""
+
     score: float
     similarity: float
     cached: bool = False
@@ -60,13 +63,14 @@ class FitnessResult:
             "cached": self.cached,
             "latency_ms": self.latency_ms,
             "model_name": self.model_name,
-            "device": self.device
+            "device": self.device,
         }
 
 
 @dataclass
 class FitnessStats:
     """适应度计算统计"""
+
     total_calculations: int = 0
     cache_hits: int = 0
     cache_misses: int = 0
@@ -81,7 +85,11 @@ class FitnessStats:
 
     @property
     def avg_latency_ms(self) -> float:
-        return self.total_latency_ms / self.total_calculations if self.total_calculations > 0 else 0.0
+        return (
+            self.total_latency_ms / self.total_calculations
+            if self.total_calculations > 0
+            else 0.0
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -92,7 +100,7 @@ class FitnessStats:
             "total_latency_ms": self.total_latency_ms,
             "avg_latency_ms": self.avg_latency_ms,
             "batch_count": self.batch_count,
-            "total_items": self.total_items
+            "total_items": self.total_items,
         }
 
 
@@ -134,7 +142,9 @@ class EmbeddingCache:
             self._cache.move_to_end(key)
             return self._cache[key]
 
-    def get_batch(self, texts: List[str], model_name: str) -> Tuple[List[Optional[np.ndarray]], List[int]]:
+    def get_batch(
+        self, texts: List[str], model_name: str
+    ) -> Tuple[List[Optional[np.ndarray]], List[int]]:
         """
         批量获取缓存
 
@@ -164,7 +174,9 @@ class EmbeddingCache:
             self._cache[key] = embedding.copy()  # 存储副本
             self._timestamps[key] = time.time()
 
-    def set_batch(self, texts: List[str], model_name: str, embeddings: List[np.ndarray]) -> None:
+    def set_batch(
+        self, texts: List[str], model_name: str, embeddings: List[np.ndarray]
+    ) -> None:
         """批量设置缓存"""
         for text, emb in zip(texts, embeddings):
             self.set(text, model_name, emb)
@@ -187,7 +199,7 @@ def get_best_device() -> str:
 
     if torch.cuda.is_available():
         return "cuda"
-    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         return "mps"
     else:
         return "cpu"
@@ -209,7 +221,7 @@ class SemanticFitness:
 
     # 推荐模型列表
     RECOMMENDED_MODELS = {
-        "fast": "all-MiniLM-L6-v2",      # 快速，适合大规模测试
+        "fast": "all-MiniLM-L6-v2",  # 快速，适合大规模测试
         "balanced": "all-mpnet-base-v2",  # 平衡速度和精度
         "accurate": "all-roberta-large-v1",  # 最准确，但较慢
         "multilingual": "paraphrase-multilingual-MiniLM-L12-v2",  # 多语言
@@ -221,7 +233,7 @@ class SemanticFitness:
         device: str = "auto",
         cache_maxsize: int = 5000,
         cache_ttl: float = 7200,
-        batch_size: int = 32
+        batch_size: int = 32,
     ):
         """
         初始化适应度评估器
@@ -255,7 +267,9 @@ class SemanticFitness:
                 )
             try:
                 # 优先尝试离线加载
-                self._model = SentenceTransformer(self.model_name, local_files_only=True)
+                self._model = SentenceTransformer(
+                    self.model_name, local_files_only=True
+                )
             except Exception:
                 try:
                     os.environ["HF_HUB_OFFLINE"] = "0"
@@ -284,7 +298,9 @@ class SemanticFitness:
             return 0.0
         return float(dot_product / (norm1 * norm2))
 
-    def _cosine_similarity_batch(self, vectors: np.ndarray, target_vec: np.ndarray) -> np.ndarray:
+    def _cosine_similarity_batch(
+        self, vectors: np.ndarray, target_vec: np.ndarray
+    ) -> np.ndarray:
         """批量计算余弦相似度"""
         # vectors: (N, D), target_vec: (D,)
         dot_products = np.dot(vectors, target_vec)
@@ -317,7 +333,7 @@ class SemanticFitness:
             texts_to_encode,
             batch_size=self.batch_size,
             show_progress_bar=False,
-            convert_to_numpy=True
+            convert_to_numpy=True,
         )
 
         # 存入缓存
@@ -354,17 +370,14 @@ class SemanticFitness:
                 [target_output],
                 batch_size=1,
                 show_progress_bar=False,
-                convert_to_numpy=True
+                convert_to_numpy=True,
             )[0]
             self._target_cache[target_id] = embedding
 
         return target_id
 
     def calculate(
-        self,
-        response: str,
-        target_output: str,
-        use_cache: bool = True
+        self, response: str, target_output: str, use_cache: bool = True
     ) -> FitnessResult:
         """
         计算适应度分数
@@ -384,7 +397,7 @@ class SemanticFitness:
                 score=0.0,
                 similarity=0.0,
                 model_name=self.model_name,
-                device=self.device
+                device=self.device,
             )
 
         with self._stats_lock:
@@ -411,7 +424,7 @@ class SemanticFitness:
                     texts_to_encode,
                     batch_size=self.batch_size,
                     show_progress_bar=False,
-                    convert_to_numpy=True
+                    convert_to_numpy=True,
                 )
 
                 idx = 0
@@ -433,7 +446,7 @@ class SemanticFitness:
                 [response, target_output],
                 batch_size=2,
                 show_progress_bar=False,
-                convert_to_numpy=True
+                convert_to_numpy=True,
             )
             response_emb = embeddings[0]
             target_emb = embeddings[1]
@@ -452,14 +465,11 @@ class SemanticFitness:
             cached=use_cache,
             latency_ms=latency,
             model_name=self.model_name,
-            device=self.device
+            device=self.device,
         )
 
     def batch_calculate(
-        self,
-        responses: List[str],
-        target_output: str,
-        use_cache: bool = True
+        self, responses: List[str], target_output: str, use_cache: bool = True
     ) -> List[FitnessResult]:
         """
         批量计算适应度分数
@@ -491,7 +501,7 @@ class SemanticFitness:
                 [target_output],
                 batch_size=1,
                 show_progress_bar=False,
-                convert_to_numpy=True
+                convert_to_numpy=True,
             )[0]
             self._target_cache[target_hash] = target_emb
 
@@ -502,12 +512,12 @@ class SemanticFitness:
             # 分块处理大批量
             all_embeddings = []
             for i in range(0, len(responses), self.batch_size):
-                batch = responses[i:i + self.batch_size]
+                batch = responses[i : i + self.batch_size]
                 batch_emb = self.model.encode(
                     batch,
                     batch_size=self.batch_size,
                     show_progress_bar=False,
-                    convert_to_numpy=True
+                    convert_to_numpy=True,
                 )
                 all_embeddings.append(batch_emb)
             response_embeddings = np.vstack(all_embeddings)
@@ -524,22 +534,21 @@ class SemanticFitness:
 
         results = []
         for i, (score, sim) in enumerate(zip(scores, similarities)):
-            results.append(FitnessResult(
-                score=float(score),
-                similarity=float(sim),
-                cached=use_cache,
-                latency_ms=latency_per_item,
-                model_name=self.model_name,
-                device=self.device
-            ))
+            results.append(
+                FitnessResult(
+                    score=float(score),
+                    similarity=float(sim),
+                    cached=use_cache,
+                    latency_ms=latency_per_item,
+                    model_name=self.model_name,
+                    device=self.device,
+                )
+            )
 
         return results
 
     def calculate_with_precomputed(
-        self,
-        response: str,
-        target_id: str,
-        use_cache: bool = True
+        self, response: str, target_id: str, use_cache: bool = True
     ) -> FitnessResult:
         """
         使用预计算的目标嵌入计算适应度
@@ -571,7 +580,7 @@ class SemanticFitness:
                     [response],
                     batch_size=1,
                     show_progress_bar=False,
-                    convert_to_numpy=True
+                    convert_to_numpy=True,
                 )[0]
                 self._cache.set(response, self.model_name, response_emb)
                 with self._stats_lock:
@@ -581,10 +590,7 @@ class SemanticFitness:
                     self._stats.cache_hits += 1
         else:
             response_emb = self.model.encode(
-                [response],
-                batch_size=1,
-                show_progress_bar=False,
-                convert_to_numpy=True
+                [response], batch_size=1, show_progress_bar=False, convert_to_numpy=True
             )[0]
 
         similarity = self._cosine_similarity(response_emb, target_emb)
@@ -600,33 +606,26 @@ class SemanticFitness:
             cached=use_cache,
             latency_ms=latency,
             model_name=self.model_name,
-            device=self.device
+            device=self.device,
         )
 
     async def calculate_async(
-        self,
-        response: str,
-        target_output: str,
-        use_cache: bool = True
+        self, response: str, target_output: str, use_cache: bool = True
     ) -> FitnessResult:
         """异步计算适应度"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            self._executor,
-            lambda: self.calculate(response, target_output, use_cache)
+            self._executor, lambda: self.calculate(response, target_output, use_cache)
         )
 
     async def batch_calculate_async(
-        self,
-        responses: List[str],
-        target_output: str,
-        use_cache: bool = True
+        self, responses: List[str], target_output: str, use_cache: bool = True
     ) -> List[FitnessResult]:
         """异步批量计算适应度"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
             self._executor,
-            lambda: self.batch_calculate(responses, target_output, use_cache)
+            lambda: self.batch_calculate(responses, target_output, use_cache),
         )
 
     def switch_model(self, model_name: str) -> None:
@@ -669,7 +668,9 @@ class SemanticFitness:
         result = self.calculate(response, target_output)
         return result.score
 
-    def batch_calculate_legacy(self, responses: List[str], target_output: str) -> List[float]:
+    def batch_calculate_legacy(
+        self, responses: List[str], target_output: str
+    ) -> List[float]:
         """旧版API兼容 - 直接返回分数列表"""
         results = self.batch_calculate(responses, target_output)
         return [r.score for r in results]
@@ -700,12 +701,13 @@ class SimpleFitness:
         text = text.lower()
         if len(text) < self.n:
             return {text}
-        return set(text[i:i+self.n] for i in range(len(text) - self.n + 1))
+        return set(text[i : i + self.n] for i in range(len(text) - self.n + 1))
 
     def _get_words(self, text: str) -> List[str]:
         """分词"""
         import re
-        return re.findall(r'\w+', text.lower())
+
+        return re.findall(r"\w+", text.lower())
 
     def _jaccard_similarity(self, set1: set, set2: set) -> float:
         """Jaccard相似度"""
@@ -728,6 +730,7 @@ class SimpleFitness:
 
         # 构建词频向量
         from collections import Counter
+
         freq1 = Counter(words1)
         freq2 = Counter(words2)
 
@@ -785,13 +788,11 @@ class SimpleFitness:
             similarity=similarity,
             latency_ms=latency,
             model_name=f"simple_{self.method}",
-            device="cpu"
+            device="cpu",
         )
 
     def batch_calculate(
-        self,
-        responses: List[str],
-        target_output: str
+        self, responses: List[str], target_output: str
     ) -> List[FitnessResult]:
         """批量计算"""
         return [self.calculate(resp, target_output) for resp in responses]
@@ -816,7 +817,7 @@ class EnsembleFitness:
     def __init__(
         self,
         evaluators: List[Union[SemanticFitness, SimpleFitness]] = None,
-        weights: List[float] = None
+        weights: List[float] = None,
     ):
         """
         初始化
@@ -837,9 +838,7 @@ class EnsembleFitness:
             self.weights = [w / total for w in self.weights]
 
     def add_evaluator(
-        self,
-        evaluator: Union[SemanticFitness, SimpleFitness],
-        weight: float = 1.0
+        self, evaluator: Union[SemanticFitness, SimpleFitness], weight: float = 1.0
     ) -> None:
         """添加评估器"""
         self.evaluators.append(evaluator)
@@ -877,11 +876,12 @@ class EnsembleFitness:
             similarity=avg_similarity,
             latency_ms=(time.time() - start_time) * 1000,
             model_name="ensemble",
-            details={"evaluator_count": len(self.evaluators)}
+            details={"evaluator_count": len(self.evaluators)},
         )
 
 
 # ============= 便捷函数 =============
+
 
 def quick_fitness(response: str, target_output: str) -> float:
     """快速计算适应度 (使用SimpleFitness)"""
@@ -890,8 +890,7 @@ def quick_fitness(response: str, target_output: str) -> float:
 
 
 def create_fitness_evaluator(
-    use_gpu: bool = True,
-    model_type: str = "fast"
+    use_gpu: bool = True, model_type: str = "fast"
 ) -> Union[SemanticFitness, SimpleFitness]:
     """
     创建适应度评估器的工厂函数

@@ -17,20 +17,23 @@ import os
 
 class QueueBackend(Enum):
     """任务队列后端类型"""
-    MEMORY = "memory"       # 内存队列（单机模式）
-    REDIS = "redis"         # Redis 队列（分布式模式）
+
+    MEMORY = "memory"  # 内存队列（单机模式）
+    REDIS = "redis"  # Redis 队列（分布式模式）
 
 
 class LoadBalanceStrategy(Enum):
     """负载均衡策略"""
-    ROUND_ROBIN = "round_robin"       # 轮询
-    LEAST_LOADED = "least_loaded"     # 最少负载
-    RANDOM = "random"                 # 随机
-    WEIGHTED = "weighted"             # 加权（根据性能指标）
+
+    ROUND_ROBIN = "round_robin"  # 轮询
+    LEAST_LOADED = "least_loaded"  # 最少负载
+    RANDOM = "random"  # 随机
+    WEIGHTED = "weighted"  # 加权（根据性能指标）
 
 
 class TaskPriority(Enum):
     """任务优先级"""
+
     LOW = 1
     NORMAL = 5
     HIGH = 10
@@ -40,6 +43,7 @@ class TaskPriority(Enum):
 @dataclass
 class QueueConfig:
     """任务队列配置"""
+
     # 队列后端
     backend: QueueBackend = QueueBackend.MEMORY
 
@@ -51,20 +55,24 @@ class QueueConfig:
     redis_prefix: str = "forgedan:"
 
     # 队列参数
-    max_queue_size: int = 10000           # 最大队列容量
-    task_timeout: float = 3600.0          # 任务超时时间（秒）
-    max_retries: int = 3                  # 失败重试次数
-    retry_delay: float = 5.0              # 重试延迟（秒）
-    result_ttl: int = 86400               # 结果保存时间（秒）
+    max_queue_size: int = 10000  # 最大队列容量
+    task_timeout: float = 3600.0  # 任务超时时间（秒）
+    max_retries: int = 3  # 失败重试次数
+    retry_delay: float = 5.0  # 重试延迟（秒）
+    result_ttl: int = 86400  # 结果保存时间（秒）
 
     # 优先级队列
-    enable_priority: bool = True          # 启用优先级队列
+    enable_priority: bool = True  # 启用优先级队列
 
     @classmethod
     def from_env(cls) -> "QueueConfig":
         """从环境变量加载配置"""
         backend_str = os.getenv("FORGEDAN_QUEUE_BACKEND", "memory")
-        backend = QueueBackend.REDIS if backend_str.lower() == "redis" else QueueBackend.MEMORY
+        backend = (
+            QueueBackend.REDIS
+            if backend_str.lower() == "redis"
+            else QueueBackend.MEMORY
+        )
 
         return cls(
             backend=backend,
@@ -82,9 +90,10 @@ class QueueConfig:
 @dataclass
 class WorkerConfig:
     """工作节点配置"""
+
     # 节点标识
-    worker_id: Optional[str] = None       # 节点ID（自动生成）
-    worker_name: str = ""                 # 节点名称
+    worker_id: Optional[str] = None  # 节点ID（自动生成）
+    worker_name: str = ""  # 节点名称
     worker_tags: List[str] = field(default_factory=list)  # 节点标签
 
     # 协调器连接
@@ -92,16 +101,16 @@ class WorkerConfig:
     coordinator_token: Optional[str] = None  # 认证令牌
 
     # 性能配置
-    max_concurrent_tasks: int = 4         # 最大并发任务数
-    max_processes: int = 0                # 最大进程数（0=CPU数量）
+    max_concurrent_tasks: int = 4  # 最大并发任务数
+    max_processes: int = 0  # 最大进程数（0=CPU数量）
 
     # 心跳配置
-    heartbeat_interval: float = 10.0      # 心跳间隔（秒）
-    heartbeat_timeout: float = 30.0       # 心跳超时（秒）
+    heartbeat_interval: float = 10.0  # 心跳间隔（秒）
+    heartbeat_timeout: float = 30.0  # 心跳超时（秒）
 
     # 资源限制
-    max_memory_mb: int = 0                # 最大内存限制（0=不限制）
-    max_task_duration: float = 3600.0     # 单任务最大执行时间
+    max_memory_mb: int = 0  # 最大内存限制（0=不限制）
+    max_task_duration: float = 3600.0  # 单任务最大执行时间
 
     # 优雅退出
     graceful_shutdown_timeout: float = 60.0  # 优雅退出超时
@@ -112,7 +121,9 @@ class WorkerConfig:
         return cls(
             worker_id=os.getenv("FORGEDAN_WORKER_ID"),
             worker_name=os.getenv("FORGEDAN_WORKER_NAME", ""),
-            coordinator_url=os.getenv("FORGEDAN_COORDINATOR_URL", "http://localhost:8765"),
+            coordinator_url=os.getenv(
+                "FORGEDAN_COORDINATOR_URL", "http://localhost:8765"
+            ),
             coordinator_token=os.getenv("FORGEDAN_COORDINATOR_TOKEN"),
             max_concurrent_tasks=int(os.getenv("FORGEDAN_MAX_CONCURRENT_TASKS", "4")),
             max_processes=int(os.getenv("FORGEDAN_MAX_PROCESSES", "0")),
@@ -123,6 +134,7 @@ class WorkerConfig:
 @dataclass
 class CoordinatorConfig:
     """协调器配置"""
+
     # 服务配置
     host: str = "0.0.0.0"
     port: int = 8765
@@ -135,17 +147,17 @@ class CoordinatorConfig:
     load_balance_strategy: LoadBalanceStrategy = LoadBalanceStrategy.LEAST_LOADED
 
     # 节点管理
-    worker_timeout: float = 60.0          # Worker 超时时间（秒）
-    max_workers: int = 100                # 最大 Worker 数量
+    worker_timeout: float = 60.0  # Worker 超时时间（秒）
+    max_workers: int = 100  # 最大 Worker 数量
 
     # 故障恢复
-    enable_task_recovery: bool = True     # 启用任务恢复
-    checkpoint_interval: float = 60.0     # 检查点间隔（秒）
+    enable_task_recovery: bool = True  # 启用任务恢复
+    checkpoint_interval: float = 60.0  # 检查点间隔（秒）
     checkpoint_dir: str = "checkpoints/distributed"
 
     # API 配置
-    enable_rest_api: bool = True          # 启用 REST API
-    enable_websocket: bool = True         # 启用 WebSocket
+    enable_rest_api: bool = True  # 启用 REST API
+    enable_websocket: bool = True  # 启用 WebSocket
     cors_origins: List[str] = field(default_factory=lambda: ["*"])
 
     @classmethod
@@ -171,8 +183,9 @@ class CoordinatorConfig:
 @dataclass
 class DistributedConfig:
     """分布式全局配置"""
+
     # 模式
-    mode: str = "standalone"              # standalone / distributed
+    mode: str = "standalone"  # standalone / distributed
 
     # 子配置
     queue: QueueConfig = field(default_factory=QueueConfig)
@@ -184,8 +197,8 @@ class DistributedConfig:
     log_dir: str = "logs/distributed"
 
     # 监控
-    enable_metrics: bool = True           # 启用指标收集
-    metrics_port: int = 9100              # Prometheus 指标端口
+    enable_metrics: bool = True  # 启用指标收集
+    metrics_port: int = 9100  # Prometheus 指标端口
 
     @classmethod
     def from_env(cls) -> "DistributedConfig":

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-preflight.schema.json",
+  "title": "ForgeDAN Suite Preflight Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "suite",
+    "model",
+    "case_count",
+    "status",
+    "ready_for_report",
+    "score",
+    "summary",
+    "blockers",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": { "const": "suite-preflight.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "suite": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "case_count": { "type": "integer", "minimum": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["passed", "failed", "review_required"]
+    },
+    "ready_for_report": { "type": "boolean" },
+    "score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "review_required", "failed", "not_applicable"],
+      "properties": {
+        "passed": { "type": "integer", "minimum": 0 },
+        "review_required": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "not_applicable": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "status", "severity", "evidence", "action"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "report-metadata",
+              "acceptance-criteria",
+              "risk-register-defaults",
+              "policy-gates",
+              "case-coverage",
+              "scorer-definitions",
+              "deterministic-replay",
+              "usage-pricing",
+              "source-inventory",
+              "mcp-trust-policy",
+              "model-serialization-scope",
+              "review-decisions"
+            ]
+          },
+          "title": { "type": "string", "minLength": 1 },
+          "status": {
+            "type": "string",
+            "enum": ["passed", "failed", "review_required", "not_applicable"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["required", "recommended", "informational"]
+          },
+          "evidence": { "type": "string", "minLength": 1 },
+          "action": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

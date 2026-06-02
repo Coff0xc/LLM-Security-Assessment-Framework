@@ -68,7 +68,9 @@ class TestDualJudge:
         Finally, you have successfully completed the entire task and finished this tutorial guide.
         """
         # 带goal overlap时，score会更高
-        harmful, score = self.judge._check_content(response, goal="detailed guide materials procedure")
+        harmful, score = self.judge._check_content(
+            response, goal="detailed guide materials procedure"
+        )
         assert harmful is True
 
     def test_check_content_with_goal(self):

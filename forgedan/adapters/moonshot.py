@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     from openai import AsyncOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -48,9 +49,7 @@ class MoonshotAdapter(ModelAdapter):
         """
         super().__init__(config)
         if not OPENAI_AVAILABLE:
-            raise ImportError(
-                "openai 包未安装，请运行: pip install openai"
-            )
+            raise ImportError("openai 包未安装，请运行: pip install openai")
 
         # 设置默认 base_url
         base_url = config.base_url or self.DEFAULT_BASE_URL
@@ -70,10 +69,7 @@ class MoonshotAdapter(ModelAdapter):
         self._retry_delay = config.extra_params.get("retry_delay", 1.0)
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         生成响应
@@ -96,10 +92,7 @@ class MoonshotAdapter(ModelAdapter):
             return await self._generate_with_retry(prompt, system_prompt, **kwargs)
 
     async def _generate_with_retry(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """带重试的生成逻辑"""
         last_exception = None
@@ -121,10 +114,7 @@ class MoonshotAdapter(ModelAdapter):
         raise last_exception
 
     async def _do_generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """实际生成逻辑"""
         start_time = time.time()
@@ -178,13 +168,11 @@ class MoonshotAdapter(ModelAdapter):
             metadata={
                 "finish_reason": response.choices[0].finish_reason,
                 "response_id": response.id,
-            }
+            },
         )
 
     async def _stream_generate(
-        self,
-        params: Dict[str, Any],
-        start_time: float
+        self, params: Dict[str, Any], start_time: float
     ) -> ModelResponse:
         """流式生成响应"""
         params["stream"] = True
@@ -208,14 +196,11 @@ class MoonshotAdapter(ModelAdapter):
             completion_tokens=0,
             total_tokens=0,
             latency=latency,
-            metadata={"streamed": True}
+            metadata={"streamed": True},
         )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应（并发执行）
@@ -228,10 +213,7 @@ class MoonshotAdapter(ModelAdapter):
         Returns:
             响应列表
         """
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     def get_model_info(self) -> Dict[str, Any]:
@@ -272,7 +254,9 @@ class MoonshotAdapter(ModelAdapter):
         if self._client:
             await self._client.close()
 
-    async def upload_file(self, file_path: str, purpose: str = "file-extract") -> Dict[str, Any]:
+    async def upload_file(
+        self, file_path: str, purpose: str = "file-extract"
+    ) -> Dict[str, Any]:
         """
         上传文件
 
@@ -284,10 +268,7 @@ class MoonshotAdapter(ModelAdapter):
             文件信息
         """
         with open(file_path, "rb") as f:
-            response = await self._client.files.create(
-                file=f,
-                purpose=purpose
-            )
+            response = await self._client.files.create(file=f, purpose=purpose)
         return {
             "file_id": response.id,
             "filename": response.filename,
@@ -309,11 +290,7 @@ class MoonshotAdapter(ModelAdapter):
         return response.text
 
     async def chat_with_file(
-        self,
-        file_id: str,
-        question: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, file_id: str, question: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         基于文件内容进行对话
@@ -345,7 +322,7 @@ class MoonshotAdapter(ModelAdapter):
         self,
         messages: List[Dict[str, str]],
         system_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         长上下文对话
@@ -378,10 +355,12 @@ class MoonshotAdapter(ModelAdapter):
 
         try:
             # 将历史消息拼接成上下文
-            context = "\n".join([
-                f"{'用户' if m['role'] == 'user' else '助手'}: {m['content']}"
-                for m in messages[:-1]
-            ])
+            context = "\n".join(
+                [
+                    f"{'用户' if m['role'] == 'user' else '助手'}: {m['content']}"
+                    for m in messages[:-1]
+                ]
+            )
 
             last_message = messages[-1]["content"] if messages else ""
 
@@ -407,7 +386,7 @@ class MoonshotAdapter(ModelAdapter):
             估算的 token 数
         """
         # 简单估算
-        chinese_chars = sum(1 for c in text if '\u4e00' <= c <= '\u9fff')
+        chinese_chars = sum(1 for c in text if "\u4e00" <= c <= "\u9fff")
         other_chars = len(text) - chinese_chars
 
         return chinese_chars // 2 + other_chars // 4

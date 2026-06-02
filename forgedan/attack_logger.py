@@ -5,7 +5,6 @@
 """
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -15,6 +14,7 @@ from dataclasses import dataclass, asdict
 @dataclass
 class AttackRecord:
     """单次攻击记录"""
+
     timestamp: str
     goal: str
     template: str
@@ -57,7 +57,7 @@ class AttackLogger:
         total_queries: int = 0,
         model_name: str = "",
         category: str = "",
-        severity: int = 0
+        severity: int = 0,
     ) -> AttackRecord:
         """记录一次攻击"""
         record = AttackRecord(
@@ -72,7 +72,7 @@ class AttackLogger:
             total_queries=total_queries,
             model_name=model_name,
             category=category,
-            severity=severity
+            severity=severity,
         )
         self.records.append(record)
 
@@ -92,7 +92,9 @@ class AttackLogger:
         success_dir.mkdir(parents=True, exist_ok=True)
 
         # 生成文件名
-        filename = f"{self.session_id}_{len([r for r in self.records if r.success])}.json"
+        filename = (
+            f"{self.session_id}_{len([r for r in self.records if r.success])}.json"
+        )
         filepath = success_dir / filename
 
         with open(filepath, "w", encoding="utf-8") as f:
@@ -109,7 +111,7 @@ class AttackLogger:
             "session_id": self.session_id,
             "total_attacks": len(self.records),
             "successful_attacks": len([r for r in self.records if r.success]),
-            "records": [asdict(r) for r in self.records]
+            "records": [asdict(r) for r in self.records],
         }
 
         with open(filepath, "w", encoding="utf-8") as f:
@@ -125,7 +127,9 @@ class AttackLogger:
         filepath = self.log_dir / filename
 
         success_records = [r for r in self.records if r.success]
-        success_rate = len(success_records) / len(self.records) * 100 if self.records else 0
+        success_rate = (
+            len(success_records) / len(self.records) * 100 if self.records else 0
+        )
 
         md_content = f"""# 攻击日志报告
 
@@ -196,6 +200,7 @@ class AttackLogger:
             "success": len(success_records),
             "rate": len(success_records) / len(self.records) * 100,
             "avg_fitness": sum(r.fitness for r in self.records) / len(self.records),
-            "avg_queries": sum(r.total_queries for r in self.records) / len(self.records),
-            "by_category": category_stats
+            "avg_queries": sum(r.total_queries for r in self.records)
+            / len(self.records),
+            "by_category": category_stats,
         }

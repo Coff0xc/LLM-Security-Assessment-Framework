@@ -29,14 +29,15 @@ import time
 import threading
 import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Dict, Optional, Any, Callable, List
-from urllib.parse import urlparse, parse_qs
+from typing import Dict, Optional
+from urllib.parse import urlparse
 from dataclasses import dataclass, field
 import logging
 
 # HTTP 客户端
 try:
     import requests
+
     HAS_REQUESTS = True
 except ImportError:
     HAS_REQUESTS = False
@@ -49,6 +50,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ExporterConfig:
     """导出器配置"""
+
     host: str = "0.0.0.0"
     port: int = 8000
     path: str = "/metrics"
@@ -82,6 +84,7 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
             return False
 
         import base64
+
         try:
             credentials = base64.b64decode(auth_header[6:]).decode("utf-8")
             username, password = credentials.split(":", 1)
@@ -89,7 +92,9 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
         except Exception:
             return False
 
-    def _send_response(self, status: int, content: str, content_type: str = "text/plain"):
+    def _send_response(
+        self, status: int, content: str, content_type: str = "text/plain"
+    ):
         """发送 HTTP 响应"""
         self.send_response(status)
         self.send_header("Content-Type", content_type)
@@ -101,8 +106,6 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
         """处理 GET 请求"""
         parsed = urlparse(self.path)
         path = parsed.path
-        query = parse_qs(parsed.query)
-
         # 健康检查端点 (无需认证)
         if path == "/health" and self.enable_health:
             self._handle_health()
@@ -132,7 +135,7 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
         health_data = {
             "status": "ok",
             "timestamp": time.time(),
-            "service": "forgedan-metrics-exporter"
+            "service": "forgedan-metrics-exporter",
         }
         self._send_response(200, json.dumps(health_data), "application/json")
 
@@ -147,14 +150,11 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
 
             # 添加额外标签的元数据
             if self.extra_labels:
-                meta_lines = [
-                    f"# LABELS {json.dumps(self.extra_labels)}"
-                ]
+                meta_lines = [f"# LABELS {json.dumps(self.extra_labels)}"]
                 content = "\n".join(meta_lines) + "\n" + content
 
             self._send_response(
-                200, content,
-                "text/plain; version=0.0.4; charset=utf-8"
+                200, content, "text/plain; version=0.0.4; charset=utf-8"
             )
         except Exception as e:
             logger.error(f"生成指标失败: {e}")
@@ -174,11 +174,7 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
                 for item in data:
                     item["labels"] = {**self.extra_labels, **item.get("labels", {})}
 
-            response = {
-                "status": "ok",
-                "timestamp": time.time(),
-                "metrics": data
-            }
+            response = {"status": "ok", "timestamp": time.time(), "metrics": data}
             self._send_response(200, json.dumps(response, indent=2), "application/json")
         except Exception as e:
             logger.error(f"生成 JSON 指标失败: {e}")
@@ -196,7 +192,7 @@ class MetricsHTTPHandler(BaseHTTPRequestHandler):
                 "status": "ok",
                 "timestamp": time.time(),
                 "summary": summary,
-                "labels": self.extra_labels
+                "labels": self.extra_labels,
             }
             self._send_response(200, json.dumps(response, indent=2), "application/json")
         except Exception as e:
@@ -225,7 +221,7 @@ class MetricsExporter:
         host: str = "0.0.0.0",
         port: int = 8000,
         extra_labels: Dict[str, str] = None,
-        basic_auth: tuple = None
+        basic_auth: tuple = None,
     ):
         """
         初始化导出器
@@ -247,7 +243,7 @@ class MetricsExporter:
                 host=host,
                 port=port,
                 extra_labels=extra_labels or {},
-                basic_auth=basic_auth
+                basic_auth=basic_auth,
             )
 
         self.server: Optional[HTTPServer] = None
@@ -274,8 +270,7 @@ class MetricsExporter:
 
         try:
             self.server = HTTPServer(
-                (self.config.host, self.config.port),
-                MetricsHTTPHandler
+                (self.config.host, self.config.port), MetricsHTTPHandler
             )
             self._running = True
 
@@ -286,8 +281,7 @@ class MetricsExporter:
 
             if background:
                 self._thread = threading.Thread(
-                    target=self.server.serve_forever,
-                    daemon=True
+                    target=self.server.serve_forever, daemon=True
                 )
                 self._thread.start()
             else:
@@ -339,7 +333,7 @@ class PushGatewayClient:
         metrics_instance: ForgeDanMetrics = None,
         instance: str = None,
         grouping_key: Dict[str, str] = None,
-        timeout: float = 10.0
+        timeout: float = 10.0,
     ):
         """
         初始化 Push Gateway 客户端
@@ -391,16 +385,14 @@ class PushGatewayClient:
                 url,
                 data=content.encode("utf-8"),
                 headers={"Content-Type": "text/plain"},
-                timeout=self.timeout
+                timeout=self.timeout,
             )
 
             if response.status_code in (200, 202):
                 logger.debug(f"指标推送成功: {url}")
                 return True
             else:
-                logger.error(
-                    f"指标推送失败: {response.status_code} - {response.text}"
-                )
+                logger.error(f"指标推送失败: {response.status_code} - {response.text}")
                 return False
 
         except requests.RequestException as e:
@@ -422,16 +414,14 @@ class PushGatewayClient:
                 url,
                 data=content.encode("utf-8"),
                 headers={"Content-Type": "text/plain"},
-                timeout=self.timeout
+                timeout=self.timeout,
             )
 
             if response.status_code in (200, 202):
                 logger.debug(f"指标追加成功: {url}")
                 return True
             else:
-                logger.error(
-                    f"指标追加失败: {response.status_code} - {response.text}"
-                )
+                logger.error(f"指标追加失败: {response.status_code} - {response.text}")
                 return False
 
         except requests.RequestException as e:
@@ -454,9 +444,7 @@ class PushGatewayClient:
                 logger.debug(f"指标删除成功: {url}")
                 return True
             else:
-                logger.error(
-                    f"指标删除失败: {response.status_code} - {response.text}"
-                )
+                logger.error(f"指标删除失败: {response.status_code} - {response.text}")
                 return False
 
         except requests.RequestException as e:
@@ -478,11 +466,7 @@ class PeriodicPusher:
         pusher.start()
     """
 
-    def __init__(
-        self,
-        client: PushGatewayClient,
-        interval: float = 15.0
-    ):
+    def __init__(self, client: PushGatewayClient, interval: float = 15.0):
         """
         初始化定期推送器
 
@@ -531,7 +515,7 @@ def create_exporter(
     port: int = 8000,
     push_gateway: str = None,
     job: str = "forgedan",
-    extra_labels: Dict[str, str] = None
+    extra_labels: Dict[str, str] = None,
 ) -> tuple:
     """
     创建导出器的便捷函数
@@ -545,16 +529,10 @@ def create_exporter(
     Returns:
         (exporter, push_client) 元组
     """
-    exporter = MetricsExporter(
-        port=port,
-        extra_labels=extra_labels or {}
-    )
+    exporter = MetricsExporter(port=port, extra_labels=extra_labels or {})
 
     push_client = None
     if push_gateway:
-        push_client = PushGatewayClient(
-            gateway_url=push_gateway,
-            job=job
-        )
+        push_client = PushGatewayClient(gateway_url=push_gateway, job=job)
 
     return exporter, push_client

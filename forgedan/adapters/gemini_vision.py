@@ -10,12 +10,12 @@ Gemini Vision 适配器 - 支持 Google Gemini Pro Vision 等多模态模型
 
 import time
 import asyncio
-import base64
 from typing import Any, Dict, List, Optional
 
 try:
     import google.generativeai as genai
     from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
@@ -26,17 +26,17 @@ except ImportError:
 try:
     from PIL import Image
     import io
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
-from .base import ModelConfig, ModelResponse
+from .base import ModelConfig
 from .multimodal_base import (
     MultimodalAdapter,
     MultimodalResponse,
     MultimodalMessage,
     ImageInput,
-    ImageDetail,
     VisionCapabilities,
 )
 
@@ -87,8 +87,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
 
         # 安全设置
         safety_settings = config.extra_params.get(
-            "safety_settings",
-            self.DEFAULT_SAFETY_SETTINGS
+            "safety_settings", self.DEFAULT_SAFETY_SETTINGS
         )
         self._safety_settings = self._parse_safety_settings(safety_settings)
 
@@ -112,10 +111,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
             max_resolution=(4096, 4096),
         )
 
-    def _parse_safety_settings(
-        self,
-        settings: Dict[str, str]
-    ) -> List[Dict[str, Any]]:
+    def _parse_safety_settings(self, settings: Dict[str, str]) -> List[Dict[str, Any]]:
         """解析安全设置"""
         if not GENAI_AVAILABLE:
             return []
@@ -139,10 +135,12 @@ class GeminiVisionAdapter(MultimodalAdapter):
 
         for category_name, threshold_name in settings.items():
             if category_name in category_map and threshold_name in threshold_map:
-                parsed.append({
-                    "category": category_map[category_name],
-                    "threshold": threshold_map[threshold_name],
-                })
+                parsed.append(
+                    {
+                        "category": category_map[category_name],
+                        "threshold": threshold_map[threshold_name],
+                    }
+                )
 
         return parsed
 
@@ -151,7 +149,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
         prompt: str,
         images: List[ImageInput],
         system_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> MultimodalResponse:
         """
         使用图像生成响应
@@ -176,8 +174,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
 
                 # 生成响应（Gemini SDK 是同步的，包装为异步）
                 response = await asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: self._model.generate_content(content_parts)
+                    None, lambda: self._model.generate_content(content_parts)
                 )
 
                 latency = time.time() - start_time
@@ -185,16 +182,26 @@ class GeminiVisionAdapter(MultimodalAdapter):
                 # 解析响应
                 if response.candidates and len(response.candidates) > 0:
                     candidate = response.candidates[0]
-                    content = candidate.content.parts[0].text if candidate.content.parts else ""
-                    finish_reason = str(candidate.finish_reason) if hasattr(candidate, 'finish_reason') else "unknown"
+                    content = (
+                        candidate.content.parts[0].text
+                        if candidate.content.parts
+                        else ""
+                    )
+                    finish_reason = (
+                        str(candidate.finish_reason)
+                        if hasattr(candidate, "finish_reason")
+                        else "unknown"
+                    )
                 else:
                     content = ""
                     finish_reason = "no_candidates"
 
                 # 获取 token 使用情况
-                usage = getattr(response, 'usage_metadata', None)
-                prompt_tokens = getattr(usage, 'prompt_token_count', 0) if usage else 0
-                completion_tokens = getattr(usage, 'candidates_token_count', 0) if usage else 0
+                usage = getattr(response, "usage_metadata", None)
+                prompt_tokens = getattr(usage, "prompt_token_count", 0) if usage else 0
+                completion_tokens = (
+                    getattr(usage, "candidates_token_count", 0) if usage else 0
+                )
 
                 return MultimodalResponse(
                     content=content,
@@ -211,7 +218,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
                     },
                     vision_metadata={
                         "image_count": len(images),
-                    }
+                    },
                 )
 
             except Exception as e:
@@ -224,9 +231,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
                 )
 
     async def generate_from_messages(
-        self,
-        messages: List[MultimodalMessage],
-        **kwargs
+        self, messages: List[MultimodalMessage], **kwargs
     ) -> MultimodalResponse:
         """
         从多模态消息列表生成响应
@@ -253,14 +258,13 @@ class GeminiVisionAdapter(MultimodalAdapter):
                         content_parts = await self._build_content_parts(
                             msg.text or "",
                             msg.images,
-                            system_text if messages.index(msg) == 0 else None
+                            system_text if messages.index(msg) == 0 else None,
                         )
                         total_images += len(msg.images)
 
                         # 发送消息
                         response = await asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda: chat.send_message(content_parts)
+                            None, lambda: chat.send_message(content_parts)
                         )
 
                     elif msg.role == "assistant":
@@ -272,7 +276,11 @@ class GeminiVisionAdapter(MultimodalAdapter):
                 # 解析最后一个响应
                 if response.candidates and len(response.candidates) > 0:
                     candidate = response.candidates[0]
-                    content = candidate.content.parts[0].text if candidate.content.parts else ""
+                    content = (
+                        candidate.content.parts[0].text
+                        if candidate.content.parts
+                        else ""
+                    )
                 else:
                     content = ""
 
@@ -287,7 +295,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
                     },
                     vision_metadata={
                         "total_images": total_images,
-                    }
+                    },
                 )
 
             except Exception as e:
@@ -300,10 +308,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
                 )
 
     async def _build_content_parts(
-        self,
-        text: str,
-        images: List[ImageInput],
-        system_prompt: Optional[str] = None
+        self, text: str, images: List[ImageInput], system_prompt: Optional[str] = None
     ) -> List[Any]:
         """构建 Gemini 内容部分"""
         parts = []
@@ -338,6 +343,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
             if image.url:
                 # 需要下载 URL
                 import aiohttp
+
                 async with aiohttp.ClientSession() as session:
                     async with session.get(image.url) as resp:
                         if resp.status == 200:
@@ -355,12 +361,14 @@ class GeminiVisionAdapter(MultimodalAdapter):
         try:
             if response.candidates and len(response.candidates) > 0:
                 candidate = response.candidates[0]
-                if hasattr(candidate, 'safety_ratings'):
+                if hasattr(candidate, "safety_ratings"):
                     for rating in candidate.safety_ratings:
-                        ratings.append({
-                            "category": str(rating.category),
-                            "probability": str(rating.probability),
-                        })
+                        ratings.append(
+                            {
+                                "category": str(rating.category),
+                                "probability": str(rating.probability),
+                            }
+                        )
         except Exception:
             pass
         return ratings
@@ -392,9 +400,7 @@ class GeminiVisionAdapter(MultimodalAdapter):
     # ============ 便捷方法 ============
 
     async def analyze_image(
-        self,
-        image: ImageInput,
-        question: str = "Describe this image in detail."
+        self, image: ImageInput, question: str = "Describe this image in detail."
     ) -> str:
         """
         分析图像
@@ -406,16 +412,13 @@ class GeminiVisionAdapter(MultimodalAdapter):
         Returns:
             str: 分析结果
         """
-        response = await self.generate_with_images(
-            prompt=question,
-            images=[image]
-        )
+        response = await self.generate_with_images(prompt=question, images=[image])
         return response.content
 
     async def analyze_document(
         self,
         images: List[ImageInput],
-        task: str = "Summarize the content of this document."
+        task: str = "Summarize the content of this document.",
     ) -> str:
         """
         分析文档（多页图像）
@@ -433,16 +436,11 @@ Task: {task}
 
 Please analyze all pages and provide a comprehensive response."""
 
-        response = await self.generate_with_images(
-            prompt=prompt,
-            images=images
-        )
+        response = await self.generate_with_images(prompt=prompt, images=images)
         return response.content
 
     async def extract_structured_data(
-        self,
-        image: ImageInput,
-        schema_description: str
+        self, image: ImageInput, schema_description: str
     ) -> str:
         """
         从图像中提取结构化数据
@@ -461,10 +459,7 @@ Expected format:
 
 Return ONLY valid JSON."""
 
-        response = await self.generate_with_images(
-            prompt=prompt,
-            images=[image]
-        )
+        response = await self.generate_with_images(prompt=prompt, images=[image])
         return response.content
 
     def set_safety_settings(
@@ -472,7 +467,7 @@ Return ONLY valid JSON."""
         harassment: str = "BLOCK_NONE",
         hate_speech: str = "BLOCK_NONE",
         sexually_explicit: str = "BLOCK_NONE",
-        dangerous_content: str = "BLOCK_NONE"
+        dangerous_content: str = "BLOCK_NONE",
     ):
         """
         更新安全设置
@@ -508,9 +503,7 @@ Return ONLY valid JSON."""
 
 # 工厂函数
 def create_gemini_vision_adapter(
-    api_key: str,
-    model: str = "gemini-1.5-pro",
-    **kwargs
+    api_key: str, model: str = "gemini-1.5-pro", **kwargs
 ) -> GeminiVisionAdapter:
     """
     创建 Gemini Vision 适配器
@@ -547,6 +540,7 @@ if __name__ == "__main__":
     # 如果有 API key，运行简单测试
     api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if api_key and GENAI_AVAILABLE:
+
         async def test():
             adapter = create_gemini_vision_adapter(api_key)
             print(f"模型信息: {adapter.get_model_info()}")

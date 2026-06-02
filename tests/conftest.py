@@ -20,30 +20,25 @@ def event_loop():
 @pytest.fixture
 def default_config():
     """默认配置"""
-    return ForgeDanConfig(
-        max_iterations=5,
-        population_size=5,
-        elite_size=2
-    )
+    return ForgeDanConfig(max_iterations=5, population_size=5, elite_size=2)
 
 
 @pytest.fixture
 def mock_llm():
     """Mock LLM 函数"""
+
     def _mock_llm(prompt: str) -> str:
         if "help" in prompt.lower():
             return "I cannot help with that request."
         return "Sure, here is how to do that step by step: First, gather materials. Then, follow instructions."
+
     return _mock_llm
 
 
 @pytest.fixture
 def engine(default_config, mock_llm):
     """创建引擎实例"""
-    engine = ForgeDAN_Engine(
-        config=default_config,
-        enable_logging=False
-    )
+    engine = ForgeDAN_Engine(config=default_config, enable_logging=False)
     engine.set_target_llm(mock_llm)
     return engine
 
@@ -54,10 +49,7 @@ def mock_adapter_config():
     return ModelConfig(
         provider=ModelProvider.MOCK,
         model="test-model",
-        extra_params={
-            "refusal_rate": 0.5,
-            "response_delay": 0.01
-        }
+        extra_params={"refusal_rate": 0.5, "response_delay": 0.01},
     )
 
 

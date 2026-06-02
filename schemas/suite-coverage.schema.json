@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-coverage.schema.json",
+  "title": "ForgeDAN Suite Coverage Summary",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "suite",
+    "model",
+    "generated_at",
+    "case_count",
+    "finding_count",
+    "case_category_coverage",
+    "policy_domain_coverage",
+    "taxonomy_category_coverage",
+    "owasp_llm_coverage"
+  ],
+  "properties": {
+    "schema_version": { "const": "suite-coverage.v1" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "suite": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "case_count": { "type": "integer", "minimum": 0 },
+    "finding_count": { "type": "integer", "minimum": 0 },
+    "case_category_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "category",
+          "case_count",
+          "cases",
+          "finding_count",
+          "prompt_findings",
+          "response_findings",
+          "max_prompt_risk_score",
+          "max_response_risk_score",
+          "policy_domains",
+          "owasp_llm_categories"
+        ],
+        "properties": {
+          "category": { "type": "string", "minLength": 1 },
+          "case_count": { "type": "integer", "minimum": 0 },
+          "cases": { "type": "array", "items": { "type": "string" } },
+          "finding_count": { "type": "integer", "minimum": 0 },
+          "prompt_findings": { "type": "integer", "minimum": 0 },
+          "response_findings": { "type": "integer", "minimum": 0 },
+          "max_prompt_risk_score": { "type": "number", "minimum": 0 },
+          "max_response_risk_score": { "type": "number", "minimum": 0 },
+          "policy_domains": { "type": "array", "items": { "type": "string" } },
+          "owasp_llm_categories": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "policy_domain_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "policy_domain",
+          "case_count",
+          "cases",
+          "categories",
+          "finding_count",
+          "kinds",
+          "highest_severity",
+          "owasp_llm_categories"
+        ],
+        "properties": {
+          "policy_domain": { "type": "string", "minLength": 1 },
+          "case_count": { "type": "integer", "minimum": 0 },
+          "cases": { "type": "array", "items": { "type": "string" } },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "finding_count": { "type": "integer", "minimum": 0 },
+          "kinds": { "type": "array", "items": { "type": "string" } },
+          "highest_severity": {
+            "type": "string",
+            "enum": ["none", "low", "medium", "high", "critical"]
+          },
+          "owasp_llm_categories": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "taxonomy_category_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "taxonomy_category",
+          "case_count",
+          "cases",
+          "categories",
+          "finding_count",
+          "kinds",
+          "highest_severity",
+          "policy_domains",
+          "owasp_llm_categories"
+        ],
+        "properties": {
+          "taxonomy_category": { "type": "string", "minLength": 1 },
+          "case_count": { "type": "integer", "minimum": 0 },
+          "cases": { "type": "array", "items": { "type": "string" } },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "finding_count": { "type": "integer", "minimum": 0 },
+          "kinds": { "type": "array", "items": { "type": "string" } },
+          "highest_severity": {
+            "type": "string",
+            "enum": ["none", "low", "medium", "high", "critical"]
+          },
+          "policy_domains": { "type": "array", "items": { "type": "string" } },
+          "owasp_llm_categories": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "owasp_llm_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "owasp_llm_id",
+          "owasp_llm_category",
+          "case_count",
+          "cases",
+          "categories",
+          "finding_count",
+          "kinds",
+          "highest_severity",
+          "policy_domains"
+        ],
+        "properties": {
+          "owasp_llm_id": { "type": "string" },
+          "owasp_llm_category": { "type": "string", "minLength": 1 },
+          "case_count": { "type": "integer", "minimum": 0 },
+          "cases": { "type": "array", "items": { "type": "string" } },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "finding_count": { "type": "integer", "minimum": 0 },
+          "kinds": { "type": "array", "items": { "type": "string" } },
+          "highest_severity": {
+            "type": "string",
+            "enum": ["none", "low", "medium", "high", "critical"]
+          },
+          "policy_domains": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "key", "case_count", "recommendation"],
+        "properties": {
+          "type": { "type": "string", "minLength": 1 },
+          "key": { "type": "string", "minLength": 1 },
+          "case_count": { "type": "integer", "minimum": 0 },
+          "recommendation": { "type": "string" }
+        }
+      }
+    },
+    "unmapped_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "case", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "case": { "type": "string" },
+          "kind": { "type": "string" }
+        }
+      }
+    }
+  }
+}

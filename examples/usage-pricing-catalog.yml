@@ -1,0 +1,5 @@
+models:
+  mock:test-model:
+    prompt_usd_per_1k_tokens: 0.01
+    completion_usd_per_1k_tokens: 0.02
+    source: example-provider-pricing-sheet

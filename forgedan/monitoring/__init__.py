@@ -29,7 +29,7 @@ from .collectors import (
     EngineCollector,
     AdapterCollector,
     SystemCollector,
-    CollectorRegistry
+    CollectorRegistry,
 )
 from .alerts import AlertRule, AlertManager, AlertSeverity
 

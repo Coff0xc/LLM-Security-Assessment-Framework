@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-manifest.schema.json",
+  "title": "ForgeDAN Suite Artifact Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "suite",
+    "model",
+    "run_environment",
+    "generated_at",
+    "report_acceptance",
+    "artifact_count",
+    "artifacts",
+    "schema_count",
+    "schemas"
+  ],
+  "properties": {
+    "schema_version": { "const": "suite-artifact-manifest.v1" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "suite": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "run_environment": {
+      "type": "object",
+      "required": ["forgedan_version", "python_version", "platform"],
+      "properties": {
+        "forgedan_version": { "type": "string", "minLength": 1 },
+        "python_version": { "type": "string", "minLength": 1 },
+        "python_implementation": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "os": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generated_at": { "type": "string" },
+    "report_acceptance": {
+      "type": "object",
+      "required": ["status", "criteria_count", "ready_for_handoff"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["failed", "not_configured", "passed", "review_required"]
+        },
+        "criteria_count": { "type": "integer", "minimum": 0 },
+        "ready_for_handoff": { "type": "boolean" }
+      }
+    },
+    "artifact_count": { "type": "integer", "minimum": 0 },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "media_type", "sensitivity", "audience", "size_bytes", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "media_type": { "type": "string", "minLength": 1 },
+          "sensitivity": {
+            "type": "string",
+            "enum": ["restricted", "internal", "public"]
+          },
+          "audience": {
+            "type": "string",
+            "enum": ["authorized_reviewers", "assessment_team", "external_reviewers"]
+          },
+          "size_bytes": { "type": "integer", "minimum": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "schema_count": { "type": "integer", "minimum": 0 },
+    "schemas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "schema_id", "target_artifact"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "schema_id": { "type": "string", "minLength": 1 },
+          "target_artifact": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

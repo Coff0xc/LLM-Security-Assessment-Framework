@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 try:
     from transformers import AutoTokenizer, AutoModelForCausalLM
     import torch
+
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
@@ -21,7 +22,9 @@ class HuggingFaceAdapter(ModelAdapter):
     def __init__(self, config: ModelConfig):
         super().__init__(config)
         if not TRANSFORMERS_AVAILABLE:
-            raise ImportError("transformers 包未安装，请运行: pip install transformers torch")
+            raise ImportError(
+                "transformers 包未安装，请运行: pip install transformers torch"
+            )
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokenizer = AutoTokenizer.from_pretrained(config.model)
@@ -35,10 +38,7 @@ class HuggingFaceAdapter(ModelAdapter):
             self.model = self.model.to(self.device)
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """生成单个响应"""
         start_time = time.time()
@@ -67,8 +67,7 @@ class HuggingFaceAdapter(ModelAdapter):
 
         # 解码
         generated_text = self.tokenizer.decode(
-            outputs[0][prompt_tokens:],
-            skip_special_tokens=True
+            outputs[0][prompt_tokens:], skip_special_tokens=True
         )
 
         completion_tokens = outputs.shape[1] - prompt_tokens
@@ -84,14 +83,11 @@ class HuggingFaceAdapter(ModelAdapter):
             latency=latency,
             metadata={
                 "device": self.device,
-            }
+            },
         )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """批量生成响应"""
         # HuggingFace 可以真正批量处理
@@ -107,10 +103,7 @@ class HuggingFaceAdapter(ModelAdapter):
 
         # Tokenize
         inputs = self.tokenizer(
-            full_prompts,
-            return_tensors="pt",
-            padding=True,
-            truncation=True
+            full_prompts, return_tensors="pt", padding=True, truncation=True
         ).to(self.device)
 
         # 生成参数
@@ -131,21 +124,22 @@ class HuggingFaceAdapter(ModelAdapter):
         for i, output in enumerate(outputs):
             prompt_length = inputs.input_ids[i].shape[0]
             generated_text = self.tokenizer.decode(
-                output[prompt_length:],
-                skip_special_tokens=True
+                output[prompt_length:], skip_special_tokens=True
             )
 
             completion_tokens = output.shape[0] - prompt_length
-            responses.append(ModelResponse(
-                content=generated_text,
-                model=self.config.model,
-                provider="huggingface",
-                prompt_tokens=prompt_length,
-                completion_tokens=completion_tokens,
-                total_tokens=prompt_length + completion_tokens,
-                latency=time.time() - start_time,
-                metadata={"device": self.device}
-            ))
+            responses.append(
+                ModelResponse(
+                    content=generated_text,
+                    model=self.config.model,
+                    provider="huggingface",
+                    prompt_tokens=prompt_length,
+                    completion_tokens=completion_tokens,
+                    total_tokens=prompt_length + completion_tokens,
+                    latency=time.time() - start_time,
+                    metadata={"device": self.device},
+                )
+            )
 
         return responses
 
@@ -169,9 +163,9 @@ class HuggingFaceAdapter(ModelAdapter):
 
     async def close(self):
         """清理资源"""
-        if hasattr(self, 'model'):
+        if hasattr(self, "model"):
             del self.model
-        if hasattr(self, 'tokenizer'):
+        if hasattr(self, "tokenizer"):
             del self.tokenizer
         if torch.cuda.is_available():
             torch.cuda.empty_cache()

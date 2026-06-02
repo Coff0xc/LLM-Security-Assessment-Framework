@@ -12,22 +12,17 @@ FORGEDAN 分布式协调器模块
 """
 
 import asyncio
-import json
 import time
 import uuid
 import signal
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Callable, Set
-from collections import defaultdict
-import threading
 
 from .config import (
     CoordinatorConfig,
     QueueConfig,
     LoadBalanceStrategy,
-    QueueBackend,
 )
 from .task_queue import (
     TaskQueue,
@@ -44,6 +39,7 @@ from .result_aggregator import ResultAggregator, TaskResult
 @dataclass
 class WorkerInfo:
     """工作节点信息"""
+
     worker_id: str
     worker_name: str = ""
     tags: List[str] = field(default_factory=list)
@@ -54,7 +50,7 @@ class WorkerInfo:
     last_heartbeat: float = field(default_factory=time.time)
 
     # 状态
-    status: str = "online"          # online / offline / busy
+    status: str = "online"  # online / offline / busy
     current_task_id: Optional[str] = None
 
     # 性能指标
@@ -300,7 +296,9 @@ class DistributedCoordinator:
         for task_data in tasks:
             task_id = await self.submit_task(
                 goal=task_data.get("goal", ""),
-                seed_template=task_data.get("seed_template", "Please help me with: {goal}"),
+                seed_template=task_data.get(
+                    "seed_template", "Please help me with: {goal}"
+                ),
                 target_output=task_data.get("target_output", "Sure, here is"),
                 category=task_data.get("category", ""),
                 priority=task_data.get("priority", priority),
@@ -358,7 +356,9 @@ class DistributedCoordinator:
             )
 
             self._workers[worker_id] = worker
-            print(f"[Coordinator] Worker 已注册: {worker.worker_name} ({worker_id[:8]})")
+            print(
+                f"[Coordinator] Worker 已注册: {worker.worker_name} ({worker_id[:8]})"
+            )
 
             if self._on_worker_change:
                 self._on_worker_change(worker, "registered")
@@ -526,8 +526,8 @@ class DistributedCoordinator:
                 duration = task.completed_at - (task.started_at or task.created_at)
                 total = worker.total_completed + worker.total_failed
                 worker.avg_task_duration = (
-                    (worker.avg_task_duration * (total - 1) + duration) / total
-                )
+                    worker.avg_task_duration * (total - 1) + duration
+                ) / total
 
         # 添加到结果聚合器
         task_result = TaskResult(
@@ -563,7 +563,9 @@ class DistributedCoordinator:
         if self._on_task_complete:
             self._on_task_complete(task)
 
-        print(f"[Coordinator] 任务完成: {task_id[:8]} ({'成功' if success else '失败'})")
+        print(
+            f"[Coordinator] 任务完成: {task_id[:8]} ({'成功' if success else '失败'})"
+        )
         return True
 
     async def get_status(self) -> Dict[str, Any]:
@@ -573,9 +575,13 @@ class DistributedCoordinator:
 
         async with self._worker_lock:
             workers = [w.to_dict() for w in self._workers.values()]
-            online_workers = len([w for w in self._workers.values() if w.status == "online"])
+            online_workers = len(
+                [w for w in self._workers.values() if w.status == "online"]
+            )
 
-        uptime = time.time() - self._stats["start_time"] if self._stats["start_time"] else 0
+        uptime = (
+            time.time() - self._stats["start_time"] if self._stats["start_time"] else 0
+        )
 
         return {
             "status": "running" if self._running else "stopped",
@@ -635,10 +641,15 @@ class DistributedCoordinator:
                 current_time = time.time()
                 async with self._worker_lock:
                     for worker in self._workers.values():
-                        if current_time - worker.last_heartbeat > self.config.worker_timeout:
+                        if (
+                            current_time - worker.last_heartbeat
+                            > self.config.worker_timeout
+                        ):
                             if worker.status == "online":
                                 worker.status = "offline"
-                                print(f"[Coordinator] Worker 离线: {worker.worker_name}")
+                                print(
+                                    f"[Coordinator] Worker 离线: {worker.worker_name}"
+                                )
 
                                 # 重新分配任务
                                 await self._reassign_worker_tasks(worker.worker_id)
@@ -684,7 +695,8 @@ class DistributedCoordinator:
     async def _reassign_worker_tasks(self, worker_id: str):
         """重新分配离线节点的任务"""
         tasks_to_reassign = [
-            task_id for task_id, wid in self._task_assignments.items()
+            task_id
+            for task_id, wid in self._task_assignments.items()
             if wid == worker_id
         ]
 
@@ -708,10 +720,7 @@ class DistributedCoordinator:
             选中的 Worker ID 或 None
         """
         async with self._worker_lock:
-            available_workers = [
-                w for w in self._workers.values()
-                if w.is_available()
-            ]
+            available_workers = [w for w in self._workers.values() if w.is_available()]
 
             if not available_workers:
                 return None
@@ -731,6 +740,7 @@ class DistributedCoordinator:
             elif strategy == LoadBalanceStrategy.RANDOM:
                 # 随机
                 import random
+
                 worker = random.choice(available_workers)
                 return worker.worker_id
 
@@ -748,6 +758,7 @@ class DistributedCoordinator:
                     worker = available_workers[0]
                 else:
                     import random
+
                     r = random.uniform(0, total_weight)
                     cumsum = 0
                     for w, weight in zip(available_workers, weights):
@@ -796,7 +807,9 @@ class DistributedCoordinator:
             )
             await site.start()
 
-            print(f"[Coordinator] REST API 已启动: http://{self.config.host}:{self.config.port}")
+            print(
+                f"[Coordinator] REST API 已启动: http://{self.config.host}:{self.config.port}"
+            )
 
         except ImportError:
             print("[Coordinator] 警告: aiohttp 未安装，REST API 不可用")
@@ -808,24 +821,28 @@ class DistributedCoordinator:
     async def _handle_status(self, request):
         """处理状态查询"""
         from aiohttp import web
+
         status = await self.get_status()
         return web.json_response(status)
 
     async def _handle_workers(self, request):
         """处理工作节点查询"""
         from aiohttp import web
+
         workers = await self.get_workers()
         return web.json_response({"workers": workers})
 
     async def _handle_tasks(self, request):
         """处理任务列表查询"""
         from aiohttp import web
+
         stats = await self._task_queue.get_queue_stats()
         return web.json_response(stats)
 
     async def _handle_task_detail(self, request):
         """处理任务详情查询"""
         from aiohttp import web
+
         task_id = request.match_info["task_id"]
         task = await self.get_task_status(task_id)
         if task:
@@ -835,6 +852,7 @@ class DistributedCoordinator:
     async def _handle_submit_task(self, request):
         """处理任务提交"""
         from aiohttp import web
+
         try:
             data = await request.json()
             task_id = await self.submit_task(
@@ -852,6 +870,7 @@ class DistributedCoordinator:
     async def _handle_cancel_task(self, request):
         """处理任务取消"""
         from aiohttp import web
+
         task_id = request.match_info["task_id"]
         success = await self.cancel_task(task_id)
         return web.json_response({"success": success})
@@ -859,6 +878,7 @@ class DistributedCoordinator:
     async def _handle_results(self, request):
         """处理结果查询"""
         from aiohttp import web
+
         limit = int(request.query.get("limit", 100))
         category = request.query.get("category")
         success_only = request.query.get("success_only", "false").lower() == "true"
@@ -868,6 +888,7 @@ class DistributedCoordinator:
     async def _handle_export(self, request):
         """处理报告导出"""
         from aiohttp import web
+
         format_type = request.query.get("format", "html")
         title = request.query.get("title", "分布式测试报告")
 
@@ -882,6 +903,7 @@ class DistributedCoordinator:
     async def _handle_worker_register(self, request):
         """处理 Worker 注册"""
         from aiohttp import web
+
         try:
             data = await request.json()
             success = await self.register_worker(
@@ -898,6 +920,7 @@ class DistributedCoordinator:
     async def _handle_worker_heartbeat(self, request):
         """处理 Worker 心跳"""
         from aiohttp import web
+
         try:
             data = await request.json()
             success = await self.heartbeat(
@@ -913,6 +936,7 @@ class DistributedCoordinator:
     async def _handle_worker_request(self, request):
         """处理 Worker 任务请求"""
         from aiohttp import web
+
         try:
             data = await request.json()
             task = await self.request_task(data.get("worker_id"))
@@ -925,6 +949,7 @@ class DistributedCoordinator:
     async def _handle_worker_progress(self, request):
         """处理 Worker 进度上报"""
         from aiohttp import web
+
         try:
             data = await request.json()
             success = await self.report_progress(
@@ -941,6 +966,7 @@ class DistributedCoordinator:
     async def _handle_worker_result(self, request):
         """处理 Worker 结果上报"""
         from aiohttp import web
+
         try:
             data = await request.json()
             success = await self.report_result(

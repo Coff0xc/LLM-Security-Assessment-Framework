@@ -6,7 +6,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List
 from datetime import datetime
 
 
@@ -30,7 +30,7 @@ class Visualizer:
         records: List[Dict],
         history: List[Dict],
         model_name: str = "",
-        title: str = "FORGEDAN 安全评估报告"
+        title: str = "FORGEDAN 安全评估报告",
     ) -> str:
         """生成完整的HTML可视化报告"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -41,7 +41,9 @@ class Visualizer:
         total = len(records)
         success = len([r for r in records if r.get("success", False)])
         success_rate = success / total * 100 if total > 0 else 0
-        avg_fitness = sum(r.get("fitness", 0) for r in records) / total if total > 0 else 0
+        avg_fitness = (
+            sum(r.get("fitness", 0) for r in records) / total if total > 0 else 0
+        )
 
         # 类别统计
         category_stats = {}
@@ -277,7 +279,9 @@ class Visualizer:
         for i, r in enumerate(records, 1):
             status = "success" if r.get("success", False) else "fail"
             status_text = "突破" if r.get("success", False) else "拦截"
-            goal = r.get("goal", "")[:50] + ("..." if len(r.get("goal", "")) > 50 else "")
+            goal = r.get("goal", "")[:50] + (
+                "..." if len(r.get("goal", "")) > 50 else ""
+            )
             rows.append(f"""
                 <tr>
                     <td>{i}</td>
@@ -294,10 +298,12 @@ class Visualizer:
         """生成适应度图表数���"""
         return {
             "labels": [h.get("generation", i) for i, h in enumerate(history)],
-            "datasets": [{
-                "label": "最佳适应度",
-                "data": [h.get("best_fitness", 0) for h in history]
-            }]
+            "datasets": [
+                {
+                    "label": "最佳适应度",
+                    "data": [h.get("best_fitness", 0) for h in history],
+                }
+            ],
         }
 
     def generate_summary_card(self, stats: Dict) -> str:

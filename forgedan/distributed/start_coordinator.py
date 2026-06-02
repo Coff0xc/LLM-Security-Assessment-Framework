@@ -36,49 +36,29 @@ def parse_args():
 
     # 启用认证
     python -m forgedan.distributed.start_coordinator --token my-secret-token
-        """
+        """,
     )
 
     # 服务器配置
     parser.add_argument(
-        "--host",
-        type=str,
-        default="0.0.0.0",
-        help="监听地址 (默认: 0.0.0.0)"
+        "--host", type=str, default="0.0.0.0", help="监听地址 (默认: 0.0.0.0)"
     )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=8765,
-        help="监听端口 (默认: 8765)"
-    )
+    parser.add_argument("--port", type=int, default=8765, help="监听端口 (默认: 8765)")
 
     # 队列配置
     parser.add_argument(
         "--redis",
         type=str,
         default=None,
-        help="Redis URL (例: redis://localhost:6379/0)"
+        help="Redis URL (例: redis://localhost:6379/0)",
     )
     parser.add_argument(
-        "--queue-size",
-        type=int,
-        default=10000,
-        help="最大队列容量 (默认: 10000)"
+        "--queue-size", type=int, default=10000, help="最大队列容量 (默认: 10000)"
     )
 
     # 认证配置
-    parser.add_argument(
-        "--token",
-        type=str,
-        default=None,
-        help="认证令牌"
-    )
-    parser.add_argument(
-        "--enable-auth",
-        action="store_true",
-        help="启用认证"
-    )
+    parser.add_argument("--token", type=str, default=None, help="认证令牌")
+    parser.add_argument("--enable-auth", action="store_true", help="启用认证")
 
     # 负载均衡
     parser.add_argument(
@@ -86,21 +66,18 @@ def parse_args():
         type=str,
         choices=["round_robin", "least_loaded", "random", "weighted"],
         default="least_loaded",
-        help="负载均衡策略 (默认: least_loaded)"
+        help="负载均衡策略 (默认: least_loaded)",
     )
 
     # Worker 管理
     parser.add_argument(
-        "--max-workers",
-        type=int,
-        default=100,
-        help="最大 Worker 数量 (默认: 100)"
+        "--max-workers", type=int, default=100, help="最大 Worker 数量 (默认: 100)"
     )
     parser.add_argument(
         "--worker-timeout",
         type=float,
         default=60.0,
-        help="Worker 超时时间(秒) (默认: 60)"
+        help="Worker 超时时间(秒) (默认: 60)",
     )
 
     # 检查点
@@ -108,13 +85,13 @@ def parse_args():
         "--checkpoint-dir",
         type=str,
         default="checkpoints/distributed",
-        help="检查点保存目录"
+        help="检查点保存目录",
     )
     parser.add_argument(
         "--checkpoint-interval",
         type=float,
         default=60.0,
-        help="检查点保存间隔(秒) (默认: 60)"
+        help="检查点保存间隔(秒) (默认: 60)",
     )
 
     # 其他
@@ -123,7 +100,7 @@ def parse_args():
         type=str,
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="日志级别 (默认: INFO)"
+        help="日志级别 (默认: INFO)",
     )
 
     return parser.parse_args()
@@ -135,9 +112,10 @@ def main():
 
     # 配置日志
     import logging
+
     logging.basicConfig(
         level=getattr(logging, args.log_level),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # 创建配置
@@ -157,6 +135,7 @@ def main():
     if args.redis:
         # 解析 Redis URL
         from urllib.parse import urlparse
+
         parsed = urlparse(args.redis)
         queue_config.redis_host = parsed.hostname or "localhost"
         queue_config.redis_port = parsed.port or 6379

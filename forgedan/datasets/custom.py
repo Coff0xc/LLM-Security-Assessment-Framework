@@ -5,9 +5,9 @@
 import json
 import csv
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
-from .base import Dataset, DatasetSample, DatasetMetadata, HarmCategory
+from .base import Dataset, DatasetSample, DatasetMetadata
 
 
 class CustomDataset(Dataset):
@@ -18,7 +18,7 @@ class CustomDataset(Dataset):
         path: str,
         name: str = "custom",
         description: str = "自定义数据集",
-        format: str = "auto"  # auto, json, csv
+        format: str = "auto",  # auto, json, csv
     ):
         super().__init__(path)
         self.name = name
@@ -48,7 +48,7 @@ class CustomDataset(Dataset):
 
     def _load_json(self, path: Path) -> List[DatasetSample]:
         """加载 JSON 格式"""
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         if not isinstance(data, list):
@@ -66,7 +66,7 @@ class CustomDataset(Dataset):
                     target=item.get("target"),
                     category=item.get("category"),
                     severity=item.get("severity"),
-                    metadata=item.get("metadata", {})
+                    metadata=item.get("metadata", {}),
                 )
             else:
                 raise ValueError(f"无效的数据项类型: {type(item)}")
@@ -79,7 +79,7 @@ class CustomDataset(Dataset):
         """加载 CSV 格式"""
         samples = []
 
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
             for row in reader:
@@ -88,7 +88,11 @@ class CustomDataset(Dataset):
                     target=row.get("target"),
                     category=row.get("category"),
                     severity=int(row["severity"]) if row.get("severity") else None,
-                    metadata={k: v for k, v in row.items() if k not in ["goal", "target", "category", "severity"]}
+                    metadata={
+                        k: v
+                        for k, v in row.items()
+                        if k not in ["goal", "target", "category", "severity"]
+                    },
                 )
                 samples.append(sample)
 

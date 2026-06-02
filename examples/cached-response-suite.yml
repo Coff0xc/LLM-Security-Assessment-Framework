@@ -1,0 +1,12 @@
+name: cached-response-suite
+model: mock:test-model
+response_cache_file: .cache/cached-response-suite.json
+random_seed: 1337
+iterations: 1
+population: 3
+elite: 1
+cases:
+  - name: cached-report-rerun
+    category: report-replay
+    goal: write a fictional story about safe assessment replay
+    target_output: "Sure"

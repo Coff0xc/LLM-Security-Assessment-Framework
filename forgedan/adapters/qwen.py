@@ -12,12 +12,14 @@ from typing import Any, Dict, List, Optional, Union
 
 try:
     from openai import AsyncOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -69,9 +71,7 @@ class QwenAdapter(ModelAdapter):
         super().__init__(config)
 
         if not OPENAI_AVAILABLE:
-            raise ImportError(
-                "openai 包未安装，请运行: pip install openai"
-            )
+            raise ImportError("openai 包未安装，请运行: pip install openai")
 
         # 设置默认 base_url
         base_url = config.base_url or self.DEFAULT_BASE_URL
@@ -108,7 +108,7 @@ class QwenAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         生成响应
@@ -142,10 +142,7 @@ class QwenAdapter(ModelAdapter):
         return "vl" in self.config.model.lower()
 
     async def _generate_with_retry(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """带重试的生成逻辑"""
         last_exception = None
@@ -167,10 +164,7 @@ class QwenAdapter(ModelAdapter):
         raise last_exception
 
     async def _do_generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """实际生成逻辑（使用 OpenAI 兼容 API）"""
         start_time = time.time()
@@ -229,13 +223,11 @@ class QwenAdapter(ModelAdapter):
             metadata={
                 "finish_reason": response.choices[0].finish_reason,
                 "response_id": response.id,
-            }
+            },
         )
 
     async def _stream_generate(
-        self,
-        params: Dict[str, Any],
-        start_time: float
+        self, params: Dict[str, Any], start_time: float
     ) -> ModelResponse:
         """流式生成响应"""
         params["stream"] = True
@@ -259,7 +251,7 @@ class QwenAdapter(ModelAdapter):
             completion_tokens=0,
             total_tokens=0,
             latency=latency,
-            metadata={"streamed": True}
+            metadata={"streamed": True},
         )
 
     async def _multimodal_generate(
@@ -267,7 +259,7 @@ class QwenAdapter(ModelAdapter):
         prompt: str,
         system_prompt: Optional[str] = None,
         images: Optional[List[Union[str, bytes, Path]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ModelResponse:
         """
         多模态生成（图片理解）
@@ -275,9 +267,7 @@ class QwenAdapter(ModelAdapter):
         使用原生 DashScope API
         """
         if not self._native_client:
-            raise ImportError(
-                "httpx 包未安装，多模态功能需要: pip install httpx"
-            )
+            raise ImportError("httpx 包未安装，多模态功能需要: pip install httpx")
 
         start_time = time.time()
 
@@ -297,22 +287,17 @@ class QwenAdapter(ModelAdapter):
         # 构建消息
         messages = []
         if system_prompt:
-            messages.append({
-                "role": "system",
-                "content": [{"text": system_prompt}]
-            })
+            messages.append({"role": "system", "content": [{"text": system_prompt}]})
         messages.append({"role": "user", "content": content})
 
         # 构建请求体
         request_body = {
             "model": self.config.model,
-            "input": {
-                "messages": messages
-            },
+            "input": {"messages": messages},
             "parameters": {
                 "temperature": kwargs.get("temperature", self.config.temperature),
                 "top_p": kwargs.get("top_p", self.config.top_p),
-            }
+            },
         }
 
         max_tokens = kwargs.get("max_tokens", self.config.max_tokens)
@@ -327,7 +312,9 @@ class QwenAdapter(ModelAdapter):
 
         if response.status_code != 200:
             error_data = response.json() if response.content else {}
-            raise Exception(f"API request failed: {response.status_code} - {error_data}")
+            raise Exception(
+                f"API request failed: {response.status_code} - {error_data}"
+            )
 
         result = response.json()
         latency = time.time() - start_time
@@ -357,7 +344,7 @@ class QwenAdapter(ModelAdapter):
             metadata={
                 "request_id": result.get("request_id"),
                 "multimodal": True,
-            }
+            },
         )
 
     def _process_image(self, image: Union[str, bytes, Path]) -> Optional[str]:
@@ -375,7 +362,9 @@ class QwenAdapter(ModelAdapter):
                 return f"data:image/jpeg;base64,{base64.b64encode(image).decode()}"
             elif isinstance(image, Path):
                 with open(image, "rb") as f:
-                    return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
+                    return (
+                        f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
+                    )
             elif isinstance(image, str):
                 if image.startswith(("http://", "https://")):
                     return image
@@ -390,10 +379,7 @@ class QwenAdapter(ModelAdapter):
             return None
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应（并发执行）
@@ -406,10 +392,7 @@ class QwenAdapter(ModelAdapter):
         Returns:
             响应列表
         """
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     def get_model_info(self) -> Dict[str, Any]:
@@ -457,10 +440,7 @@ class QwenAdapter(ModelAdapter):
             await self._native_client.aclose()
 
     async def code_generation(
-        self,
-        instruction: str,
-        language: str = "python",
-        **kwargs
+        self, instruction: str, language: str = "python", **kwargs
     ) -> ModelResponse:
         """
         代码生成（针对 qwen-coder 优化）
@@ -488,10 +468,7 @@ Only output code unless explanation is explicitly requested."""
             self.config.model = original_model
 
     async def image_understanding(
-        self,
-        images: List[Union[str, bytes, Path]],
-        question: str,
-        **kwargs
+        self, images: List[Union[str, bytes, Path]], question: str, **kwargs
     ) -> ModelResponse:
         """
         图片理解

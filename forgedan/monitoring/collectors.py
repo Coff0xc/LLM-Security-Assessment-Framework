@@ -19,8 +19,7 @@ FORGEDAN 数据收集器
 import time
 import threading
 import logging
-from typing import Dict, List, Optional, Any, Callable, TYPE_CHECKING
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from weakref import ref, WeakValueDictionary
 
@@ -32,6 +31,7 @@ if TYPE_CHECKING:
 # 系统监控
 try:
     import psutil
+
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False
@@ -48,11 +48,7 @@ class BaseCollector(ABC):
     所有收集器必须实现 collect() 方法。
     """
 
-    def __init__(
-        self,
-        metrics_instance: ForgeDanMetrics = None,
-        interval: float = 5.0
-    ):
+    def __init__(self, metrics_instance: ForgeDanMetrics = None, interval: float = 5.0):
         """
         初始化收集器
 
@@ -102,9 +98,9 @@ class EngineCollector(BaseCollector):
 
     def __init__(
         self,
-        engine: 'ForgeDAN_Engine' = None,
+        engine: "ForgeDAN_Engine" = None,
         metrics_instance: ForgeDanMetrics = None,
-        interval: float = 1.0
+        interval: float = 1.0,
     ):
         """
         初始化引擎收集器
@@ -118,11 +114,11 @@ class EngineCollector(BaseCollector):
         self._engine_ref = ref(engine) if engine else None
         self._task_start_times: Dict[str, float] = {}
 
-    def set_engine(self, engine: 'ForgeDAN_Engine') -> None:
+    def set_engine(self, engine: "ForgeDAN_Engine") -> None:
         """设置引擎实例"""
         self._engine_ref = ref(engine)
 
-    def get_engine(self) -> Optional['ForgeDAN_Engine']:
+    def get_engine(self) -> Optional["ForgeDAN_Engine"]:
         """获取引擎实例"""
         if self._engine_ref:
             return self._engine_ref()
@@ -149,23 +145,19 @@ class EngineCollector(BaseCollector):
                     best_fitness=state.get("best_fitness", 0),
                     avg_fitness=state.get("avg_fitness"),
                     generation=state.get("current_generation"),
-                    population_size=getattr(engine.config, "population_size", 10)
+                    population_size=getattr(engine.config, "population_size", 10),
                 )
 
             # 更新查询计数
             total_queries = state.get("total_queries", 0)
             if total_queries > 0:
                 self.metrics.queries_total.inc(
-                    value=0,  # 仅触发标签创建
-                    model=model_name,
-                    status="success"
+                    value=0, model=model_name, status="success"  # 仅触发标签创建
                 )
 
             # 检查缓存统计
             cache_stats = engine.get_cache_stats()
             if cache_stats:
-                hits = cache_stats.get("hits", 0)
-                misses = cache_stats.get("misses", 0)
                 size = cache_stats.get("size", 0)
 
                 self.metrics.update_cache_size(size, cache_type="response")
@@ -186,7 +178,7 @@ class EngineCollector(BaseCollector):
         model: str,
         attack_type: str = "jailbreak",
         category: str = "unknown",
-        duration: float = None
+        duration: float = None,
     ) -> None:
         """
         攻击完成回调
@@ -203,7 +195,7 @@ class EngineCollector(BaseCollector):
             model=model,
             attack_type=attack_type,
             category=category,
-            duration=duration
+            duration=duration,
         )
 
     def on_task_start(self, task_id: str, task_type: str = "evolution") -> None:
@@ -212,10 +204,7 @@ class EngineCollector(BaseCollector):
         self.metrics.record_task_start(task_type)
 
     def on_task_complete(
-        self,
-        task_id: str,
-        task_type: str = "evolution",
-        success: bool = True
+        self, task_id: str, task_type: str = "evolution", success: bool = True
     ) -> None:
         """任务完成回调"""
         start_time = self._task_start_times.pop(task_id, None)
@@ -224,9 +213,7 @@ class EngineCollector(BaseCollector):
             duration = time.time() - start_time
 
         self.metrics.record_task_complete(
-            task_type=task_type,
-            success=success,
-            duration=duration
+            task_type=task_type, success=success, duration=duration
         )
 
 
@@ -237,11 +224,7 @@ class AdapterCollector(BaseCollector):
     收集 LLM API 调用的延迟和错误信息。
     """
 
-    def __init__(
-        self,
-        metrics_instance: ForgeDanMetrics = None,
-        interval: float = 5.0
-    ):
+    def __init__(self, metrics_instance: ForgeDanMetrics = None, interval: float = 5.0):
         """
         初始化适配器收集器
 
@@ -254,7 +237,7 @@ class AdapterCollector(BaseCollector):
         self._call_stats: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.Lock()
 
-    def register_adapter(self, name: str, adapter: 'BaseModelAdapter') -> None:
+    def register_adapter(self, name: str, adapter: "BaseModelAdapter") -> None:
         """
         注册适配器
 
@@ -268,7 +251,7 @@ class AdapterCollector(BaseCollector):
             "success_calls": 0,
             "error_calls": 0,
             "total_latency": 0.0,
-            "errors_by_type": {}
+            "errors_by_type": {},
         }
 
     def unregister_adapter(self, name: str) -> None:
@@ -281,7 +264,7 @@ class AdapterCollector(BaseCollector):
         adapter_name: str,
         latency: float,
         success: bool = True,
-        error_type: str = None
+        error_type: str = None,
     ) -> None:
         """
         记录 API 调用
@@ -293,13 +276,16 @@ class AdapterCollector(BaseCollector):
             error_type: 错误类型
         """
         with self._lock:
-            stats = self._call_stats.get(adapter_name, {
-                "total_calls": 0,
-                "success_calls": 0,
-                "error_calls": 0,
-                "total_latency": 0.0,
-                "errors_by_type": {}
-            })
+            stats = self._call_stats.get(
+                adapter_name,
+                {
+                    "total_calls": 0,
+                    "success_calls": 0,
+                    "error_calls": 0,
+                    "total_latency": 0.0,
+                    "errors_by_type": {},
+                },
+            )
 
             stats["total_calls"] += 1
             stats["total_latency"] += latency
@@ -309,17 +295,15 @@ class AdapterCollector(BaseCollector):
             else:
                 stats["error_calls"] += 1
                 if error_type:
-                    stats["errors_by_type"][error_type] = \
+                    stats["errors_by_type"][error_type] = (
                         stats["errors_by_type"].get(error_type, 0) + 1
+                    )
 
             self._call_stats[adapter_name] = stats
 
         # 记录到 Prometheus 指标
         self.metrics.record_llm_query(
-            model=adapter_name,
-            latency=latency,
-            success=success,
-            error_type=error_type
+            model=adapter_name, latency=latency, success=success, error_type=error_type
         )
 
     def collect(self) -> None:
@@ -357,7 +341,7 @@ class SystemCollector(BaseCollector):
         self,
         metrics_instance: ForgeDanMetrics = None,
         interval: float = 5.0,
-        process_only: bool = True
+        process_only: bool = True,
     ):
         """
         初始化系统收集器
@@ -401,7 +385,7 @@ class SystemCollector(BaseCollector):
                 cpu_percent=cpu_percent,
                 memory_resident=memory_resident,
                 memory_virtual=memory_virtual,
-                threads=thread_count
+                threads=thread_count,
             )
 
         except Exception as e:
@@ -449,9 +433,7 @@ class CollectorRegistry:
     """
 
     def __init__(
-        self,
-        metrics_instance: ForgeDanMetrics = None,
-        default_interval: float = 5.0
+        self, metrics_instance: ForgeDanMetrics = None, default_interval: float = 5.0
     ):
         """
         初始化注册表
@@ -467,11 +449,7 @@ class CollectorRegistry:
         self._thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
 
-    def register(
-        self,
-        collector: BaseCollector,
-        name: str = None
-    ) -> str:
+    def register(self, collector: BaseCollector, name: str = None) -> str:
         """
         注册收集器
 
@@ -529,10 +507,7 @@ class CollectorRegistry:
         self._running = True
 
         if background:
-            self._thread = threading.Thread(
-                target=self._collection_loop,
-                daemon=True
-            )
+            self._thread = threading.Thread(target=self._collection_loop, daemon=True)
             self._thread.start()
             logger.info("数据收集已启动 (后台模式)")
         else:
@@ -578,8 +553,7 @@ class CollectorRegistry:
 
 
 def create_default_registry(
-    engine: 'ForgeDAN_Engine' = None,
-    metrics_instance: ForgeDanMetrics = None
+    engine: "ForgeDAN_Engine" = None, metrics_instance: ForgeDanMetrics = None
 ) -> CollectorRegistry:
     """
     创建默认的收集器注册表
@@ -595,24 +569,18 @@ def create_default_registry(
 
     # 注册引擎收集器
     engine_collector = EngineCollector(
-        engine=engine,
-        metrics_instance=metrics_instance,
-        interval=1.0
+        engine=engine, metrics_instance=metrics_instance, interval=1.0
     )
     registry.register(engine_collector, "engine")
 
     # 注册适配器收集器
     adapter_collector = AdapterCollector(
-        metrics_instance=metrics_instance,
-        interval=5.0
+        metrics_instance=metrics_instance, interval=5.0
     )
     registry.register(adapter_collector, "adapter")
 
     # 注册系统收集器
-    system_collector = SystemCollector(
-        metrics_instance=metrics_instance,
-        interval=5.0
-    )
+    system_collector = SystemCollector(metrics_instance=metrics_instance, interval=5.0)
     registry.register(system_collector, "system")
 
     return registry

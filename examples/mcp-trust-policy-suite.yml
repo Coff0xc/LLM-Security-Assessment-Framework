@@ -1,0 +1,11 @@
+name: mcp-trust-policy-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+policy:
+  allowed_mcp_trust_tiers:
+    - internal
+    - approved
+mcp_manifest_file: mcp-server-manifest.json
+mcp_manifest_case_category: mcp-manifest

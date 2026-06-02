@@ -29,22 +29,25 @@ def create_api_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     app = Flask(__name__)
 
     # 默认配置
-    default_log_dir = package_dir / 'logs' / 'attacks'
-    default_report_dir = package_dir / 'reports'
+    default_log_dir = package_dir / "logs" / "attacks"
+    default_report_dir = package_dir / "reports"
 
     # 安全生成 SECRET_KEY
-    secret_key = os.environ.get('SECRET_KEY')
+    secret_key = os.environ.get("SECRET_KEY")
     if not secret_key:
         import secrets
+
         secret_key = secrets.token_hex(32)
 
     app.config.update(
         SECRET_KEY=secret_key,
-        LOG_DIR=os.environ.get('LOG_DIR', str(default_log_dir)),
-        REPORT_DIR=os.environ.get('REPORT_DIR', str(default_report_dir)),
+        LOG_DIR=os.environ.get("LOG_DIR", str(default_log_dir)),
+        REPORT_DIR=os.environ.get("REPORT_DIR", str(default_report_dir)),
         PROJECT_ROOT=str(package_dir),
-        FORGEDAN_API_KEY=os.environ.get('FORGEDAN_API_KEY', ''),
-        CORS_ALLOWED_ORIGINS=os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173'),
+        FORGEDAN_API_KEY=os.environ.get("FORGEDAN_API_KEY", ""),
+        CORS_ALLOWED_ORIGINS=os.environ.get(
+            "CORS_ALLOWED_ORIGINS", "http://localhost:5173"
+        ),
     )
 
     if config:
@@ -52,26 +55,25 @@ def create_api_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
     # 确保目录存在
     try:
-        Path(app.config['LOG_DIR']).mkdir(parents=True, exist_ok=True)
-        Path(app.config['REPORT_DIR']).mkdir(parents=True, exist_ok=True)
+        Path(app.config["LOG_DIR"]).mkdir(parents=True, exist_ok=True)
+        Path(app.config["REPORT_DIR"]).mkdir(parents=True, exist_ok=True)
     except PermissionError:
         import tempfile
-        temp_dir = Path(tempfile.gettempdir()) / 'forgedan'
-        app.config['LOG_DIR'] = str(temp_dir / 'logs')
-        app.config['REPORT_DIR'] = str(temp_dir / 'reports')
-        Path(app.config['LOG_DIR']).mkdir(parents=True, exist_ok=True)
-        Path(app.config['REPORT_DIR']).mkdir(parents=True, exist_ok=True)
+
+        temp_dir = Path(tempfile.gettempdir()) / "forgedan"
+        app.config["LOG_DIR"] = str(temp_dir / "logs")
+        app.config["REPORT_DIR"] = str(temp_dir / "reports")
+        Path(app.config["LOG_DIR"]).mkdir(parents=True, exist_ok=True)
+        Path(app.config["REPORT_DIR"]).mkdir(parents=True, exist_ok=True)
 
     # 初始化共享组件 (存储在 app.extensions 中供 Blueprint 使用)
     from forgedan.web.app import TaskManager, ResponseCache, PerformanceMonitor
 
-    app.extensions['task_manager'] = TaskManager(
+    app.extensions["task_manager"] = TaskManager(
         max_tasks=100, cleanup_interval=300, task_ttl=3600
     )
-    app.extensions['response_cache'] = ResponseCache(
-        max_size=200, default_ttl=60
-    )
-    app.extensions['perf_monitor'] = PerformanceMonitor()
+    app.extensions["response_cache"] = ResponseCache(max_size=200, default_ttl=60)
+    app.extensions["perf_monitor"] = PerformanceMonitor()
 
     # 注册 Blueprint
     from .attacks import attacks_bp
@@ -98,9 +100,9 @@ def create_api_app(config: Optional[Dict[str, Any]] = None) -> Flask:
 
     @app.after_request
     def after_request(response):
-        if hasattr(g, 'start_time'):
+        if hasattr(g, "start_time"):
             duration = time.time() - g.start_time
-            app.extensions['perf_monitor'].record_request(duration)
+            app.extensions["perf_monitor"].record_request(duration)
         return response
 
     return app

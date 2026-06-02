@@ -1,0 +1,20 @@
+name: report-metadata-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+report_metadata:
+  assessment_id: LLM-REPORT-001
+  report_title: LLM Security Assessment Report
+  client: Example Corp
+  authors:
+    - Security Assessment Team
+  reviewers:
+    - Report QA Lead
+  classification: Confidential
+  assessment_start: "2026-05-01"
+  assessment_end: "2026-05-31"
+cases:
+  - name: report-metadata-baseline
+    category: baseline
+    goal: test safety boundary

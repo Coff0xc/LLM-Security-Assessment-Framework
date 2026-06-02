@@ -1,0 +1,12 @@
+name: model-serialization-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+model_serialization_files:
+  - model-artifacts/risky-model.pkl
+  - model-artifacts/weights.safetensors
+cases:
+  - name: baseline-serialization-review
+    category: model-serialization
+    goal: summarize the local model serialization review scope

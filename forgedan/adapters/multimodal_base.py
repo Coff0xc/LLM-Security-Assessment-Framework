@@ -8,7 +8,7 @@
 import io
 import base64
 import asyncio
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
@@ -16,15 +16,17 @@ from enum import Enum
 
 try:
     from PIL import Image
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
-from .base import ModelAdapter, ModelConfig, ModelResponse, ModelProvider
+from .base import ModelAdapter, ModelConfig, ModelResponse
 
 
 class ImageFormat(str, Enum):
     """支持的图像格式"""
+
     PNG = "png"
     JPEG = "jpeg"
     GIF = "gif"
@@ -35,6 +37,7 @@ class ImageFormat(str, Enum):
 
 class ImageDetail(str, Enum):
     """图像细节级别（用于 OpenAI）"""
+
     LOW = "low"
     HIGH = "high"
     AUTO = "auto"
@@ -43,16 +46,17 @@ class ImageDetail(str, Enum):
 @dataclass
 class ImageInput:
     """图像输入数据类"""
+
     # 图像数据（互斥：选择一种）
-    data: Optional[bytes] = None          # 原始图像字节
-    base64_data: Optional[str] = None     # Base64 编码
-    url: Optional[str] = None             # 图像 URL
-    file_path: Optional[str] = None       # 本地文件路径
+    data: Optional[bytes] = None  # 原始图像字节
+    base64_data: Optional[str] = None  # Base64 编码
+    url: Optional[str] = None  # 图像 URL
+    file_path: Optional[str] = None  # 本地文件路径
 
     # 元数据
     format: ImageFormat = ImageFormat.PNG
     detail: ImageDetail = ImageDetail.AUTO
-    alt_text: Optional[str] = None        # 替代文本
+    alt_text: Optional[str] = None  # 替代文本
 
     def __post_init__(self):
         """验证和处理输入"""
@@ -72,11 +76,11 @@ class ImageInput:
             return self.base64_data
 
         if self.data:
-            return base64.b64encode(self.data).decode('utf-8')
+            return base64.b64encode(self.data).decode("utf-8")
 
         if self.file_path:
-            with open(self.file_path, 'rb') as f:
-                return base64.b64encode(f.read()).decode('utf-8')
+            with open(self.file_path, "rb") as f:
+                return base64.b64encode(f.read()).decode("utf-8")
 
         if self.url:
             # URL 不转换，直接返回空（由调用方处理）
@@ -93,7 +97,7 @@ class ImageInput:
             return base64.b64decode(self.base64_data)
 
         if self.file_path:
-            with open(self.file_path, 'rb') as f:
+            with open(self.file_path, "rb") as f:
                 return f.read()
 
         return None
@@ -114,11 +118,11 @@ class ImageInput:
         path = Path(path)
         suffix = path.suffix.lower()
         format_map = {
-            '.png': ImageFormat.PNG,
-            '.jpg': ImageFormat.JPEG,
-            '.jpeg': ImageFormat.JPEG,
-            '.gif': ImageFormat.GIF,
-            '.webp': ImageFormat.WEBP,
+            ".png": ImageFormat.PNG,
+            ".jpg": ImageFormat.JPEG,
+            ".jpeg": ImageFormat.JPEG,
+            ".gif": ImageFormat.GIF,
+            ".webp": ImageFormat.WEBP,
         }
         fmt = format_map.get(suffix, ImageFormat.PNG)
         return cls(file_path=str(path), format=fmt)
@@ -129,7 +133,9 @@ class ImageInput:
         return cls(url=url, format=ImageFormat.URL)
 
     @classmethod
-    def from_pil(cls, image: "Image.Image", format: ImageFormat = ImageFormat.PNG) -> "ImageInput":
+    def from_pil(
+        cls, image: "Image.Image", format: ImageFormat = ImageFormat.PNG
+    ) -> "ImageInput":
         """从 PIL Image 创建"""
         buffer = io.BytesIO()
         pil_format = format.value.upper() if format != ImageFormat.URL else "PNG"
@@ -140,8 +146,9 @@ class ImageInput:
 @dataclass
 class MultimodalMessage:
     """多模态消息"""
-    role: str                                    # user, assistant, system
-    text: Optional[str] = None                   # 文本内容
+
+    role: str  # user, assistant, system
+    text: Optional[str] = None  # 文本内容
     images: List[ImageInput] = field(default_factory=list)  # 图像列表
 
     def has_images(self) -> bool:
@@ -152,10 +159,11 @@ class MultimodalMessage:
 @dataclass
 class MultimodalResponse(ModelResponse):
     """多模态模型响应"""
+
     # 继承自 ModelResponse
     # 额外字段
-    image_tokens: int = 0                        # 图像消耗的 token
-    images_processed: int = 0                    # 处理的图像数量
+    image_tokens: int = 0  # 图像消耗的 token
+    images_processed: int = 0  # 处理的图像数量
     vision_metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -179,7 +187,7 @@ class MultimodalAdapter(ModelAdapter):
         prompt: str,
         images: List[ImageInput],
         system_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> MultimodalResponse:
         """
         使用图像生成响应
@@ -197,9 +205,7 @@ class MultimodalAdapter(ModelAdapter):
 
     @abstractmethod
     async def generate_from_messages(
-        self,
-        messages: List[MultimodalMessage],
-        **kwargs
+        self, messages: List[MultimodalMessage], **kwargs
     ) -> MultimodalResponse:
         """
         从多模态消息列表生成响应
@@ -214,10 +220,7 @@ class MultimodalAdapter(ModelAdapter):
         pass
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         生成纯文本响应（兼容基类）
@@ -232,30 +235,19 @@ class MultimodalAdapter(ModelAdapter):
         """
         # 调用多模态方法，但不传图像
         response = await self.generate_with_images(
-            prompt=prompt,
-            images=[],
-            system_prompt=system_prompt,
-            **kwargs
+            prompt=prompt, images=[], system_prompt=system_prompt, **kwargs
         )
         return response
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """批量生成（仅文本）"""
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks)
 
     async def batch_generate_with_images(
-        self,
-        requests: List[Dict[str, Any]],
-        **kwargs
+        self, requests: List[Dict[str, Any]], **kwargs
     ) -> List[MultimodalResponse]:
         """
         批量多模态生成
@@ -273,7 +265,7 @@ class MultimodalAdapter(ModelAdapter):
                 prompt=req.get("prompt", ""),
                 images=req.get("images", []),
                 system_prompt=req.get("system_prompt"),
-                **kwargs
+                **kwargs,
             )
             tasks.append(task)
         return await asyncio.gather(*tasks)
@@ -300,7 +292,7 @@ class MultimodalAdapter(ModelAdapter):
                 "image_url": {
                     "url": image.url,
                     "detail": image.detail.value,
-                }
+                },
             }
         else:
             base64_data = image.to_base64()
@@ -309,7 +301,7 @@ class MultimodalAdapter(ModelAdapter):
                 "image_url": {
                     "url": f"data:{image.get_mime_type()};base64,{base64_data}",
                     "detail": image.detail.value,
-                }
+                },
             }
 
 
@@ -328,7 +320,10 @@ class VisionCapabilities:
     ):
         self.max_images = max_images
         self.supported_formats = supported_formats or [
-            ImageFormat.PNG, ImageFormat.JPEG, ImageFormat.GIF, ImageFormat.WEBP
+            ImageFormat.PNG,
+            ImageFormat.JPEG,
+            ImageFormat.GIF,
+            ImageFormat.WEBP,
         ]
         self.max_image_size = max_image_size
         self.supports_url = supports_url
@@ -355,8 +350,7 @@ from typing import Tuple
 
 # 辅助函数
 def resize_image_if_needed(
-    image: ImageInput,
-    max_size: Tuple[int, int] = (2048, 2048)
+    image: ImageInput, max_size: Tuple[int, int] = (2048, 2048)
 ) -> ImageInput:
     """
     如果图像超过最大尺寸则调整大小
@@ -394,10 +388,7 @@ def resize_image_if_needed(
         return image
 
 
-def estimate_image_tokens(
-    image: ImageInput,
-    model: str = "gpt-4-vision"
-) -> int:
+def estimate_image_tokens(image: ImageInput, model: str = "gpt-4-vision") -> int:
     """
     估算图像消耗的 token 数
 

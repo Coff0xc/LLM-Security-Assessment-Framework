@@ -31,6 +31,7 @@ logs/
 
 # 测试和缓存
 .cache/
+.tmp*/
 .pytest_cache/
 .mypy_cache/
 .coverage

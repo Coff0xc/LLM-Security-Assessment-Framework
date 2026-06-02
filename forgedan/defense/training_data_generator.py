@@ -17,52 +17,52 @@ from typing import (
     Dict,
     List,
     Optional,
-    Callable,
     Union,
-    Iterator,
     Tuple,
 )
 from enum import Enum
-from abc import ABC, abstractmethod
 
 
 class SampleType(str, Enum):
     """样本类型"""
-    POSITIVE = "positive"        # 正样本: 有害提示 + 拒绝响应
-    NEGATIVE = "negative"        # 负样本: 有害提示 + 有害响应 (用于对比学习)
-    SAFE = "safe"               # 安全样本: 正常提示 + 正常响应
+
+    POSITIVE = "positive"  # 正样本: 有害提示 + 拒绝响应
+    NEGATIVE = "negative"  # 负样本: 有害提示 + 有害响应 (用于对比学习)
+    SAFE = "safe"  # 安全样本: 正常提示 + 正常响应
     ADVERSARIAL = "adversarial"  # 对抗样本: 变体提示 + 拒绝响应
 
 
 class ResponseType(str, Enum):
     """响应类型"""
-    REFUSAL = "refusal"          # 拒绝响应
-    SAFE = "safe"                # 安全响应
-    HARMFUL = "harmful"          # 有害响应 (用于对比)
-    REDIRECT = "redirect"        # 重定向响应
+
+    REFUSAL = "refusal"  # 拒绝响应
+    SAFE = "safe"  # 安全响应
+    HARMFUL = "harmful"  # 有害响应 (用于对比)
+    REDIRECT = "redirect"  # 重定向响应
 
 
 @dataclass
 class TrainingSample:
     """训练样本数据结构"""
+
     # 核心字段
-    id: str                                  # 唯一标识符
-    prompt: str                              # 输入提示
-    response: str                            # 期望响应
-    sample_type: SampleType                  # 样本类型
-    response_type: ResponseType              # 响应类型
+    id: str  # 唯一标识符
+    prompt: str  # 输入提示
+    response: str  # 期望响应
+    sample_type: SampleType  # 样本类型
+    response_type: ResponseType  # 响应类型
 
     # 元数据
-    source: str = ""                         # 来源 (attack_log, manual, generated)
-    category: str = ""                       # 有害类别
-    severity: int = 0                        # 严重程度 (1-5)
-    difficulty: float = 0.0                  # 难度分数 (0-1)
-    original_prompt: Optional[str] = None    # 原始提示 (增强前)
+    source: str = ""  # 来源 (attack_log, manual, generated)
+    category: str = ""  # 有害类别
+    severity: int = 0  # 严重程度 (1-5)
+    difficulty: float = 0.0  # 难度分数 (0-1)
+    original_prompt: Optional[str] = None  # 原始提示 (增强前)
 
     # 攻击相关
-    attack_success: bool = False             # 原始攻击是否成功
-    attack_fitness: float = 0.0              # 原始攻击适应度
-    model_name: str = ""                     # 目标模型名称
+    attack_success: bool = False  # 原始攻击是否成功
+    attack_fitness: float = 0.0  # 原始攻击适应度
+    model_name: str = ""  # 目标模型名称
 
     # 时间戳
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -143,11 +143,11 @@ class RefusalTemplateProvider:
         """
         self.custom_templates = custom_templates or []
         self._all_templates = (
-            self.STANDARD_TEMPLATES +
-            self.EXPLANATORY_TEMPLATES +
-            self.REDIRECT_TEMPLATES +
-            self.CHINESE_TEMPLATES +
-            self.custom_templates
+            self.STANDARD_TEMPLATES
+            + self.EXPLANATORY_TEMPLATES
+            + self.REDIRECT_TEMPLATES
+            + self.CHINESE_TEMPLATES
+            + self.custom_templates
         )
 
     def get_random(self, category: Optional[str] = None) -> str:
@@ -179,7 +179,7 @@ class RefusalTemplateProvider:
         self,
         topic: str = "this",
         alternative: str = "other topics",
-        safe_topic: str = "general knowledge"
+        safe_topic: str = "general knowledge",
     ) -> str:
         """
         获取带上下文的拒绝响应
@@ -194,9 +194,7 @@ class RefusalTemplateProvider:
         """
         template = random.choice(self.EXPLANATORY_TEMPLATES + self.REDIRECT_TEMPLATES)
         return template.format(
-            topic=topic,
-            alternative=alternative,
-            safe_topic=safe_topic
+            topic=topic, alternative=alternative, safe_topic=safe_topic
         )
 
 
@@ -232,7 +230,7 @@ class SafeResponseGenerator:
         prompt: str,
         category: Optional[str] = None,
         response_type: ResponseType = ResponseType.REFUSAL,
-        language: str = "en"
+        language: str = "en",
     ) -> str:
         """
         生成安全响应
@@ -253,12 +251,10 @@ class SafeResponseGenerator:
 
         elif response_type == ResponseType.REDIRECT:
             safe_topic = self.category_to_safe_topic.get(
-                category or "default",
-                self.category_to_safe_topic["default"]
+                category or "default", self.category_to_safe_topic["default"]
             )
             return self.template_provider.get_with_context(
-                topic="this request",
-                safe_topic=safe_topic
+                topic="this request", safe_topic=safe_topic
             )
 
         elif response_type == ResponseType.SAFE:
@@ -268,9 +264,7 @@ class SafeResponseGenerator:
         return self.template_provider.get_random()
 
     def _generate_educational_response(
-        self,
-        prompt: str,
-        category: Optional[str] = None
+        self, prompt: str, category: Optional[str] = None
     ) -> str:
         """生成教育性响应"""
         educational_templates = [
@@ -312,7 +306,7 @@ class TrainingDataGenerator:
         self,
         template_provider: Optional[RefusalTemplateProvider] = None,
         response_generator: Optional[SafeResponseGenerator] = None,
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
     ):
         """
         初始化训练数据生成器
@@ -323,7 +317,9 @@ class TrainingDataGenerator:
             seed: 随机种子
         """
         self.template_provider = template_provider or RefusalTemplateProvider()
-        self.response_generator = response_generator or SafeResponseGenerator(self.template_provider)
+        self.response_generator = response_generator or SafeResponseGenerator(
+            self.template_provider
+        )
 
         if seed is not None:
             random.seed(seed)
@@ -341,7 +337,7 @@ class TrainingDataGenerator:
         log_path: Union[str, Path],
         success_only: bool = True,
         min_fitness: float = 0.5,
-        include_negative: bool = False
+        include_negative: bool = False,
     ) -> List[TrainingSample]:
         """
         从攻击日志提取训练样本
@@ -379,7 +375,7 @@ class TrainingDataGenerator:
                         record,
                         success_only=success_only,
                         min_fitness=min_fitness,
-                        include_negative=include_negative
+                        include_negative=include_negative,
                     )
                     samples.extend(sample_batch)
 
@@ -394,7 +390,7 @@ class TrainingDataGenerator:
         record: Dict[str, Any],
         success_only: bool = True,
         min_fitness: float = 0.5,
-        include_negative: bool = False
+        include_negative: bool = False,
     ) -> List[TrainingSample]:
         """处理单条攻击记录"""
         samples = []
@@ -419,9 +415,7 @@ class TrainingDataGenerator:
 
         # 生成正样本 (有害提示 + 拒绝响应)
         safe_response = self.response_generator.generate(
-            prompt=prompt,
-            category=category,
-            response_type=ResponseType.REFUSAL
+            prompt=prompt, category=category, response_type=ResponseType.REFUSAL
         )
 
         positive_sample = TrainingSample(
@@ -438,7 +432,7 @@ class TrainingDataGenerator:
             attack_success=success,
             attack_fitness=fitness,
             model_name=model_name,
-            metadata={"log_timestamp": record.get("timestamp", "")}
+            metadata={"log_timestamp": record.get("timestamp", "")},
         )
         samples.append(positive_sample)
 
@@ -458,7 +452,7 @@ class TrainingDataGenerator:
                 attack_success=success,
                 attack_fitness=fitness,
                 model_name=model_name,
-                metadata={"log_timestamp": record.get("timestamp", "")}
+                metadata={"log_timestamp": record.get("timestamp", "")},
             )
             samples.append(negative_sample)
 
@@ -469,7 +463,7 @@ class TrainingDataGenerator:
         harmful_prompts: List[str],
         categories: Optional[List[str]] = None,
         response_types: Optional[List[ResponseType]] = None,
-        language: str = "en"
+        language: str = "en",
     ) -> List[TrainingSample]:
         """
         从有害提示列表生成拒绝样本
@@ -497,7 +491,7 @@ class TrainingDataGenerator:
                 prompt=prompt,
                 category=category,
                 response_type=response_type,
-                language=language
+                language=language,
             )
 
             sample = TrainingSample(
@@ -514,9 +508,7 @@ class TrainingDataGenerator:
         return samples
 
     def generate_safe_samples(
-        self,
-        safe_prompts: List[str],
-        safe_responses: List[str]
+        self, safe_prompts: List[str], safe_responses: List[str]
     ) -> List[TrainingSample]:
         """
         生成安全样本 (正常提示 + 正常响应)
@@ -552,7 +544,7 @@ class TrainingDataGenerator:
         self,
         samples: List[TrainingSample],
         ratio: float = 1.0,
-        strategy: str = "undersample"
+        strategy: str = "undersample",
     ) -> List[TrainingSample]:
         """
         平衡正负样本
@@ -569,7 +561,9 @@ class TrainingDataGenerator:
         positive_samples = [s for s in samples if s.sample_type == SampleType.POSITIVE]
         negative_samples = [s for s in samples if s.sample_type == SampleType.NEGATIVE]
         safe_samples = [s for s in samples if s.sample_type == SampleType.SAFE]
-        adversarial_samples = [s for s in samples if s.sample_type == SampleType.ADVERSARIAL]
+        adversarial_samples = [
+            s for s in samples if s.sample_type == SampleType.ADVERSARIAL
+        ]
 
         # 计算目标数量
         n_positive = len(positive_samples)
@@ -595,7 +589,9 @@ class TrainingDataGenerator:
                 positive_samples = positive_samples + additional_samples
 
         # 合并并打乱
-        balanced = positive_samples + negative_samples + safe_samples + adversarial_samples
+        balanced = (
+            positive_samples + negative_samples + safe_samples + adversarial_samples
+        )
         random.shuffle(balanced)
 
         return balanced
@@ -606,7 +602,7 @@ class TrainingDataGenerator:
         train_ratio: float = 0.8,
         val_ratio: float = 0.1,
         test_ratio: float = 0.1,
-        stratify_by: Optional[str] = "sample_type"
+        stratify_by: Optional[str] = "sample_type",
     ) -> Tuple[List[TrainingSample], List[TrainingSample], List[TrainingSample]]:
         """
         划分训练/验证/测试集
@@ -621,7 +617,9 @@ class TrainingDataGenerator:
         Returns:
             (train, val, test) 元组
         """
-        assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 0.001, "比例之和必须为1"
+        assert (
+            abs(train_ratio + val_ratio + test_ratio - 1.0) < 0.001
+        ), "比例之和必须为1"
 
         if stratify_by:
             # 分层采样
@@ -642,8 +640,8 @@ class TrainingDataGenerator:
                 n_val = int(n * val_ratio)
 
                 train.extend(group_samples[:n_train])
-                val.extend(group_samples[n_train:n_train + n_val])
-                test.extend(group_samples[n_train + n_val:])
+                val.extend(group_samples[n_train : n_train + n_val])
+                test.extend(group_samples[n_train + n_val :])
         else:
             # 简单随机划分
             shuffled = samples.copy()
@@ -653,8 +651,8 @@ class TrainingDataGenerator:
             n_val = int(n * val_ratio)
 
             train = shuffled[:n_train]
-            val = shuffled[n_train:n_train + n_val]
-            test = shuffled[n_train + n_val:]
+            val = shuffled[n_train : n_train + n_val]
+            test = shuffled[n_train + n_val :]
 
         return train, val, test
 
@@ -662,7 +660,7 @@ class TrainingDataGenerator:
         self,
         samples: List[TrainingSample],
         output_path: Union[str, Path],
-        format_type: str = "default"
+        format_type: str = "default",
     ) -> str:
         """
         导出为 JSONL 格式
@@ -685,14 +683,14 @@ class TrainingDataGenerator:
                     line = {
                         "messages": [
                             {"role": "user", "content": sample.prompt},
-                            {"role": "assistant", "content": sample.response}
+                            {"role": "assistant", "content": sample.response},
                         ]
                     }
                 elif format_type == "anthropic":
                     # Anthropic 格式
                     line = {
                         "prompt": f"\n\nHuman: {sample.prompt}\n\nAssistant:",
-                        "completion": f" {sample.response}"
+                        "completion": f" {sample.response}",
                     }
                 else:
                     # 默认格式
@@ -740,11 +738,15 @@ class TrainingDataGenerator:
 
             # 类别
             if sample.category:
-                stats["by_category"][sample.category] = stats["by_category"].get(sample.category, 0) + 1
+                stats["by_category"][sample.category] = (
+                    stats["by_category"].get(sample.category, 0) + 1
+                )
 
             # 来源
             if sample.source:
-                stats["by_source"][sample.source] = stats["by_source"].get(sample.source, 0) + 1
+                stats["by_source"][sample.source] = (
+                    stats["by_source"].get(sample.source, 0) + 1
+                )
 
         # 难度统计
         difficulties = [s.difficulty for s in samples if s.difficulty > 0]

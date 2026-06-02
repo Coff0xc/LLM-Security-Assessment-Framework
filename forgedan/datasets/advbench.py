@@ -43,7 +43,7 @@ class AdvBenchDataset(Dataset):
         if not path.exists():
             raise FileNotFoundError(f"数据集文件不存在: {self.path}")
 
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         samples = []
@@ -53,7 +53,7 @@ class AdvBenchDataset(Dataset):
                 goal=item.get("goal", item.get("prompt", "")),
                 target=item.get("target"),
                 category=self._infer_category(item.get("goal", "")),
-                metadata={"source": "advbench"}
+                metadata={"source": "advbench"},
             )
             samples.append(sample)
 
@@ -119,7 +119,7 @@ class AdvBenchDataset(Dataset):
                 goal=item["goal"],
                 target=item["target"],
                 category=item["category"],
-                metadata={"source": "advbench_builtin"}
+                metadata={"source": "advbench_builtin"},
             )
             for item in builtin_samples
         ]
@@ -128,9 +128,15 @@ class AdvBenchDataset(Dataset):
         """根据目标推断类别"""
         goal_lower = goal.lower()
 
-        if any(kw in goal_lower for kw in ["bomb", "weapon", "kill", "murder", "attack", "violence"]):
+        if any(
+            kw in goal_lower
+            for kw in ["bomb", "weapon", "kill", "murder", "attack", "violence"]
+        ):
             return HarmCategory.VIOLENCE
-        elif any(kw in goal_lower for kw in ["hack", "steal", "fraud", "counterfeit", "illegal"]):
+        elif any(
+            kw in goal_lower
+            for kw in ["hack", "steal", "fraud", "counterfeit", "illegal"]
+        ):
             return HarmCategory.ILLEGAL_ACTIVITY
         elif any(kw in goal_lower for kw in ["racist", "hate", "discrimination"]):
             return HarmCategory.HATE_SPEECH

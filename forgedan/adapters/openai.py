@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     from openai import AsyncOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -35,10 +36,7 @@ class OpenAIAdapter(ModelAdapter):
         self._semaphore = asyncio.Semaphore(max_concurrent)
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """生成单个响应（带并发控制）"""
         async with self._semaphore:
@@ -56,8 +54,12 @@ class OpenAIAdapter(ModelAdapter):
                 "temperature": kwargs.get("temperature", self.config.temperature),
                 "max_tokens": kwargs.get("max_tokens", self.config.max_tokens),
                 "top_p": kwargs.get("top_p", self.config.top_p),
-                "frequency_penalty": kwargs.get("frequency_penalty", self.config.frequency_penalty),
-                "presence_penalty": kwargs.get("presence_penalty", self.config.presence_penalty),
+                "frequency_penalty": kwargs.get(
+                    "frequency_penalty", self.config.frequency_penalty
+                ),
+                "presence_penalty": kwargs.get(
+                    "presence_penalty", self.config.presence_penalty
+                ),
             }
 
             # 移除 None 值
@@ -81,21 +83,16 @@ class OpenAIAdapter(ModelAdapter):
                 metadata={
                     "finish_reason": response.choices[0].finish_reason,
                     "response_id": response.id,
-                }
+                },
             )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """批量生成响应（并发执行）"""
         import asyncio
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks)
 
     def get_model_info(self) -> Dict[str, Any]:

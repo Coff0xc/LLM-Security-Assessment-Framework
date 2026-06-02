@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/finding-taxonomy.schema.json",
+  "title": "ForgeDAN Finding Taxonomy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taxonomy_version", "findings"],
+  "properties": {
+    "taxonomy_version": { "const": "finding-taxonomy.v1" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "taxonomy_id",
+          "title",
+          "taxonomy_category",
+          "policy_domain",
+          "owasp_llm_id",
+          "owasp_llm_category",
+          "default_severity",
+          "description",
+          "recommendation",
+          "report_priority"
+        ],
+        "properties": {
+          "kind": { "type": "string", "minLength": 1 },
+          "taxonomy_id": { "type": "string", "pattern": "^LLM-FINDING-[A-Z0-9-]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "taxonomy_category": { "type": "string", "minLength": 1 },
+          "policy_domain": { "type": "string", "minLength": 1 },
+          "owasp_llm_id": { "type": "string", "minLength": 1 },
+          "owasp_llm_category": { "type": "string", "minLength": 1 },
+          "default_severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "description": { "type": "string", "minLength": 1 },
+          "recommendation": { "type": "string", "minLength": 1 },
+          "report_priority": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

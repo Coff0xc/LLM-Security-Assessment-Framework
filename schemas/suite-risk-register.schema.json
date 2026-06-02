@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-risk-register.schema.json",
+  "title": "ForgeDAN Suite Risk Register",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "suite",
+    "model",
+    "generated_at",
+    "risk_count",
+    "risks"
+  ],
+  "properties": {
+    "schema_version": { "const": "suite-risk-register.v1" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "suite": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "risk_count": { "type": "integer", "minimum": 0 },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "risk_id",
+          "run_id",
+          "trace_id",
+          "case",
+          "source",
+          "kind",
+          "title",
+          "severity",
+          "severity_rationale",
+          "policy_domain",
+          "owasp_llm_id",
+          "owasp_llm_category",
+          "report_priority",
+          "confidence",
+          "status",
+          "owner",
+          "due_date",
+          "evidence_sha256",
+          "evidence_fingerprint",
+          "recommendation"
+        ],
+        "properties": {
+          "risk_id": { "type": "string", "minLength": 1 },
+          "run_id": { "type": "string", "minLength": 1 },
+          "trace_id": { "type": "string" },
+          "case": { "type": "string" },
+          "source": { "type": "string" },
+          "kind": { "type": "string" },
+          "title": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical", ""]
+          },
+          "severity_rationale": { "type": "string" },
+          "policy_domain": { "type": "string", "minLength": 1 },
+          "owasp_llm_id": { "type": "string" },
+          "owasp_llm_category": { "type": "string" },
+          "report_priority": { "type": "integer", "minimum": 0 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "status": { "type": "string", "enum": ["open", "accepted", "mitigated", "false_positive"] },
+          "owner": { "type": "string" },
+          "due_date": { "type": "string" },
+          "evidence_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "evidence_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "recommendation": { "type": "string" }
+        }
+      }
+    }
+  }
+}

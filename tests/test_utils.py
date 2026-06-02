@@ -15,15 +15,15 @@ class TestAsyncRetry:
     async def test_successful_call(self):
         """测试成功调用"""
         call_count = 0
-        
+
         @async_retry(max_retries=3, base_delay=0.01)
         async def successful_func():
             nonlocal call_count
             call_count += 1
             return "success"
-        
+
         result = await successful_func()
-        
+
         assert result == "success"
         assert call_count == 1
 
@@ -48,10 +48,11 @@ class TestAsyncRetry:
     @pytest.mark.asyncio
     async def test_max_retries_exceeded(self):
         """测试超过最大重试次数"""
+
         @async_retry(max_retries=3, base_delay=0.01)
         async def always_fails():
             raise Exception("always fails")
-        
+
         with pytest.raises(Exception):
             await always_fails()
 
@@ -98,9 +99,9 @@ class TestUtilityFunctions:
     def test_import_utils(self):
         """测试工具模块导入"""
         from forgedan import utils
-        
-        assert hasattr(utils, 'async_retry')
-        assert hasattr(utils, 'APIError')
+
+        assert hasattr(utils, "async_retry")
+        assert hasattr(utils, "APIError")
 
 
 class TestRateLimiter:
@@ -110,6 +111,7 @@ class TestRateLimiter:
         """测试速率限制器是否存在"""
         try:
             from forgedan.utils import RateLimiter
+
             assert True
         except ImportError:
             # 如果不存在也可以

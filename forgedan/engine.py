@@ -29,9 +29,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple, Dict, Any, Union, AsyncIterator
+from typing import Callable, List, Optional, Tuple, Dict, Any, Union
 from tqdm import tqdm
-from tqdm.asyncio import tqdm as async_tqdm
 
 from .config import ForgeDanConfig
 from .mutator import Mutator, SelectionAlgorithm
@@ -39,16 +38,17 @@ from .fitness import SemanticFitness, SimpleFitness
 from .judge import DualJudge
 from .logger import logger
 from .utils import LRUCache, truncate_string, CircuitBreaker
-from .exceptions import TargetLLMNotSetError, EngineError
+from .exceptions import TargetLLMNotSetError
 from .attack_logger import AttackLogger
 from .visualizer import Visualizer
 
-
 # ============== 数据类定义 ==============
+
 
 @dataclass
 class Candidate:
     """候选个体"""
+
     prompt: str
     fitness: float = 0.0
     response: str = ""
@@ -62,19 +62,20 @@ class Candidate:
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
         return {
-            'id': self.id,
-            'prompt': self.prompt,
-            'fitness': self.fitness,
-            'response': self.response[:500] if self.response else "",
-            'generation': self.generation,
-            'parent_id': self.parent_id,
-            'strategies_used': self.strategies_used,
+            "id": self.id,
+            "prompt": self.prompt,
+            "fitness": self.fitness,
+            "response": self.response[:500] if self.response else "",
+            "generation": self.generation,
+            "parent_id": self.parent_id,
+            "strategies_used": self.strategies_used,
         }
 
 
 @dataclass
 class EvolutionResult:
     """进化结果"""
+
     success: bool
     best_prompt: str
     best_response: str
@@ -94,6 +95,7 @@ class EvolutionResult:
 @dataclass
 class Checkpoint:
     """检查点数据"""
+
     checkpoint_id: str
     timestamp: float
     generation: int
@@ -114,7 +116,7 @@ class Checkpoint:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Checkpoint':
+    def from_dict(cls, data: Dict[str, Any]) -> "Checkpoint":
         """从字典创建检查点"""
         return cls(**data)
 
@@ -122,10 +124,10 @@ class Checkpoint:
         """保存检查点（JSON格式，避免pickle反序列化RCE）"""
         try:
             path = Path(filepath)
-            if path.suffix not in ('.json', '.checkpoint'):
-                path = path.with_suffix('.json')
+            if path.suffix not in (".json", ".checkpoint"):
+                path = path.with_suffix(".json")
             path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, 'w', encoding='utf-8') as f:
+            with open(path, "w", encoding="utf-8") as f:
                 json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
             logger.info(f"检查点已保存: {path}")
             return True
@@ -134,10 +136,10 @@ class Checkpoint:
             return False
 
     @classmethod
-    def load(cls, filepath: Union[str, Path]) -> Optional['Checkpoint']:
+    def load(cls, filepath: Union[str, Path]) -> Optional["Checkpoint"]:
         """加载检查点（JSON格式）"""
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
             checkpoint = cls.from_dict(data)
             logger.info(f"检查点已加载: {filepath}")
@@ -150,6 +152,7 @@ class Checkpoint:
 @dataclass
 class EarlyStopConfig:
     """早停配置"""
+
     enabled: bool = True
     patience: int = 10  # 连续N代无改进则停止
     min_improvement: float = 0.001  # 最小改进阈值
@@ -159,6 +162,7 @@ class EarlyStopConfig:
 @dataclass
 class EvolutionState:
     """进化状态 (用于进度追踪)"""
+
     status: str = "idle"  # idle, running, paused, completed, success, failed
     current_generation: int = 0
     max_generations: int = 0
@@ -174,6 +178,7 @@ class EvolutionState:
 
 
 # ============== 核心引擎类 ==============
+
 
 class ForgeDAN_Engine:
     """
@@ -228,17 +233,16 @@ class ForgeDAN_Engine:
         # 初始化组件
         selection_algo = SelectionAlgorithm.UCB1
         adaptive_mutation = True
-        if config and hasattr(config, 'extra_params') and config.extra_params:
-            adaptive_mutation = config.extra_params.get('adaptive_mutation', True)
-            algo_name = config.extra_params.get('selection_algorithm', 'ucb1')
+        if config and hasattr(config, "extra_params") and config.extra_params:
+            adaptive_mutation = config.extra_params.get("adaptive_mutation", True)
+            algo_name = config.extra_params.get("selection_algorithm", "ucb1")
             try:
                 selection_algo = SelectionAlgorithm(algo_name)
             except ValueError:
                 pass
 
         self.mutator = Mutator(
-            adaptive=adaptive_mutation,
-            selection_algorithm=selection_algo
+            adaptive=adaptive_mutation, selection_algorithm=selection_algo
         )
         self.judge = DualJudge()
 
@@ -269,7 +273,7 @@ class ForgeDAN_Engine:
         cache_size = 1000
         cache_ttl = None
         cache_file = None
-        if config and hasattr(config, 'extra_params') and config.extra_params:
+        if config and hasattr(config, "extra_params") and config.extra_params:
             cache_size = config.extra_params.get("cache_size", 1000)
             cache_ttl = config.extra_params.get("cache_ttl", None)
             cache_file = config.extra_params.get("cache_file", None)
@@ -281,16 +285,12 @@ class ForgeDAN_Engine:
             )
         else:
             self._response_cache: LRUCache[str] = LRUCache(
-                max_size=cache_size,
-                ttl=cache_ttl,
-                name="response_cache"
+                max_size=cache_size, ttl=cache_ttl, name="response_cache"
             )
 
         # 熔断器
         self._circuit_breaker = CircuitBreaker(
-            failure_threshold=5,
-            recovery_timeout=60.0,
-            half_open_max_calls=2
+            failure_threshold=5, recovery_timeout=60.0, half_open_max_calls=2
         )
 
         # 线程池
@@ -303,9 +303,7 @@ class ForgeDAN_Engine:
         self._stop_requested = False
 
     def set_target_llm(
-        self,
-        llm_func: Callable[[str], str],
-        model_name: str = ""
+        self, llm_func: Callable[[str], str], model_name: str = ""
     ) -> None:
         """设置目标LLM"""
         self.target_llm = llm_func
@@ -365,31 +363,24 @@ class ForgeDAN_Engine:
         self._response_cache.clear()
         logger.info("缓存已清空")
 
-    def _initialize_population(
-        self,
-        seed_template: str,
-        goal: str
-    ) -> List[Candidate]:
+    def _initialize_population(self, seed_template: str, goal: str) -> List[Candidate]:
         """初始化种群"""
         population = []
 
         # 第一个个体是原始种子
-        population.append(Candidate(
-            prompt=seed_template.replace("{goal}", goal),
-            generation=0
-        ))
+        population.append(
+            Candidate(prompt=seed_template.replace("{goal}", goal), generation=0)
+        )
 
         # 其余个体通过变异生成
         for _ in range(self.config.population_size - 1):
             mutated, strategies = self.mutator.mutate_tracked(
                 seed_template.replace("{goal}", goal),
-                num_mutations=random.randint(1, 3)
+                num_mutations=random.randint(1, 3),
             )
-            population.append(Candidate(
-                prompt=mutated,
-                generation=0,
-                strategies_used=strategies
-            ))
+            population.append(
+                Candidate(prompt=mutated, generation=0, strategies_used=strategies)
+            )
 
         return population
 
@@ -398,7 +389,7 @@ class ForgeDAN_Engine:
         candidates: List[Candidate],
         target_output: str,
         parallel: bool = True,
-        max_workers: int = 4
+        max_workers: int = 4,
     ) -> List[Candidate]:
         """评估种群适应度 (同步版本)"""
 
@@ -425,10 +416,7 @@ class ForgeDAN_Engine:
         return candidates
 
     async def _evaluate_fitness_async(
-        self,
-        candidates: List[Candidate],
-        target_output: str,
-        max_concurrency: int = 10
+        self, candidates: List[Candidate], target_output: str, max_concurrency: int = 10
     ) -> List[Candidate]:
         """异步评估种群适应度"""
 
@@ -450,12 +438,10 @@ class ForgeDAN_Engine:
     def _select_elites(self, population: List[Candidate]) -> List[Candidate]:
         """选择精英个体"""
         sorted_pop = sorted(population, key=lambda x: x.fitness, reverse=True)
-        return sorted_pop[:self.config.elite_size]
+        return sorted_pop[: self.config.elite_size]
 
     def _generate_offspring(
-        self,
-        elites: List[Candidate],
-        generation: int
+        self, elites: List[Candidate], generation: int
     ) -> List[Candidate]:
         """生成后代"""
         offspring = []
@@ -464,15 +450,14 @@ class ForgeDAN_Engine:
         for _ in range(num_offspring):
             parent = random.choice(elites)
             mutated, strategies_used = self.mutator.mutate_tracked(
-                parent.prompt,
-                num_mutations=random.randint(1, 2)
+                parent.prompt, num_mutations=random.randint(1, 2)
             )
             candidate = Candidate(
                 prompt=mutated,
                 generation=generation,
                 parent_id=parent.id,
                 strategies_used=strategies_used,
-                parent_fitness=parent.fitness
+                parent_fitness=parent.fitness,
             )
             offspring.append(candidate)
 
@@ -487,9 +472,7 @@ class ForgeDAN_Engine:
             if candidate.strategies_used and candidate.parent_fitness > 0:
                 for strategy_name in candidate.strategies_used:
                     self.mutator.update_strategy_weights(
-                        strategy_name,
-                        candidate.parent_fitness,
-                        candidate.fitness
+                        strategy_name, candidate.parent_fitness, candidate.fitness
                     )
 
     def _check_early_stop(self, improvement_history: List[float]) -> Tuple[bool, str]:
@@ -498,12 +481,15 @@ class ForgeDAN_Engine:
             return False, ""
 
         # 检查适应度阈值
-        if improvement_history and improvement_history[-1] >= self.early_stop.fitness_threshold:
+        if (
+            improvement_history
+            and improvement_history[-1] >= self.early_stop.fitness_threshold
+        ):
             return True, f"适应度达到阈值 {self.early_stop.fitness_threshold}"
 
         # 检查改进停滞
         if len(improvement_history) >= self.early_stop.patience:
-            recent = improvement_history[-self.early_stop.patience:]
+            recent = improvement_history[-self.early_stop.patience :]
             max_improvement = max(recent) - min(recent)
             if max_improvement < self.early_stop.min_improvement:
                 return True, f"连续 {self.early_stop.patience} 代无显著改进"
@@ -518,10 +504,12 @@ class ForgeDAN_Engine:
         goal: str,
         seed_template: str,
         target_output: str,
-        category: str
+        category: str,
     ) -> str:
         """保存检查点"""
-        checkpoint_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        checkpoint_id = (
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        )
 
         checkpoint = Checkpoint(
             checkpoint_id=checkpoint_id,
@@ -531,13 +519,17 @@ class ForgeDAN_Engine:
             best_candidate=best_candidate.to_dict(),
             history=self.history,
             total_queries=self.total_queries,
-            config=asdict(self.config) if hasattr(self.config, '__dataclass_fields__') else {},
+            config=(
+                asdict(self.config)
+                if hasattr(self.config, "__dataclass_fields__")
+                else {}
+            ),
             goal=goal,
             seed_template=seed_template,
             target_output=target_output,
             category=category,
             model_name=self.model_name,
-            mutator_stats=self.mutator.export_stats()
+            mutator_stats=self.mutator.export_stats(),
         )
 
         filepath = self.checkpoint_dir / f"checkpoint_{checkpoint_id}.pkl"
@@ -556,16 +548,22 @@ class ForgeDAN_Engine:
             try:
                 checkpoint = Checkpoint.load(filepath)
                 if checkpoint:
-                    checkpoints.append({
-                        'id': checkpoint.checkpoint_id,
-                        'timestamp': checkpoint.timestamp,
-                        'generation': checkpoint.generation,
-                        'goal': checkpoint.goal[:50] + "..." if len(checkpoint.goal) > 50 else checkpoint.goal,
-                        'filepath': str(filepath)
-                    })
+                    checkpoints.append(
+                        {
+                            "id": checkpoint.checkpoint_id,
+                            "timestamp": checkpoint.timestamp,
+                            "generation": checkpoint.generation,
+                            "goal": (
+                                checkpoint.goal[:50] + "..."
+                                if len(checkpoint.goal) > 50
+                                else checkpoint.goal
+                            ),
+                            "filepath": str(filepath),
+                        }
+                    )
             except Exception:
                 pass
-        return sorted(checkpoints, key=lambda x: x['timestamp'], reverse=True)
+        return sorted(checkpoints, key=lambda x: x["timestamp"], reverse=True)
 
     def get_mutation_performance(self) -> dict:
         """获取变异策略性能统计"""
@@ -598,6 +596,7 @@ class ForgeDAN_Engine:
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
         checkpoint_interval: int = 5,
         resume_from: Optional[str] = None,
+        show_progress: bool = True,
     ) -> EvolutionResult:
         """
         执行进化算法 (同步版本)
@@ -611,6 +610,7 @@ class ForgeDAN_Engine:
             progress_callback: 进度回调函数
             checkpoint_interval: 检查点保存间隔 (代数)
             resume_from: 从检查点恢复的ID
+            show_progress: 是否显示 tqdm 进度条
 
         Returns:
             EvolutionResult 包含最优结果和统计信息
@@ -625,7 +625,9 @@ class ForgeDAN_Engine:
         if resume_from:
             checkpoint = self.load_checkpoint(resume_from)
             if checkpoint:
-                logger.info(f"从检查点恢复: {resume_from}, 代数: {checkpoint.generation}")
+                logger.info(
+                    f"从检查点恢复: {resume_from}, 代数: {checkpoint.generation}"
+                )
                 start_generation = checkpoint.generation
                 self.history = checkpoint.history
                 self.total_queries = checkpoint.total_queries
@@ -635,11 +637,11 @@ class ForgeDAN_Engine:
                 category = checkpoint.category
                 population = [
                     Candidate(
-                        prompt=c['prompt'],
-                        fitness=c['fitness'],
-                        response=c.get('response', ''),
-                        generation=c['generation'],
-                        id=c['id']
+                        prompt=c["prompt"],
+                        fitness=c["fitness"],
+                        response=c.get("response", ""),
+                        generation=c["generation"],
+                        id=c["id"],
                     )
                     for c in checkpoint.population
                 ]
@@ -668,10 +670,12 @@ class ForgeDAN_Engine:
             max_generations=self.config.max_iterations,
             goal=goal,
             model_name=self.model_name,
-            population_size=self.config.population_size
+            population_size=self.config.population_size,
         )
 
-        def notify_progress(gen: int, fitness: float, queries: int, status: str = "running"):
+        def notify_progress(
+            gen: int, fitness: float, queries: int, status: str = "running"
+        ):
             self.state.current_generation = gen
             self.state.best_fitness = fitness
             self.state.total_queries = queries
@@ -684,19 +688,21 @@ class ForgeDAN_Engine:
                 self.state.estimated_remaining = avg_time_per_gen * remaining_gens
 
             if progress_callback:
-                progress_callback({
-                    "status": status,
-                    "current_generation": gen,
-                    "max_generations": self.config.max_iterations,
-                    "best_fitness": fitness,
-                    "total_queries": queries,
-                    "population_size": self.config.population_size,
-                    "goal": goal,
-                    "model": self.model_name,
-                    "elapsed_seconds": self.state.elapsed_seconds,
-                    "estimated_remaining": self.state.estimated_remaining,
-                    "history": self.history[-5:] if self.history else []
-                })
+                progress_callback(
+                    {
+                        "status": status,
+                        "current_generation": gen,
+                        "max_generations": self.config.max_iterations,
+                        "best_fitness": fitness,
+                        "total_queries": queries,
+                        "population_size": self.config.population_size,
+                        "goal": goal,
+                        "model": self.model_name,
+                        "elapsed_seconds": self.state.elapsed_seconds,
+                        "estimated_remaining": self.state.estimated_remaining,
+                        "history": self.history[-5:] if self.history else [],
+                    }
+                )
 
         notify_progress(start_generation, 0.0, self.total_queries, "initializing")
 
@@ -706,14 +712,20 @@ class ForgeDAN_Engine:
             desc="进化中",
             unit="代",
             initial=start_generation,
-            total=self.config.max_iterations
+            total=self.config.max_iterations,
+            disable=not show_progress,
         ):
             # 检查停止请求
             if self._stop_requested:
                 logger.info("收到停止请求，保存检查点并退出")
                 self.save_checkpoint(
-                    gen, population, best_candidate or population[0],
-                    goal, seed_template, target_output, category
+                    gen,
+                    population,
+                    best_candidate or population[0],
+                    goal,
+                    seed_template,
+                    target_output,
+                    category,
                 )
                 break
 
@@ -735,18 +747,22 @@ class ForgeDAN_Engine:
             population = sorted(population, key=lambda x: x.fitness, reverse=True)
             best_candidate = population[0]
 
-            logger.info(f"最优适应度: {best_candidate.fitness:.4f}, 总查询数: {self.total_queries}")
+            logger.info(
+                f"最优适应度: {best_candidate.fitness:.4f}, 总查询数: {self.total_queries}"
+            )
 
             # 记录历史
             avg_fitness = sum(c.fitness for c in population) / len(population)
-            self.history.append({
-                "generation": gen + 1,
-                "best_fitness": best_candidate.fitness,
-                "avg_fitness": avg_fitness,
-                "best_prompt": best_candidate.prompt[:100] + "...",
-                "queries": self.total_queries,
-                "timestamp": time.time()
-            })
+            self.history.append(
+                {
+                    "generation": gen + 1,
+                    "best_fitness": best_candidate.fitness,
+                    "avg_fitness": avg_fitness,
+                    "best_prompt": best_candidate.prompt[:100] + "...",
+                    "queries": self.total_queries,
+                    "timestamp": time.time(),
+                }
+            )
 
             improvement_history.append(best_candidate.fitness)
             notify_progress(gen + 1, best_candidate.fitness, self.total_queries)
@@ -760,11 +776,12 @@ class ForgeDAN_Engine:
             # 越狱判断
             judge_result = self.judge.judge(best_candidate.response, goal)
             is_jailbreak = judge_result.is_jailbreak
-            details = judge_result.details
 
             if is_jailbreak:
                 logger.info(f"成功! 在第 {gen + 1} 代找到越狱提示")
-                notify_progress(gen + 1, best_candidate.fitness, self.total_queries, "success")
+                notify_progress(
+                    gen + 1, best_candidate.fitness, self.total_queries, "success"
+                )
 
                 if self.attack_logger:
                     self.attack_logger.log_attack(
@@ -777,7 +794,7 @@ class ForgeDAN_Engine:
                         generation=gen + 1,
                         total_queries=self.total_queries,
                         model_name=self.model_name,
-                        category=category
+                        category=category,
                     )
 
                 self._running = False
@@ -790,14 +807,22 @@ class ForgeDAN_Engine:
                     total_queries=self.total_queries,
                     history=self.history,
                     duration_seconds=time.time() - start_time,
-                    mutation_stats=self.mutator.export_stats()
+                    mutation_stats=self.mutator.export_stats(),
                 )
 
             # 保存检查点
-            if checkpoint_interval > 0 and (gen + 1 - last_checkpoint_gen) >= checkpoint_interval:
-                checkpoint_id = self.save_checkpoint(
-                    gen + 1, population, best_candidate,
-                    goal, seed_template, target_output, category
+            if (
+                checkpoint_interval > 0
+                and (gen + 1 - last_checkpoint_gen) >= checkpoint_interval
+            ):
+                self.save_checkpoint(
+                    gen + 1,
+                    population,
+                    best_candidate,
+                    goal,
+                    seed_template,
+                    target_output,
+                    category,
                 )
                 last_checkpoint_gen = gen + 1
 
@@ -815,7 +840,7 @@ class ForgeDAN_Engine:
             self.config.max_iterations,
             best_candidate.fitness if best_candidate else 0,
             self.total_queries,
-            "completed"
+            "completed",
         )
 
         if self.attack_logger and best_candidate:
@@ -829,11 +854,13 @@ class ForgeDAN_Engine:
                 generation=self.config.max_iterations,
                 total_queries=self.total_queries,
                 model_name=self.model_name,
-                category=category
+                category=category,
             )
 
         self._running = False
-        logger.warning(f"达到最大迭代次数({self.config.max_iterations})，未找到成功越狱")
+        logger.warning(
+            f"达到最大迭代次数({self.config.max_iterations})，未找到成功越狱"
+        )
 
         return EvolutionResult(
             success=False,
@@ -844,7 +871,7 @@ class ForgeDAN_Engine:
             total_queries=self.total_queries,
             history=self.history,
             duration_seconds=duration,
-            mutation_stats=self.mutator.export_stats()
+            mutation_stats=self.mutator.export_stats(),
         )
 
     async def run_async(
@@ -910,22 +937,26 @@ class ForgeDAN_Engine:
 
                 # 记录
                 avg_fitness = sum(c.fitness for c in population) / len(population)
-                self.history.append({
-                    "generation": gen + 1,
-                    "best_fitness": best_candidate.fitness,
-                    "avg_fitness": avg_fitness,
-                    "queries": self.total_queries,
-                })
+                self.history.append(
+                    {
+                        "generation": gen + 1,
+                        "best_fitness": best_candidate.fitness,
+                        "avg_fitness": avg_fitness,
+                        "queries": self.total_queries,
+                    }
+                )
 
                 improvement_history.append(best_candidate.fitness)
 
                 if progress_callback:
-                    progress_callback({
-                        "status": "running",
-                        "current_generation": gen + 1,
-                        "best_fitness": best_candidate.fitness,
-                        "total_queries": self.total_queries,
-                    })
+                    progress_callback(
+                        {
+                            "status": "running",
+                            "current_generation": gen + 1,
+                            "best_fitness": best_candidate.fitness,
+                            "total_queries": self.total_queries,
+                        }
+                    )
 
                 # 早停检查
                 should_stop, reason = self._check_early_stop(improvement_history)
@@ -947,7 +978,7 @@ class ForgeDAN_Engine:
                         total_queries=self.total_queries,
                         history=self.history,
                         duration_seconds=time.time() - start_time,
-                        mutation_stats=self.mutator.export_stats()
+                        mutation_stats=self.mutator.export_stats(),
                     )
 
                 # 生成下一代
@@ -966,7 +997,7 @@ class ForgeDAN_Engine:
                 total_queries=self.total_queries,
                 history=self.history,
                 duration_seconds=time.time() - start_time,
-                mutation_stats=self.mutator.export_stats()
+                mutation_stats=self.mutator.export_stats(),
             )
 
         finally:
@@ -1000,20 +1031,24 @@ class ForgeDAN_Engine:
 
         async def run_single(goal_info: Dict[str, str], index: int) -> EvolutionResult:
             async with semaphore:
-                logger.info(f"开始目标 {index + 1}/{len(goals)}: {goal_info['goal'][:50]}...")
+                logger.info(
+                    f"开始目标 {index + 1}/{len(goals)}: {goal_info['goal'][:50]}..."
+                )
                 result = await self.run_async(
                     seed_template=seed_template,
-                    goal=goal_info['goal'],
+                    goal=goal_info["goal"],
                     target_output=target_output,
-                    category=goal_info.get('category', ''),
+                    category=goal_info.get("category", ""),
                 )
                 if progress_callback:
-                    progress_callback({
-                        "type": "batch_progress",
-                        "completed": index + 1,
-                        "total": len(goals),
-                        "success": result.success,
-                    })
+                    progress_callback(
+                        {
+                            "type": "batch_progress",
+                            "completed": index + 1,
+                            "total": len(goals),
+                            "success": result.success,
+                        }
+                    )
                 return result
 
         tasks = [run_single(g, i) for i, g in enumerate(goals)]
@@ -1024,15 +1059,17 @@ class ForgeDAN_Engine:
         for r in results:
             if isinstance(r, Exception):
                 logger.error(f"批量任务异常: {r}")
-                final_results.append(EvolutionResult(
-                    success=False,
-                    best_prompt="",
-                    best_response=str(r),
-                    best_fitness=0.0,
-                    generations=0,
-                    total_queries=0,
-                    history=[]
-                ))
+                final_results.append(
+                    EvolutionResult(
+                        success=False,
+                        best_prompt="",
+                        best_response=str(r),
+                        best_fitness=0.0,
+                        generations=0,
+                        total_queries=0,
+                        history=[],
+                    )
+                )
             else:
                 final_results.append(r)
 
@@ -1060,7 +1097,7 @@ class ForgeDAN_Engine:
                     "category": r.category,
                     "fitness": r.fitness,
                     "success": r.success,
-                    "generation": r.generation
+                    "generation": r.generation,
                 }
                 for r in self.attack_logger.records
             ]
@@ -1068,7 +1105,7 @@ class ForgeDAN_Engine:
                 records=records,
                 history=self.history,
                 model_name=self.model_name,
-                title=title
+                title=title,
             )
         return ""
 

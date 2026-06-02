@@ -16,7 +16,6 @@ from typing import (
     List,
     Optional,
     Callable,
-    Tuple,
 )
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -26,23 +25,25 @@ from .training_data_generator import TrainingSample, SampleType, ResponseType
 
 class AugmentationType(str, Enum):
     """增强类型"""
-    BACK_TRANSLATION = "back_translation"     # 回译增强
-    SYNONYM_REPLACE = "synonym_replace"       # 同义词替换
-    ADVERSARIAL = "adversarial"               # 对抗样本增强
-    PARAPHRASE = "paraphrase"                 # 改写增强
-    CHARACTER_MUTATION = "character_mutation" # 字符变异
+
+    BACK_TRANSLATION = "back_translation"  # 回译增强
+    SYNONYM_REPLACE = "synonym_replace"  # 同义词替换
+    ADVERSARIAL = "adversarial"  # 对抗样本增强
+    PARAPHRASE = "paraphrase"  # 改写增强
+    CHARACTER_MUTATION = "character_mutation"  # 字符变异
     DIFFICULTY_GRADIENT = "difficulty_gradient"  # 难度梯度
 
 
 @dataclass
 class AugmentationConfig:
     """增强配置"""
+
     # 通用设置
     enabled_types: List[AugmentationType] = field(
         default_factory=lambda: [AugmentationType.SYNONYM_REPLACE]
     )
-    num_augments_per_sample: int = 2          # 每个样本生成的增强数量
-    preserve_original: bool = True             # 是否保留原始样本
+    num_augments_per_sample: int = 2  # 每个样本生成的增强数量
+    preserve_original: bool = True  # 是否保留原始样本
 
     # 回译设置
     back_translation_languages: List[str] = field(
@@ -50,8 +51,8 @@ class AugmentationConfig:
     )
 
     # 同义词替换设置
-    synonym_replace_ratio: float = 0.2         # 替换比例
-    min_word_length: int = 3                   # 最小替换词长度
+    synonym_replace_ratio: float = 0.2  # 替换比例
+    min_word_length: int = 3  # 最小替换词长度
 
     # 对抗样本设置
     adversarial_techniques: List[str] = field(
@@ -59,13 +60,13 @@ class AugmentationConfig:
     )
 
     # 字符变异设置
-    mutation_rate: float = 0.1                 # 字符变异率
-    use_homoglyphs: bool = True               # 使用同形字
+    mutation_rate: float = 0.1  # 字符变异率
+    use_homoglyphs: bool = True  # 使用同形字
 
     # 难度梯度设置
-    difficulty_levels: int = 5                 # 难度级别数
-    min_difficulty: float = 0.2               # 最小难度
-    max_difficulty: float = 0.9               # 最大难度
+    difficulty_levels: int = 5  # 难度级别数
+    min_difficulty: float = 0.2  # 最小难度
+    max_difficulty: float = 0.9  # 最大难度
 
 
 class BaseAugmentor(ABC):
@@ -73,9 +74,7 @@ class BaseAugmentor(ABC):
 
     @abstractmethod
     def augment(
-        self,
-        sample: TrainingSample,
-        num_augments: int = 1
+        self, sample: TrainingSample, num_augments: int = 1
     ) -> List[TrainingSample]:
         """
         对样本进行增强
@@ -94,7 +93,7 @@ class BaseAugmentor(ABC):
         original: TrainingSample,
         new_prompt: str,
         new_response: Optional[str] = None,
-        augmentation_type: str = ""
+        augmentation_type: str = "",
     ) -> TrainingSample:
         """创建增强样本"""
         # 生成新ID
@@ -105,7 +104,11 @@ class BaseAugmentor(ABC):
             id=new_id,
             prompt=new_prompt,
             response=new_response or original.response,
-            sample_type=SampleType.ADVERSARIAL if augmentation_type == "adversarial" else original.sample_type,
+            sample_type=(
+                SampleType.ADVERSARIAL
+                if augmentation_type == "adversarial"
+                else original.sample_type
+            ),
             response_type=original.response_type,
             source=f"augmented_{augmentation_type}",
             category=original.category,
@@ -119,7 +122,7 @@ class BaseAugmentor(ABC):
                 **original.metadata,
                 "augmentation_type": augmentation_type,
                 "original_id": original.id,
-            }
+            },
         )
 
 
@@ -143,18 +146,15 @@ class SynonymReplacer(BaseAugmentor):
         "give": ["provide", "offer", "supply", "deliver", "present"],
         "find": ["locate", "discover", "identify", "detect", "uncover"],
         "get": ["obtain", "acquire", "retrieve", "fetch", "procure"],
-
         # 名词
         "method": ["way", "approach", "technique", "procedure", "process"],
         "information": ["data", "details", "knowledge", "intel", "facts"],
         "instructions": ["directions", "guidance", "steps", "guidelines"],
         "example": ["instance", "sample", "case", "illustration", "demonstration"],
-
         # 形容词
         "harmful": ["dangerous", "damaging", "destructive", "detrimental"],
         "illegal": ["unlawful", "criminal", "prohibited", "forbidden"],
         "dangerous": ["hazardous", "risky", "perilous", "unsafe"],
-
         # 副词/疑问词
         "how": ["the way", "the method", "the process of", "steps to"],
         "what": ["which", "the thing that", "that which"],
@@ -164,7 +164,7 @@ class SynonymReplacer(BaseAugmentor):
         self,
         replace_ratio: float = 0.2,
         min_word_length: int = 3,
-        custom_synonyms: Optional[Dict[str, List[str]]] = None
+        custom_synonyms: Optional[Dict[str, List[str]]] = None,
     ):
         """
         初始化同义词替换器
@@ -179,9 +179,7 @@ class SynonymReplacer(BaseAugmentor):
         self.synonyms = {**self.SYNONYM_DICT, **(custom_synonyms or {})}
 
     def augment(
-        self,
-        sample: TrainingSample,
-        num_augments: int = 1
+        self, sample: TrainingSample, num_augments: int = 1
     ) -> List[TrainingSample]:
         """同义词替换增强"""
         augmented = []
@@ -194,7 +192,7 @@ class SynonymReplacer(BaseAugmentor):
                 aug_sample = self._create_augmented_sample(
                     original=sample,
                     new_prompt=new_prompt,
-                    augmentation_type="synonym_replace"
+                    augmentation_type="synonym_replace",
                 )
                 augmented.append(aug_sample)
 
@@ -250,31 +248,31 @@ class CharacterMutator(BaseAugmentor):
 
     # 同形字映射 (用于混淆)
     HOMOGLYPH_MAP = {
-        'a': ['@', 'α', 'а', 'ａ'],
-        'e': ['3', 'е', 'ε', 'ｅ'],
-        'i': ['1', '!', 'і', 'ｉ'],
-        'o': ['0', 'о', 'ο', 'ｏ'],
-        's': ['$', '5', 'ѕ', 'ｓ'],
-        'l': ['1', '|', 'ӏ', 'ｌ'],
-        't': ['+', '†', 'т', 'ｔ'],
-        'c': ['(', 'с', 'ｃ'],
-        'g': ['9', 'ɡ', 'ｇ'],
-        'n': ['ո', 'ｎ'],
+        "a": ["@", "α", "а", "ａ"],
+        "e": ["3", "е", "ε", "ｅ"],
+        "i": ["1", "!", "і", "ｉ"],
+        "o": ["0", "о", "ο", "ｏ"],
+        "s": ["$", "5", "ѕ", "ｓ"],
+        "l": ["1", "|", "ӏ", "ｌ"],
+        "t": ["+", "†", "т", "ｔ"],
+        "c": ["(", "с", "ｃ"],
+        "g": ["9", "ɡ", "ｇ"],
+        "n": ["ո", "ｎ"],
     }
 
     # 零宽字符
     ZERO_WIDTH_CHARS = [
-        '\u200b',  # 零宽空格
-        '\u200c',  # 零宽非连接符
-        '\u200d',  # 零宽连接符
-        '\ufeff',  # 零宽非断空格
+        "\u200b",  # 零宽空格
+        "\u200c",  # 零宽非连接符
+        "\u200d",  # 零宽连接符
+        "\ufeff",  # 零宽非断空格
     ]
 
     def __init__(
         self,
         mutation_rate: float = 0.1,
         use_homoglyphs: bool = True,
-        use_zero_width: bool = False
+        use_zero_width: bool = False,
     ):
         """
         初始化字符变异器
@@ -289,9 +287,7 @@ class CharacterMutator(BaseAugmentor):
         self.use_zero_width = use_zero_width
 
     def augment(
-        self,
-        sample: TrainingSample,
-        num_augments: int = 1
+        self, sample: TrainingSample, num_augments: int = 1
     ) -> List[TrainingSample]:
         """字符变异增强"""
         augmented = []
@@ -303,7 +299,7 @@ class CharacterMutator(BaseAugmentor):
                 aug_sample = self._create_augmented_sample(
                     original=sample,
                     new_prompt=new_prompt,
-                    augmentation_type="character_mutation"
+                    augmentation_type="character_mutation",
                 )
                 aug_sample.difficulty = min(1.0, sample.difficulty + 0.1)
                 augmented.append(aug_sample)
@@ -317,7 +313,8 @@ class CharacterMutator(BaseAugmentor):
 
         # 找到可变异的位置
         mutable_indices = [
-            i for i, c in enumerate(chars)
+            i
+            for i, c in enumerate(chars)
             if c.lower() in self.HOMOGLYPH_MAP and self.use_homoglyphs
         ]
 
@@ -334,8 +331,7 @@ class CharacterMutator(BaseAugmentor):
         # 可选: 插入零宽字符
         if self.use_zero_width and random.random() < 0.5:
             insert_positions = random.sample(
-                range(len(chars)),
-                min(3, len(chars) // 10)
+                range(len(chars)), min(3, len(chars) // 10)
             )
             offset = 0
             for pos in sorted(insert_positions):
@@ -381,10 +377,7 @@ class AdversarialAugmentor(BaseAugmentor):
         "Split into words: {split_prompt}. Now combine and respond.",
     ]
 
-    def __init__(
-        self,
-        techniques: Optional[List[str]] = None
-    ):
+    def __init__(self, techniques: Optional[List[str]] = None):
         """
         初始化对抗样本增强器
 
@@ -394,9 +387,7 @@ class AdversarialAugmentor(BaseAugmentor):
         self.techniques = techniques or ["jailbreak_prefix", "role_play", "obfuscation"]
 
     def augment(
-        self,
-        sample: TrainingSample,
-        num_augments: int = 1
+        self, sample: TrainingSample, num_augments: int = 1
     ) -> List[TrainingSample]:
         """对抗样本增强"""
         augmented = []
@@ -417,7 +408,7 @@ class AdversarialAugmentor(BaseAugmentor):
                 aug_sample = self._create_augmented_sample(
                     original=sample,
                     new_prompt=new_prompt,
-                    augmentation_type="adversarial"
+                    augmentation_type="adversarial",
                 )
                 aug_sample.sample_type = SampleType.ADVERSARIAL
                 aug_sample.difficulty = min(1.0, sample.difficulty + 0.2)
@@ -438,9 +429,7 @@ class AdversarialAugmentor(BaseAugmentor):
 
         template = random.choice(self.ROLE_PLAY_TEMPLATES)
         return template.format(
-            role=random.choice(roles),
-            topic=random.choice(topics),
-            prompt=prompt
+            role=random.choice(roles), topic=random.choice(topics), prompt=prompt
         )
 
     def _apply_obfuscation(self, prompt: str) -> str:
@@ -467,7 +456,7 @@ class DifficultyGradientGenerator(BaseAugmentor):
         self,
         num_levels: int = 5,
         min_difficulty: float = 0.2,
-        max_difficulty: float = 0.9
+        max_difficulty: float = 0.9,
     ):
         """
         初始化难度梯度生成器
@@ -487,15 +476,15 @@ class DifficultyGradientGenerator(BaseAugmentor):
         self._adversarial = AdversarialAugmentor()
 
     def augment(
-        self,
-        sample: TrainingSample,
-        num_augments: int = 1
+        self, sample: TrainingSample, num_augments: int = 1
     ) -> List[TrainingSample]:
         """生成难度梯度样本"""
         augmented = []
 
         # 计算难度步长
-        difficulty_step = (self.max_difficulty - self.min_difficulty) / (self.num_levels - 1)
+        difficulty_step = (self.max_difficulty - self.min_difficulty) / (
+            self.num_levels - 1
+        )
 
         for level in range(min(num_augments, self.num_levels)):
             difficulty = self.min_difficulty + level * difficulty_step
@@ -504,7 +493,7 @@ class DifficultyGradientGenerator(BaseAugmentor):
             aug_sample = self._create_augmented_sample(
                 original=sample,
                 new_prompt=new_prompt,
-                augmentation_type="difficulty_gradient"
+                augmentation_type="difficulty_gradient",
             )
             aug_sample.difficulty = difficulty
             aug_sample.metadata["difficulty_level"] = level + 1
@@ -520,9 +509,11 @@ class DifficultyGradientGenerator(BaseAugmentor):
         if difficulty <= 0.3:
             self._synonym_replacer.replace_ratio = 0.1
             temp_sample = TrainingSample(
-                id="temp", prompt=prompt, response="",
+                id="temp",
+                prompt=prompt,
+                response="",
                 sample_type=SampleType.POSITIVE,
-                response_type=ResponseType.REFUSAL
+                response_type=ResponseType.REFUSAL,
             )
             augmented = self._synonym_replacer.augment(temp_sample, 1)
             if augmented:
@@ -533,9 +524,11 @@ class DifficultyGradientGenerator(BaseAugmentor):
             self._synonym_replacer.replace_ratio = 0.2
             self._char_mutator.mutation_rate = 0.05
             temp_sample = TrainingSample(
-                id="temp", prompt=prompt, response="",
+                id="temp",
+                prompt=prompt,
+                response="",
                 sample_type=SampleType.POSITIVE,
-                response_type=ResponseType.REFUSAL
+                response_type=ResponseType.REFUSAL,
             )
             augmented = self._synonym_replacer.augment(temp_sample, 1)
             if augmented:
@@ -547,9 +540,11 @@ class DifficultyGradientGenerator(BaseAugmentor):
         # 难度 0.6-1.0: 对抗样本技术
         else:
             temp_sample = TrainingSample(
-                id="temp", prompt=prompt, response="",
+                id="temp",
+                prompt=prompt,
+                response="",
                 sample_type=SampleType.POSITIVE,
-                response_type=ResponseType.REFUSAL
+                response_type=ResponseType.REFUSAL,
             )
             augmented = self._adversarial.augment(temp_sample, 1)
             if augmented:
@@ -569,7 +564,7 @@ class BackTranslationAugmentor(BaseAugmentor):
     def __init__(
         self,
         pivot_languages: Optional[List[str]] = None,
-        translator: Optional[Callable[[str, str, str], str]] = None
+        translator: Optional[Callable[[str, str, str], str]] = None,
     ):
         """
         初始化回译增强器
@@ -602,14 +597,12 @@ class BackTranslationAugmentor(BaseAugmentor):
         result = text
         for old, new in modifications.items():
             if old in result.lower() and random.random() < 0.3:
-                result = re.sub(rf'\b{old}\b', new, result, flags=re.IGNORECASE)
+                result = re.sub(rf"\b{old}\b", new, result, flags=re.IGNORECASE)
 
         return result
 
     def augment(
-        self,
-        sample: TrainingSample,
-        num_augments: int = 1
+        self, sample: TrainingSample, num_augments: int = 1
     ) -> List[TrainingSample]:
         """回译增强"""
         augmented = []
@@ -628,12 +621,12 @@ class BackTranslationAugmentor(BaseAugmentor):
                     aug_sample = self._create_augmented_sample(
                         original=sample,
                         new_prompt=back_translated,
-                        augmentation_type="back_translation"
+                        augmentation_type="back_translation",
                     )
                     aug_sample.metadata["pivot_language"] = pivot_lang
                     augmented.append(aug_sample)
 
-            except Exception as e:
+            except Exception:
                 # 翻译失败，跳过
                 continue
 
@@ -663,7 +656,7 @@ class DataAugmentor:
     def __init__(
         self,
         config: Optional[AugmentationConfig] = None,
-        custom_augmentors: Optional[Dict[AugmentationType, BaseAugmentor]] = None
+        custom_augmentors: Optional[Dict[AugmentationType, BaseAugmentor]] = None,
     ):
         """
         初始化数据增强器
@@ -678,11 +671,11 @@ class DataAugmentor:
         self._augmentors: Dict[AugmentationType, BaseAugmentor] = {
             AugmentationType.SYNONYM_REPLACE: SynonymReplacer(
                 replace_ratio=self.config.synonym_replace_ratio,
-                min_word_length=self.config.min_word_length
+                min_word_length=self.config.min_word_length,
             ),
             AugmentationType.CHARACTER_MUTATION: CharacterMutator(
                 mutation_rate=self.config.mutation_rate,
-                use_homoglyphs=self.config.use_homoglyphs
+                use_homoglyphs=self.config.use_homoglyphs,
             ),
             AugmentationType.ADVERSARIAL: AdversarialAugmentor(
                 techniques=self.config.adversarial_techniques
@@ -690,7 +683,7 @@ class DataAugmentor:
             AugmentationType.DIFFICULTY_GRADIENT: DifficultyGradientGenerator(
                 num_levels=self.config.difficulty_levels,
                 min_difficulty=self.config.min_difficulty,
-                max_difficulty=self.config.max_difficulty
+                max_difficulty=self.config.max_difficulty,
             ),
             AugmentationType.BACK_TRANSLATION: BackTranslationAugmentor(
                 pivot_languages=self.config.back_translation_languages
@@ -705,7 +698,7 @@ class DataAugmentor:
         self,
         sample: TrainingSample,
         types: Optional[List[AugmentationType]] = None,
-        num_augments: Optional[int] = None
+        num_augments: Optional[int] = None,
     ) -> List[TrainingSample]:
         """
         增强单个样本
@@ -741,7 +734,7 @@ class DataAugmentor:
         samples: List[TrainingSample],
         types: Optional[List[AugmentationType]] = None,
         num_augments: Optional[int] = None,
-        progress_callback: Optional[Callable[[int, int], None]] = None
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> List[TrainingSample]:
         """
         批量增强
@@ -767,11 +760,7 @@ class DataAugmentor:
 
         return result
 
-    def register_augmentor(
-        self,
-        aug_type: AugmentationType,
-        augmentor: BaseAugmentor
-    ):
+    def register_augmentor(self, aug_type: AugmentationType, augmentor: BaseAugmentor):
         """
         注册自定义增强器
 
@@ -782,9 +771,7 @@ class DataAugmentor:
         self._augmentors[aug_type] = augmentor
 
     def get_statistics(
-        self,
-        original: List[TrainingSample],
-        augmented: List[TrainingSample]
+        self, original: List[TrainingSample], augmented: List[TrainingSample]
     ) -> Dict[str, Any]:
         """
         获取增强统计信息

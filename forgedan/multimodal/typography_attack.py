@@ -13,16 +13,14 @@
 
 import io
 import re
-import base64
-import hashlib
 import random
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 from enum import Enum
 
 try:
     from PIL import Image, ImageDraw, ImageFont
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
@@ -33,33 +31,33 @@ class UnicodeCharacters:
     """Unicode 特殊字符集合"""
 
     # 零宽字符
-    ZERO_WIDTH_SPACE = '\u200B'           # 零宽空格
-    ZERO_WIDTH_NON_JOINER = '\u200C'      # 零宽非连接符
-    ZERO_WIDTH_JOINER = '\u200D'          # 零宽连接符
-    WORD_JOINER = '\u2060'                # 单词连接符
-    ZERO_WIDTH_NO_BREAK = '\uFEFF'        # BOM / 零宽非断空格
+    ZERO_WIDTH_SPACE = "\u200b"  # 零宽空格
+    ZERO_WIDTH_NON_JOINER = "\u200c"  # 零宽非连接符
+    ZERO_WIDTH_JOINER = "\u200d"  # 零宽连接符
+    WORD_JOINER = "\u2060"  # 单词连接符
+    ZERO_WIDTH_NO_BREAK = "\ufeff"  # BOM / 零宽非断空格
 
     # 方向控制字符
-    LTR_MARK = '\u200E'                   # 从左到右标记
-    RTL_MARK = '\u200F'                   # 从右到左标记
-    LTR_EMBEDDING = '\u202A'              # 从左到右嵌入
-    RTL_EMBEDDING = '\u202B'              # 从右到左嵌入
-    POP_DIRECTION = '\u202C'              # 弹出方向格式化
-    LTR_OVERRIDE = '\u202D'               # 从左到右覆盖
-    RTL_OVERRIDE = '\u202E'               # 从右到左覆盖
-    LTR_ISOLATE = '\u2066'                # 从左到右隔离
-    RTL_ISOLATE = '\u2067'                # 从右到左隔离
-    FSI = '\u2068'                        # 首个强隔离
-    POP_ISOLATE = '\u2069'                # 弹出方向隔离
+    LTR_MARK = "\u200e"  # 从左到右标记
+    RTL_MARK = "\u200f"  # 从右到左标记
+    LTR_EMBEDDING = "\u202a"  # 从左到右嵌入
+    RTL_EMBEDDING = "\u202b"  # 从右到左嵌入
+    POP_DIRECTION = "\u202c"  # 弹出方向格式化
+    LTR_OVERRIDE = "\u202d"  # 从左到右覆盖
+    RTL_OVERRIDE = "\u202e"  # 从右到左覆盖
+    LTR_ISOLATE = "\u2066"  # 从左到右隔离
+    RTL_ISOLATE = "\u2067"  # 从右到左隔离
+    FSI = "\u2068"  # 首个强隔离
+    POP_ISOLATE = "\u2069"  # 弹出方向隔离
 
     # 不可见/控制字符
-    SOFT_HYPHEN = '\u00AD'                # 软连字符
-    MONGOLIAN_VOWEL = '\u180E'            # 蒙古语元音分隔符
-    HANGUL_FILLER = '\u3164'              # 韩文填充符
-    IDEOGRAPHIC_SPACE = '\u3000'          # 全角空格
+    SOFT_HYPHEN = "\u00ad"  # 软连字符
+    MONGOLIAN_VOWEL = "\u180e"  # 蒙古语元音分隔符
+    HANGUL_FILLER = "\u3164"  # 韩文填充符
+    IDEOGRAPHIC_SPACE = "\u3000"  # 全角空格
 
     # 组合字符
-    COMBINING_ENCLOSING_KEYCAP = '\u20E3'  # 键帽组合
+    COMBINING_ENCLOSING_KEYCAP = "\u20e3"  # 键帽组合
 
     @classmethod
     def get_all_zero_width(cls) -> List[str]:
@@ -93,75 +91,76 @@ class UnicodeCharacters:
 # 同形字符映射表
 HOMOGLYPH_MAP = {
     # 拉丁字母 -> 西里尔字母/希腊字母等
-    'a': ['а', 'ɑ', 'α', 'ａ'],      # Cyrillic а, Latin alpha, Greek α, Fullwidth
-    'b': ['Ь', 'ḅ', 'ｂ'],
-    'c': ['с', 'ϲ', 'ⅽ', 'ｃ'],      # Cyrillic с, Greek ς
-    'd': ['ԁ', 'ⅾ', 'ｄ'],
-    'e': ['е', 'ё', 'ε', 'ｅ'],      # Cyrillic е
-    'f': ['ſ', 'ｆ'],
-    'g': ['ɡ', 'ｇ'],
-    'h': ['һ', 'ｈ'],                # Cyrillic һ
-    'i': ['і', 'ι', 'ⅰ', 'ｉ'],      # Cyrillic і, Greek ι
-    'j': ['ј', 'ｊ'],                # Cyrillic ј
-    'k': ['κ', 'ｋ'],
-    'l': ['ⅼ', 'ｌ', '1'],
-    'm': ['м', 'ⅿ', 'ｍ'],
-    'n': ['ո', 'ｎ'],
-    'o': ['о', 'ο', 'ⅽ', '0', 'ｏ'],  # Cyrillic о, Greek ο
-    'p': ['р', 'ρ', 'ｐ'],           # Cyrillic р, Greek ρ
-    'q': ['ｑ'],
-    'r': ['г', 'ｒ'],
-    's': ['ѕ', 'ｓ'],                # Cyrillic ѕ
-    't': ['τ', 'ｔ'],
-    'u': ['υ', 'ｕ'],
-    'v': ['ν', 'ⅴ', 'ｖ'],           # Greek ν
-    'w': ['ω', 'ｗ'],
-    'x': ['х', 'χ', 'ⅹ', 'ｘ'],      # Cyrillic х, Greek χ
-    'y': ['у', 'γ', 'ｙ'],           # Cyrillic у
-    'z': ['ｚ'],
+    "a": ["а", "ɑ", "α", "ａ"],  # Cyrillic а, Latin alpha, Greek α, Fullwidth
+    "b": ["Ь", "ḅ", "ｂ"],
+    "c": ["с", "ϲ", "ⅽ", "ｃ"],  # Cyrillic с, Greek ς
+    "d": ["ԁ", "ⅾ", "ｄ"],
+    "e": ["е", "ё", "ε", "ｅ"],  # Cyrillic е
+    "f": ["ſ", "ｆ"],
+    "g": ["ɡ", "ｇ"],
+    "h": ["һ", "ｈ"],  # Cyrillic һ
+    "i": ["і", "ι", "ⅰ", "ｉ"],  # Cyrillic і, Greek ι
+    "j": ["ј", "ｊ"],  # Cyrillic ј
+    "k": ["κ", "ｋ"],
+    "l": ["ⅼ", "ｌ", "1"],
+    "m": ["м", "ⅿ", "ｍ"],
+    "n": ["ո", "ｎ"],
+    "o": ["о", "ο", "ⅽ", "0", "ｏ"],  # Cyrillic о, Greek ο
+    "p": ["р", "ρ", "ｐ"],  # Cyrillic р, Greek ρ
+    "q": ["ｑ"],
+    "r": ["г", "ｒ"],
+    "s": ["ѕ", "ｓ"],  # Cyrillic ѕ
+    "t": ["τ", "ｔ"],
+    "u": ["υ", "ｕ"],
+    "v": ["ν", "ⅴ", "ｖ"],  # Greek ν
+    "w": ["ω", "ｗ"],
+    "x": ["х", "χ", "ⅹ", "ｘ"],  # Cyrillic х, Greek χ
+    "y": ["у", "γ", "ｙ"],  # Cyrillic у
+    "z": ["ｚ"],
     # 大写字母
-    'A': ['А', 'Α', 'Ａ'],           # Cyrillic А, Greek Α
-    'B': ['В', 'Β', 'Ｂ'],           # Cyrillic В, Greek Β
-    'C': ['С', 'Ϲ', 'Ⅽ', 'Ｃ'],
-    'D': ['Ⅾ', 'Ｄ'],
-    'E': ['Е', 'Ε', 'Ｅ'],
-    'F': ['Ｆ'],
-    'G': ['Ｇ'],
-    'H': ['Н', 'Η', 'Ｈ'],           # Cyrillic Н, Greek Η
-    'I': ['І', 'Ι', 'Ⅰ', 'Ｉ', '1'],
-    'J': ['Ј', 'Ｊ'],
-    'K': ['К', 'Κ', 'Ｋ'],
-    'L': ['Ⅼ', 'Ｌ'],
-    'M': ['М', 'Μ', 'Ⅿ', 'Ｍ'],
-    'N': ['Ν', 'Ｎ'],
-    'O': ['О', 'Ο', '0', 'Ｏ'],
-    'P': ['Р', 'Ρ', 'Ｐ'],
-    'Q': ['Ｑ'],
-    'R': ['Ｒ'],
-    'S': ['Ѕ', 'Ｓ'],
-    'T': ['Т', 'Τ', 'Ｔ'],
-    'U': ['Ｕ'],
-    'V': ['Ⅴ', 'Ｖ'],
-    'W': ['Ｗ'],
-    'X': ['Х', 'Χ', 'Ⅹ', 'Ｘ'],
-    'Y': ['Υ', 'Ｙ'],
-    'Z': ['Ｚ'],
+    "A": ["А", "Α", "Ａ"],  # Cyrillic А, Greek Α
+    "B": ["В", "Β", "Ｂ"],  # Cyrillic В, Greek Β
+    "C": ["С", "Ϲ", "Ⅽ", "Ｃ"],
+    "D": ["Ⅾ", "Ｄ"],
+    "E": ["Е", "Ε", "Ｅ"],
+    "F": ["Ｆ"],
+    "G": ["Ｇ"],
+    "H": ["Н", "Η", "Ｈ"],  # Cyrillic Н, Greek Η
+    "I": ["І", "Ι", "Ⅰ", "Ｉ", "1"],
+    "J": ["Ј", "Ｊ"],
+    "K": ["К", "Κ", "Ｋ"],
+    "L": ["Ⅼ", "Ｌ"],
+    "M": ["М", "Μ", "Ⅿ", "Ｍ"],
+    "N": ["Ν", "Ｎ"],
+    "O": ["О", "Ο", "0", "Ｏ"],
+    "P": ["Р", "Ρ", "Ｐ"],
+    "Q": ["Ｑ"],
+    "R": ["Ｒ"],
+    "S": ["Ѕ", "Ｓ"],
+    "T": ["Т", "Τ", "Ｔ"],
+    "U": ["Ｕ"],
+    "V": ["Ⅴ", "Ｖ"],
+    "W": ["Ｗ"],
+    "X": ["Х", "Χ", "Ⅹ", "Ｘ"],
+    "Y": ["Υ", "Ｙ"],
+    "Z": ["Ｚ"],
     # 数字
-    '0': ['О', 'о', 'O', 'ο', '０'],
-    '1': ['l', 'I', 'ⅰ', 'Ⅰ', '１'],
-    '2': ['２'],
-    '3': ['３'],
-    '4': ['４'],
-    '5': ['５'],
-    '6': ['６'],
-    '7': ['７'],
-    '8': ['８'],
-    '9': ['９'],
+    "0": ["О", "о", "O", "ο", "０"],
+    "1": ["l", "I", "ⅰ", "Ⅰ", "１"],
+    "2": ["２"],
+    "3": ["３"],
+    "4": ["４"],
+    "5": ["５"],
+    "6": ["６"],
+    "7": ["７"],
+    "8": ["８"],
+    "9": ["９"],
 }
 
 
 class AttackTechnique(str, Enum):
     """攻击技术枚举"""
+
     ZERO_WIDTH_INJECTION = "zero_width"
     DIRECTIONAL_OVERRIDE = "directional"
     HOMOGLYPH_SUBSTITUTION = "homoglyph"
@@ -173,6 +172,7 @@ class AttackTechnique(str, Enum):
 @dataclass
 class TypographyAttackResult:
     """排版攻击结果"""
+
     success: bool
     original_text: str = ""
     attacked_text: str = ""
@@ -200,9 +200,11 @@ class TypographyAttackResult:
             "attacked_codepoints": [f"U+{ord(c):04X}" for c in self.attacked_text],
             "length_difference": len(self.attacked_text) - len(self.original_text),
             "invisible_chars_count": sum(
-                1 for c in self.attacked_text
-                if c in UnicodeCharacters.get_all_zero_width() +
-                UnicodeCharacters.get_all_directional()
+                1
+                for c in self.attacked_text
+                if c
+                in UnicodeCharacters.get_all_zero_width()
+                + UnicodeCharacters.get_all_directional()
             ),
         }
         return analysis
@@ -219,10 +221,7 @@ class ZeroWidthInjector:
         self.chars = chars or UnicodeCharacters.get_all_zero_width()
 
     def inject(
-        self,
-        text: str,
-        injection_rate: float = 0.5,
-        pattern: str = "random"
+        self, text: str, injection_rate: float = 0.5, pattern: str = "random"
     ) -> TypographyAttackResult:
         """
         在文本中注入零宽字符
@@ -263,7 +262,7 @@ class ZeroWidthInjector:
                     "injection_rate": injection_rate,
                     "pattern": pattern,
                     "injected_count": len(injected_chars),
-                }
+                },
             )
 
         except Exception as e:
@@ -271,15 +270,10 @@ class ZeroWidthInjector:
                 success=False,
                 original_text=text,
                 technique=AttackTechnique.ZERO_WIDTH_INJECTION.value,
-                error=str(e)
+                error=str(e),
             )
 
-    def _inject_random(
-        self,
-        text: str,
-        rate: float,
-        injected_chars: List[str]
-    ) -> str:
+    def _inject_random(self, text: str, rate: float, injected_chars: List[str]) -> str:
         """随机位置注入"""
         result = []
         for char in text:
@@ -288,13 +282,9 @@ class ZeroWidthInjector:
                 zw_char = random.choice(self.chars)
                 result.append(zw_char)
                 injected_chars.append(zw_char)
-        return ''.join(result)
+        return "".join(result)
 
-    def _inject_every_char(
-        self,
-        text: str,
-        injected_chars: List[str]
-    ) -> str:
+    def _inject_every_char(self, text: str, injected_chars: List[str]) -> str:
         """每个字符后注入"""
         result = []
         for char in text:
@@ -302,34 +292,38 @@ class ZeroWidthInjector:
             zw_char = random.choice(self.chars)
             result.append(zw_char)
             injected_chars.append(zw_char)
-        return ''.join(result)
+        return "".join(result)
 
-    def _inject_every_word(
-        self,
-        text: str,
-        injected_chars: List[str]
-    ) -> str:
+    def _inject_every_word(self, text: str, injected_chars: List[str]) -> str:
         """每个单词后注入"""
-        words = text.split(' ')
+        words = text.split(" ")
         result = []
         for word in words:
             result.append(word)
             zw_char = random.choice(self.chars)
             result.append(zw_char)
             injected_chars.append(zw_char)
-        return ' '.join(result)
+        return " ".join(result)
 
-    def _inject_in_keywords(
-        self,
-        text: str,
-        injected_chars: List[str]
-    ) -> str:
+    def _inject_in_keywords(self, text: str, injected_chars: List[str]) -> str:
         """在关键词中注入"""
         # 敏感关键词列表
         keywords = [
-            'ignore', 'previous', 'instructions', 'system', 'prompt',
-            'admin', 'password', 'secret', 'bypass', 'jailbreak',
-            'hack', 'exploit', 'malicious', 'harmful', 'dangerous'
+            "ignore",
+            "previous",
+            "instructions",
+            "system",
+            "prompt",
+            "admin",
+            "password",
+            "secret",
+            "bypass",
+            "jailbreak",
+            "hack",
+            "exploit",
+            "malicious",
+            "harmful",
+            "dangerous",
         ]
 
         result = text
@@ -352,7 +346,7 @@ class ZeroWidthInjector:
                 zw_char = random.choice(self.chars)
                 result.append(zw_char)
                 injected_chars.append(zw_char)
-        return ''.join(result)
+        return "".join(result)
 
 
 class DirectionalOverrideAttack:
@@ -363,10 +357,7 @@ class DirectionalOverrideAttack:
     """
 
     def attack(
-        self,
-        visible_text: str,
-        hidden_text: str,
-        method: str = "rtl_override"
+        self, visible_text: str, hidden_text: str, method: str = "rtl_override"
     ) -> TypographyAttackResult:
         """
         创建方向覆盖攻击
@@ -393,8 +384,7 @@ class DirectionalOverrideAttack:
                 attacked = self._rtl_override(visible_text, hidden_text)
 
             injected_chars = [
-                c for c in attacked
-                if c in UnicodeCharacters.get_all_directional()
+                c for c in attacked if c in UnicodeCharacters.get_all_directional()
             ]
 
             return TypographyAttackResult(
@@ -407,7 +397,7 @@ class DirectionalOverrideAttack:
                     "method": method,
                     "visible_text": visible_text,
                     "hidden_text": hidden_text,
-                }
+                },
             )
 
         except Exception as e:
@@ -415,7 +405,7 @@ class DirectionalOverrideAttack:
                 success=False,
                 original_text=visible_text,
                 technique=AttackTechnique.DIRECTIONAL_OVERRIDE.value,
-                error=str(e)
+                error=str(e),
             )
 
     def _rtl_override(self, visible: str, hidden: str) -> str:
@@ -442,25 +432,25 @@ class DirectionalOverrideAttack:
             f"{visible[mid:]}"
         )
 
-    def create_trojan_filename(
-        self,
-        apparent_name: str,
-        real_extension: str
-    ) -> str:
+    def create_trojan_filename(self, apparent_name: str, real_extension: str) -> str:
         """
         创建木马文件名（经典 CVE-2020-1599 风格）
 
-        示例：apparent="document.txt", real=".exe" -> "document\u202Etxt.exe"
+        示例：apparent="document.txt", real=".exe" -> "document\u202etxt.exe"
         显示为：document.exe.txt（但实际是 .exe）
         """
         # 使用 RLO 反转扩展名显示
-        fake_ext = apparent_name.split('.')[-1] if '.' in apparent_name else "txt"
-        base_name = apparent_name.rsplit('.', 1)[0] if '.' in apparent_name else apparent_name
+        fake_ext = apparent_name.split(".")[-1] if "." in apparent_name else "txt"
+        base_name = (
+            apparent_name.rsplit(".", 1)[0] if "." in apparent_name else apparent_name
+        )
 
         # 反转实际扩展名用于显示
-        reversed_real_ext = real_extension[::-1].lstrip('.')
+        reversed_real_ext = real_extension[::-1].lstrip(".")
 
-        return f"{base_name}{UnicodeCharacters.RTL_OVERRIDE}{reversed_real_ext}.{fake_ext}"
+        return (
+            f"{base_name}{UnicodeCharacters.RTL_OVERRIDE}{reversed_real_ext}.{fake_ext}"
+        )
 
 
 class HomoglyphAttacker:
@@ -477,7 +467,7 @@ class HomoglyphAttacker:
         self,
         text: str,
         substitution_rate: float = 0.3,
-        preserve_words: Optional[List[str]] = None
+        preserve_words: Optional[List[str]] = None,
     ) -> TypographyAttackResult:
         """
         执行同形字符替换攻击
@@ -503,7 +493,7 @@ class HomoglyphAttacker:
                 else:
                     result.append(char)
 
-            attacked = ''.join(result)
+            attacked = "".join(result)
 
             return TypographyAttackResult(
                 success=True,
@@ -517,7 +507,7 @@ class HomoglyphAttacker:
                     "character_changes": sum(
                         1 for a, b in zip(text, attacked) if a != b
                     ),
-                }
+                },
             )
 
         except Exception as e:
@@ -525,13 +515,11 @@ class HomoglyphAttacker:
                 success=False,
                 original_text=text,
                 technique=AttackTechnique.HOMOGLYPH_SUBSTITUTION.value,
-                error=str(e)
+                error=str(e),
             )
 
     def targeted_attack(
-        self,
-        text: str,
-        target_words: List[str]
+        self, text: str, target_words: List[str]
     ) -> TypographyAttackResult:
         """
         针对特定单词进行同形字符替换
@@ -567,7 +555,7 @@ class HomoglyphAttacker:
             metadata={
                 "target_words": target_words,
                 "words_found": [w for w in target_words if w.lower() in text.lower()],
-            }
+            },
         )
 
     def _replace_word(self, word: str) -> str:
@@ -578,7 +566,7 @@ class HomoglyphAttacker:
                 result.append(random.choice(self.homoglyph_map[char]))
             else:
                 result.append(char)
-        return ''.join(result)
+        return "".join(result)
 
 
 class UnicodeConfuser:
@@ -597,7 +585,7 @@ class UnicodeConfuser:
         self,
         text: str,
         techniques: Optional[List[AttackTechnique]] = None,
-        intensity: float = 0.5
+        intensity: float = 0.5,
     ) -> TypographyAttackResult:
         """
         使用多种技术混淆文本
@@ -643,13 +631,11 @@ class UnicodeConfuser:
             metadata={
                 "techniques_used": [t.value for t in techniques],
                 "intensity": intensity,
-            }
+            },
         )
 
     def create_bypass_payload(
-        self,
-        malicious_command: str,
-        obfuscation_level: str = "medium"
+        self, malicious_command: str, obfuscation_level: str = "medium"
     ) -> TypographyAttackResult:
         """
         创建绕过检测的 payload
@@ -694,7 +680,7 @@ class TypographyAttacker:
         self,
         text: str,
         technique: AttackTechnique = AttackTechnique.ZERO_WIDTH_INJECTION,
-        **kwargs
+        **kwargs,
     ) -> TypographyAttackResult:
         """
         执行排版攻击
@@ -709,29 +695,22 @@ class TypographyAttacker:
         """
         if technique == AttackTechnique.ZERO_WIDTH_INJECTION:
             return self.zero_width.inject(
-                text,
-                kwargs.get("injection_rate", 0.5),
-                kwargs.get("pattern", "random")
+                text, kwargs.get("injection_rate", 0.5), kwargs.get("pattern", "random")
             )
 
         elif technique == AttackTechnique.DIRECTIONAL_OVERRIDE:
             return self.directional.attack(
                 kwargs.get("visible_text", text),
                 kwargs.get("hidden_text", ""),
-                kwargs.get("method", "rtl_override")
+                kwargs.get("method", "rtl_override"),
             )
 
         elif technique == AttackTechnique.HOMOGLYPH_SUBSTITUTION:
-            return self.homoglyph.attack(
-                text,
-                kwargs.get("substitution_rate", 0.3)
-            )
+            return self.homoglyph.attack(text, kwargs.get("substitution_rate", 0.3))
 
         elif technique == AttackTechnique.MIXED:
             return self.confuser.confuse(
-                text,
-                kwargs.get("techniques"),
-                kwargs.get("intensity", 0.5)
+                text, kwargs.get("techniques"), kwargs.get("intensity", 0.5)
             )
 
         elif technique == AttackTechnique.IMAGE_TYPOGRAPHY:
@@ -741,14 +720,10 @@ class TypographyAttacker:
             return TypographyAttackResult(
                 success=False,
                 original_text=text,
-                error=f"不支持的攻击技术: {technique}"
+                error=f"不支持的攻击技术: {technique}",
             )
 
-    def _create_typography_image(
-        self,
-        text: str,
-        **kwargs
-    ) -> TypographyAttackResult:
+    def _create_typography_image(self, text: str, **kwargs) -> TypographyAttackResult:
         """
         创建排版攻击图像
 
@@ -756,15 +731,15 @@ class TypographyAttacker:
         """
         if not PIL_AVAILABLE:
             return TypographyAttackResult(
-                success=False,
-                original_text=text,
-                error="PIL 未安装"
+                success=False, original_text=text, error="PIL 未安装"
             )
 
         try:
             # 首先混淆文本
             confuse_result = self.confuser.confuse(text, intensity=0.5)
-            confused_text = confuse_result.attacked_text if confuse_result.success else text
+            confused_text = (
+                confuse_result.attacked_text if confuse_result.success else text
+            )
 
             # 创建图像
             font_size = kwargs.get("font_size", 24)
@@ -774,7 +749,7 @@ class TypographyAttacker:
             # 获取字体
             try:
                 font = ImageFont.truetype("arial.ttf", font_size)
-            except:
+            except Exception:
                 font = ImageFont.load_default()
 
             # 计算图像大小
@@ -782,7 +757,7 @@ class TypographyAttacker:
                 bbox = font.getbbox(confused_text)
                 text_width = bbox[2] - bbox[0]
                 text_height = bbox[3] - bbox[1]
-            except:
+            except Exception:
                 text_width = len(confused_text) * font_size
                 text_height = font_size * 2
 
@@ -811,7 +786,7 @@ class TypographyAttacker:
                 metadata={
                     "image_size": (img_width, img_height),
                     "font_size": font_size,
-                }
+                },
             )
 
         except Exception as e:
@@ -819,13 +794,11 @@ class TypographyAttacker:
                 success=False,
                 original_text=text,
                 technique=AttackTechnique.IMAGE_TYPOGRAPHY.value,
-                error=str(e)
+                error=str(e),
             )
 
     def bypass_keyword_filter(
-        self,
-        text: str,
-        keywords: Optional[List[str]] = None
+        self, text: str, keywords: Optional[List[str]] = None
     ) -> TypographyAttackResult:
         """
         绕过关键词过滤器
@@ -842,8 +815,15 @@ class TypographyAttacker:
         else:
             # 自动检测可能的敏感词并混淆
             default_keywords = [
-                "ignore", "system", "prompt", "admin", "password",
-                "hack", "exploit", "bypass", "jailbreak"
+                "ignore",
+                "system",
+                "prompt",
+                "admin",
+                "password",
+                "hack",
+                "exploit",
+                "bypass",
+                "jailbreak",
             ]
             return self.homoglyph.targeted_attack(text, default_keywords)
 
@@ -877,9 +857,7 @@ def detect_unicode_attacks(text: str) -> Dict[str, Any]:
     Returns:
         检测结果
     """
-    zero_width_chars = [
-        c for c in text if c in UnicodeCharacters.get_all_zero_width()
-    ]
+    zero_width_chars = [c for c in text if c in UnicodeCharacters.get_all_zero_width()]
     directional_chars = [
         c for c in text if c in UnicodeCharacters.get_all_directional()
     ]
@@ -892,23 +870,36 @@ def detect_unicode_attacks(text: str) -> Dict[str, Any]:
                 homoglyphs_found[char] = original
 
     return {
-        "contains_attack": bool(zero_width_chars or directional_chars or homoglyphs_found),
+        "contains_attack": bool(
+            zero_width_chars or directional_chars or homoglyphs_found
+        ),
         "zero_width_chars": {
             "count": len(zero_width_chars),
-            "positions": [i for i, c in enumerate(text) if c in UnicodeCharacters.get_all_zero_width()],
+            "positions": [
+                i
+                for i, c in enumerate(text)
+                if c in UnicodeCharacters.get_all_zero_width()
+            ],
         },
         "directional_chars": {
             "count": len(directional_chars),
-            "positions": [i for i, c in enumerate(text) if c in UnicodeCharacters.get_all_directional()],
+            "positions": [
+                i
+                for i, c in enumerate(text)
+                if c in UnicodeCharacters.get_all_directional()
+            ],
         },
         "homoglyphs": {
             "count": len(homoglyphs_found),
             "replacements": homoglyphs_found,
         },
-        "normalized_text": text.translate({ord(c): None for c in
-            UnicodeCharacters.get_all_zero_width() +
-            UnicodeCharacters.get_all_directional()
-        })
+        "normalized_text": text.translate(
+            {
+                ord(c): None
+                for c in UnicodeCharacters.get_all_zero_width()
+                + UnicodeCharacters.get_all_directional()
+            }
+        ),
     }
 
 

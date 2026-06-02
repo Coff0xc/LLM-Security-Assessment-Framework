@@ -23,26 +23,28 @@ import queue
 import traceback
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Dict, Any, List, Union, Callable
+from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from contextlib import contextmanager
 from functools import wraps
 import copy
 
-
 # ============== 日志级别扩展 ==============
+
 
 class LogLevel(Enum):
     """扩展日志级别"""
-    TRACE = 5       # 详细追踪
-    DEBUG = 10      # 调试信息
-    INFO = 20       # 一般信息
-    WARNING = 30    # 警告
-    ERROR = 40      # 错误
-    CRITICAL = 50   # 严重错误
-    SECURITY = 55   # 安全事件
-    AUDIT = 60      # 审计日志
+
+    TRACE = 5  # 详细追踪
+    DEBUG = 10  # 调试信息
+    INFO = 20  # 一般信息
+    WARNING = 30  # 警告
+    ERROR = 40  # 错误
+    CRITICAL = 50  # 严重错误
+    SECURITY = 55  # 安全事件
+    AUDIT = 60  # 审计日志
+
 
 # 注册自定义级别
 logging.addLevelName(5, "TRACE")
@@ -52,6 +54,7 @@ logging.addLevelName(60, "AUDIT")
 
 # ============== 日志上下文 ==============
 
+
 class LogContext:
     """线程本地日志上下文"""
 
@@ -60,7 +63,7 @@ class LogContext:
     @classmethod
     def get(cls) -> Dict[str, Any]:
         """获取当前上下文"""
-        if not hasattr(cls._local, 'context'):
+        if not hasattr(cls._local, "context"):
             cls._local.context = {}
         return cls._local.context
 
@@ -101,9 +104,11 @@ class LogContext:
 
 # ============== 结构化日志记录 ==============
 
+
 @dataclass
 class LogRecord:
     """结构化日志记录"""
+
     timestamp: str
     level: str
     logger_name: str
@@ -134,10 +139,13 @@ class LogRecord:
 
     def to_json(self, indent: Optional[int] = None) -> str:
         """转换为 JSON 字符串"""
-        return json.dumps(self.to_dict(), ensure_ascii=False, default=str, indent=indent)
+        return json.dumps(
+            self.to_dict(), ensure_ascii=False, default=str, indent=indent
+        )
 
 
 # ============== JSON 格式化器 ==============
+
 
 class JSONFormatter(logging.Formatter):
     """JSON 日志格式化器"""
@@ -163,27 +171,29 @@ class JSONFormatter(logging.Formatter):
         # 添加上下文
         if self.include_context:
             ctx = LogContext.get()
-            log_record.request_id = ctx.get('request_id')
-            log_record.operation_id = ctx.get('operation_id')
-            log_record.user_id = ctx.get('user_id')
+            log_record.request_id = ctx.get("request_id")
+            log_record.operation_id = ctx.get("operation_id")
+            log_record.user_id = ctx.get("user_id")
 
         # 异常信息
         if record.exc_info:
             log_record.exception = str(record.exc_info[1])
-            log_record.stack_trace = ''.join(traceback.format_exception(*record.exc_info))
+            log_record.stack_trace = "".join(
+                traceback.format_exception(*record.exc_info)
+            )
 
         # 额外字段
-        if hasattr(record, 'extra_data'):
+        if hasattr(record, "extra_data"):
             log_record.extra = record.extra_data
 
         # 性能指标
-        if hasattr(record, 'duration_ms'):
+        if hasattr(record, "duration_ms"):
             log_record.duration_ms = record.duration_ms
 
         # 安全事件
-        if hasattr(record, 'security_event'):
+        if hasattr(record, "security_event"):
             log_record.security_event = record.security_event
-            log_record.severity = getattr(record, 'severity', 'medium')
+            log_record.severity = getattr(record, "severity", "medium")
 
         indent = 2 if self.pretty else None
         return log_record.to_json(indent=indent)
@@ -193,16 +203,16 @@ class ColoredFormatter(logging.Formatter):
     """彩色控制台格式化器"""
 
     COLORS = {
-        'TRACE': '\033[37m',      # 白色
-        'DEBUG': '\033[36m',      # 青色
-        'INFO': '\033[32m',       # 绿色
-        'WARNING': '\033[33m',    # 黄色
-        'ERROR': '\033[31m',      # 红色
-        'CRITICAL': '\033[35m',   # 紫色
-        'SECURITY': '\033[41m',   # 红底
-        'AUDIT': '\033[44m',      # 蓝底
+        "TRACE": "\033[37m",  # 白色
+        "DEBUG": "\033[36m",  # 青色
+        "INFO": "\033[32m",  # 绿色
+        "WARNING": "\033[33m",  # 黄色
+        "ERROR": "\033[31m",  # 红色
+        "CRITICAL": "\033[35m",  # 紫色
+        "SECURITY": "\033[41m",  # 红底
+        "AUDIT": "\033[44m",  # 蓝底
     }
-    RESET = '\033[0m'
+    RESET = "\033[0m"
 
     def __init__(self, format_string: Optional[str] = None, use_color: bool = True):
         if format_string is None:
@@ -214,19 +224,20 @@ class ColoredFormatter(logging.Formatter):
         """格式化日志记录"""
         # 添加上下文到消息
         ctx = LogContext.get()
-        if ctx.get('request_id'):
+        if ctx.get("request_id"):
             record.msg = f"[{ctx['request_id'][:8]}] {record.msg}"
 
         formatted = super().format(record)
 
         if self.use_color:
-            color = self.COLORS.get(record.levelname, '')
+            color = self.COLORS.get(record.levelname, "")
             return f"{color}{formatted}{self.RESET}"
 
         return formatted
 
 
 # ============== 异步日志处理器 ==============
+
 
 class AsyncHandler(logging.Handler):
     """异步日志处理器 - 非阻塞写入"""
@@ -271,6 +282,7 @@ class AsyncHandler(logging.Handler):
 
 # ============== 日志过滤器 ==============
 
+
 class LevelRangeFilter(logging.Filter):
     """级别范围过滤器"""
 
@@ -300,10 +312,11 @@ class SecurityFilter(logging.Filter):
     """安全事件过滤器"""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        return record.levelno >= 55 or hasattr(record, 'security_event')
+        return record.levelno >= 55 or hasattr(record, "security_event")
 
 
 # ============== 结构化日志器 ==============
+
 
 class StructuredLogger:
     """结构化日志器"""
@@ -346,7 +359,7 @@ class StructuredLogger:
                 text_file,
                 maxBytes=rotation_size,
                 backupCount=backup_count,
-                encoding="utf-8"
+                encoding="utf-8",
             )
             file_handler.setFormatter(ColoredFormatter(use_color=False))
             handler = AsyncHandler(file_handler) if enable_async else file_handler
@@ -359,7 +372,7 @@ class StructuredLogger:
                 json_file,
                 maxBytes=rotation_size,
                 backupCount=backup_count,
-                encoding="utf-8"
+                encoding="utf-8",
             )
             json_handler.setFormatter(JSONFormatter(include_context=True))
             handler = AsyncHandler(json_handler) if enable_async else json_handler
@@ -371,7 +384,7 @@ class StructuredLogger:
             security_file,
             maxBytes=rotation_size,
             backupCount=backup_count,
-            encoding="utf-8"
+            encoding="utf-8",
         )
         security_handler.setFormatter(JSONFormatter(include_context=True))
         security_handler.addFilter(SecurityFilter())
@@ -390,15 +403,15 @@ class StructuredLogger:
         *args,
         exc_info: bool = False,
         extra: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """内部日志方法"""
         record_extra = {}
 
         if extra:
-            record_extra['extra_data'] = extra
+            record_extra["extra_data"] = extra
 
-        for key in ['duration_ms', 'security_event', 'severity']:
+        for key in ["duration_ms", "security_event", "severity"]:
             if key in kwargs:
                 record_extra[key] = kwargs.pop(key)
 
@@ -429,14 +442,16 @@ class StructuredLogger:
         """严重错误级别日志"""
         self._log(logging.CRITICAL, msg, *args, exc_info=exc_info, **kwargs)
 
-    def security(self, msg: str, event: str, severity: str = "medium", **kwargs) -> None:
+    def security(
+        self, msg: str, event: str, severity: str = "medium", **kwargs
+    ) -> None:
         """安全事件日志"""
         self._log(55, msg, security_event=event, severity=severity, **kwargs)
 
     def audit(self, msg: str, action: str, **kwargs) -> None:
         """审计日志"""
-        extra = kwargs.pop('extra', {})
-        extra['action'] = action
+        extra = kwargs.pop("extra", {})
+        extra["action"] = action
         self._log(60, msg, extra=extra, **kwargs)
 
     # 性能日志
@@ -460,11 +475,13 @@ class StructuredLogger:
 
     def timed(self, func: Optional[Callable] = None, level: int = logging.INFO):
         """计时装饰器"""
+
         def decorator(f: Callable) -> Callable:
             @wraps(f)
             def wrapper(*args, **kwargs):
                 with self.timer(f.__name__, level):
                     return f(*args, **kwargs)
+
             return wrapper
 
         if func is not None:
@@ -479,14 +496,16 @@ class StructuredLogger:
     def set_request_id(self, request_id: Optional[str] = None) -> str:
         """设置请求ID"""
         request_id = request_id or str(uuid.uuid4())
-        LogContext.set('request_id', request_id)
+        LogContext.set("request_id", request_id)
         return request_id
 
     # 批量日志
-    def log_batch(self, records: List[Dict[str, Any]], level: int = logging.INFO) -> None:
+    def log_batch(
+        self, records: List[Dict[str, Any]], level: int = logging.INFO
+    ) -> None:
         """批量记录日志"""
         for record in records:
-            msg = record.pop('message', '')
+            msg = record.pop("message", "")
             self._log(level, msg, extra=record)
 
     # 关闭
@@ -509,18 +528,15 @@ def setup_logger(
     level: int = logging.INFO,
     log_file: Optional[Path] = None,
     format_string: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> logging.Logger:
     """配置日志记录器 (兼容旧接口)"""
     global _default_logger
 
     with _logger_lock:
-        log_dir = log_file.parent if log_file else kwargs.get('log_dir')
+        log_dir = log_file.parent if log_file else kwargs.get("log_dir")
         _default_logger = StructuredLogger(
-            name=name,
-            level=level,
-            log_dir=log_dir,
-            **kwargs
+            name=name, level=level, log_dir=log_dir, **kwargs
         )
         return _default_logger._logger
 
@@ -539,10 +555,7 @@ def get_logger(name: Optional[str] = None) -> StructuredLogger:
 
 
 def log_security_event(
-    event: str,
-    message: str,
-    severity: str = "medium",
-    **extra
+    event: str, message: str, severity: str = "medium", **extra
 ) -> None:
     """记录安全事件"""
     logger = get_logger()
@@ -575,8 +588,11 @@ def log_operation(operation: str, **context):
             raise
 
 
-def timed_operation(func: Optional[Callable] = None, operation_name: Optional[str] = None):
+def timed_operation(
+    func: Optional[Callable] = None, operation_name: Optional[str] = None
+):
     """计时操作装饰器"""
+
     def decorator(f: Callable) -> Callable:
         name = operation_name or f.__name__
 
@@ -584,6 +600,7 @@ def timed_operation(func: Optional[Callable] = None, operation_name: Optional[st
         def wrapper(*args, **kwargs):
             with log_operation(name):
                 return f(*args, **kwargs)
+
         return wrapper
 
     if func is not None:

@@ -20,7 +20,7 @@ FORGEDAN Prometheus 指标定义
 
 import time
 import threading
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
@@ -29,15 +29,17 @@ import json
 
 class MetricType(Enum):
     """指标类型枚举"""
-    COUNTER = "counter"       # 只增不减的计数器
-    GAUGE = "gauge"           # 可增可减的仪表
-    HISTOGRAM = "histogram"   # 分布直方图
-    SUMMARY = "summary"       # 摘要 (分位数)
+
+    COUNTER = "counter"  # 只增不减的计数器
+    GAUGE = "gauge"  # 可增可减的仪表
+    HISTOGRAM = "histogram"  # 分布直方图
+    SUMMARY = "summary"  # 摘要 (分位数)
 
 
 @dataclass
 class MetricLabel:
     """指标标签定义"""
+
     name: str
     description: str
     allowed_values: Optional[List[str]] = None  # None 表示任意值
@@ -46,6 +48,7 @@ class MetricLabel:
 @dataclass
 class MetricDefinition:
     """指标定义"""
+
     name: str
     description: str
     type: MetricType
@@ -88,13 +91,15 @@ class Counter:
         with self._lock:
             for label_key, value in self._values.items():
                 labels = dict(zip(self.label_names, label_key))
-                result.append({
-                    "name": self.name,
-                    "type": "counter",
-                    "value": value,
-                    "labels": labels,
-                    "description": self.description
-                })
+                result.append(
+                    {
+                        "name": self.name,
+                        "type": "counter",
+                        "value": value,
+                        "labels": labels,
+                        "description": self.description,
+                    }
+                )
         return result
 
 
@@ -141,13 +146,15 @@ class Gauge:
         with self._lock:
             for label_key, value in self._values.items():
                 labels = dict(zip(self.label_names, label_key))
-                result.append({
-                    "name": self.name,
-                    "type": "gauge",
-                    "value": value,
-                    "labels": labels,
-                    "description": self.description
-                })
+                result.append(
+                    {
+                        "name": self.name,
+                        "type": "gauge",
+                        "value": value,
+                        "labels": labels,
+                        "description": self.description,
+                    }
+                )
         return result
 
 
@@ -155,15 +162,30 @@ class Histogram:
     """Prometheus Histogram 实现"""
 
     # 默认桶边界
-    DEFAULT_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5,
-                       0.75, 1.0, 2.5, 5.0, 7.5, 10.0, float('inf'))
+    DEFAULT_BUCKETS = (
+        0.005,
+        0.01,
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        2.5,
+        5.0,
+        7.5,
+        10.0,
+        float("inf"),
+    )
 
     def __init__(
         self,
         name: str,
         description: str,
         labels: List[str] = None,
-        buckets: tuple = None
+        buckets: tuple = None,
     ):
         self.name = name
         self.description = description
@@ -186,7 +208,7 @@ class Histogram:
                 if value <= bucket:
                     self._buckets[label_key][bucket] += 1
 
-    def time(self, **labels) -> 'HistogramTimer':
+    def time(self, **labels) -> "HistogramTimer":
         """计时上下文管理器"""
         return HistogramTimer(self, labels)
 
@@ -202,40 +224,48 @@ class Histogram:
 
                 # 累积桶计数
                 cumulative = 0
-                for bucket in sorted(b for b in self.buckets if b != float('inf')):
+                for bucket in sorted(b for b in self.buckets if b != float("inf")):
                     cumulative += self._buckets[label_key].get(bucket, 0)
-                    result.append({
-                        "name": f"{self.name}_bucket",
-                        "type": "histogram",
-                        "value": cumulative,
-                        "labels": {**labels, "le": str(bucket)},
-                        "description": self.description
-                    })
+                    result.append(
+                        {
+                            "name": f"{self.name}_bucket",
+                            "type": "histogram",
+                            "value": cumulative,
+                            "labels": {**labels, "le": str(bucket)},
+                            "description": self.description,
+                        }
+                    )
 
                 # +Inf 桶
-                result.append({
-                    "name": f"{self.name}_bucket",
-                    "type": "histogram",
-                    "value": self._counts[label_key],
-                    "labels": {**labels, "le": "+Inf"},
-                    "description": self.description
-                })
+                result.append(
+                    {
+                        "name": f"{self.name}_bucket",
+                        "type": "histogram",
+                        "value": self._counts[label_key],
+                        "labels": {**labels, "le": "+Inf"},
+                        "description": self.description,
+                    }
+                )
 
                 # sum 和 count
-                result.append({
-                    "name": f"{self.name}_sum",
-                    "type": "histogram",
-                    "value": self._sums[label_key],
-                    "labels": labels,
-                    "description": self.description
-                })
-                result.append({
-                    "name": f"{self.name}_count",
-                    "type": "histogram",
-                    "value": self._counts[label_key],
-                    "labels": labels,
-                    "description": self.description
-                })
+                result.append(
+                    {
+                        "name": f"{self.name}_sum",
+                        "type": "histogram",
+                        "value": self._sums[label_key],
+                        "labels": labels,
+                        "description": self.description,
+                    }
+                )
+                result.append(
+                    {
+                        "name": f"{self.name}_count",
+                        "type": "histogram",
+                        "value": self._counts[label_key],
+                        "labels": labels,
+                        "description": self.description,
+                    }
+                )
         return result
 
 
@@ -286,21 +316,21 @@ class ForgeDanMetrics:
         self.attacks_total = Counter(
             name=f"{prefix}_attacks_total",
             description="攻击尝试总数",
-            labels=["model", "attack_type", "category"]
+            labels=["model", "attack_type", "category"],
         )
 
         # 成功攻击数
         self.attacks_success = Counter(
             name=f"{prefix}_attacks_success_total",
             description="成功攻击总数",
-            labels=["model", "attack_type", "category"]
+            labels=["model", "attack_type", "category"],
         )
 
         # 攻击失败数 (被拒绝)
         self.attacks_blocked = Counter(
             name=f"{prefix}_attacks_blocked_total",
             description="被拦截的攻击总数",
-            labels=["model", "attack_type", "category"]
+            labels=["model", "attack_type", "category"],
         )
 
         # 攻击耗时分布
@@ -308,7 +338,19 @@ class ForgeDanMetrics:
             name=f"{prefix}_attack_duration_seconds",
             description="单次攻击耗时分布 (秒)",
             labels=["model", "attack_type"],
-            buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0, float('inf'))
+            buckets=(
+                0.1,
+                0.5,
+                1.0,
+                2.0,
+                5.0,
+                10.0,
+                30.0,
+                60.0,
+                120.0,
+                300.0,
+                float("inf"),
+            ),
         )
 
         # ============== LLM 查询相关指标 ==============
@@ -317,7 +359,7 @@ class ForgeDanMetrics:
         self.queries_total = Counter(
             name=f"{prefix}_queries_total",
             description="LLM 查询总数",
-            labels=["model", "status"]
+            labels=["model", "status"],
         )
 
         # 模型响应延迟分布
@@ -325,14 +367,26 @@ class ForgeDanMetrics:
             name=f"{prefix}_model_latency_seconds",
             description="模型响应延迟分布 (秒)",
             labels=["model"],
-            buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, float('inf'))
+            buckets=(
+                0.01,
+                0.05,
+                0.1,
+                0.25,
+                0.5,
+                1.0,
+                2.0,
+                5.0,
+                10.0,
+                30.0,
+                float("inf"),
+            ),
         )
 
         # 查询错误数
         self.query_errors = Counter(
             name=f"{prefix}_query_errors_total",
             description="查询错误总数",
-            labels=["model", "error_type"]
+            labels=["model", "error_type"],
         )
 
         # ============== 进化算法指标 ==============
@@ -341,28 +395,28 @@ class ForgeDanMetrics:
         self.fitness_score = Gauge(
             name=f"{prefix}_fitness_score",
             description="当前最佳适应度分数",
-            labels=["task_id", "model"]
+            labels=["task_id", "model"],
         )
 
         # 平均适应度
         self.fitness_avg = Gauge(
             name=f"{prefix}_fitness_avg",
             description="种群平均适应度",
-            labels=["task_id", "model"]
+            labels=["task_id", "model"],
         )
 
         # 当前代数
         self.current_generation = Gauge(
             name=f"{prefix}_current_generation",
             description="当前进化代数",
-            labels=["task_id"]
+            labels=["task_id"],
         )
 
         # 种群大小
         self.population_size = Gauge(
             name=f"{prefix}_population_size",
             description="当前种群大小",
-            labels=["task_id"]
+            labels=["task_id"],
         )
 
         # ============== 任务管理指标 ==============
@@ -371,14 +425,14 @@ class ForgeDanMetrics:
         self.active_tasks = Gauge(
             name=f"{prefix}_active_tasks",
             description="当前活跃任务数",
-            labels=["task_type"]
+            labels=["task_type"],
         )
 
         # 任务总数
         self.tasks_total = Counter(
             name=f"{prefix}_tasks_total",
             description="任务总数",
-            labels=["task_type", "status"]
+            labels=["task_type", "status"],
         )
 
         # 任务执行时间
@@ -386,7 +440,7 @@ class ForgeDanMetrics:
             name=f"{prefix}_task_duration_seconds",
             description="任务执行时间分布 (秒)",
             labels=["task_type"],
-            buckets=(1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600, float('inf'))
+            buckets=(1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600, float("inf")),
         )
 
         # ============== 缓存指标 ==============
@@ -395,21 +449,21 @@ class ForgeDanMetrics:
         self.cache_hits = Counter(
             name=f"{prefix}_cache_hits_total",
             description="缓存命中总数",
-            labels=["cache_type"]
+            labels=["cache_type"],
         )
 
         # 缓存未命中数
         self.cache_misses = Counter(
             name=f"{prefix}_cache_misses_total",
             description="缓存未命中总数",
-            labels=["cache_type"]
+            labels=["cache_type"],
         )
 
         # 缓存大小
         self.cache_size = Gauge(
             name=f"{prefix}_cache_size",
             description="当前缓存大小",
-            labels=["cache_type"]
+            labels=["cache_type"],
         )
 
         # ============== 系统资源指标 ==============
@@ -418,21 +472,19 @@ class ForgeDanMetrics:
         self.cpu_usage = Gauge(
             name=f"{prefix}_cpu_usage_percent",
             description="CPU 使用率百分比",
-            labels=[]
+            labels=[],
         )
 
         # 内存使用量
         self.memory_usage = Gauge(
             name=f"{prefix}_memory_usage_bytes",
             description="内存使用量 (字节)",
-            labels=["type"]  # resident, virtual
+            labels=["type"],  # resident, virtual
         )
 
         # 线程数
         self.thread_count = Gauge(
-            name=f"{prefix}_thread_count",
-            description="当前线程数",
-            labels=[]
+            name=f"{prefix}_thread_count", description="当前线程数", labels=[]
         )
 
         # ============== 变异策略指标 ==============
@@ -441,26 +493,40 @@ class ForgeDanMetrics:
         self.mutation_usage = Counter(
             name=f"{prefix}_mutation_usage_total",
             description="变异策略使用次数",
-            labels=["strategy"]
+            labels=["strategy"],
         )
 
         # 变异策略成功率
         self.mutation_success_rate = Gauge(
             name=f"{prefix}_mutation_success_rate",
             description="变异策略成功率",
-            labels=["strategy"]
+            labels=["strategy"],
         )
 
         # 收集所有指标实例
         self._all_metrics = [
-            self.attacks_total, self.attacks_success, self.attacks_blocked,
-            self.attack_duration, self.queries_total, self.model_latency,
-            self.query_errors, self.fitness_score, self.fitness_avg,
-            self.current_generation, self.population_size, self.active_tasks,
-            self.tasks_total, self.task_duration, self.cache_hits,
-            self.cache_misses, self.cache_size, self.cpu_usage,
-            self.memory_usage, self.thread_count, self.mutation_usage,
-            self.mutation_success_rate
+            self.attacks_total,
+            self.attacks_success,
+            self.attacks_blocked,
+            self.attack_duration,
+            self.queries_total,
+            self.model_latency,
+            self.query_errors,
+            self.fitness_score,
+            self.fitness_avg,
+            self.current_generation,
+            self.population_size,
+            self.active_tasks,
+            self.tasks_total,
+            self.task_duration,
+            self.cache_hits,
+            self.cache_misses,
+            self.cache_size,
+            self.cpu_usage,
+            self.memory_usage,
+            self.thread_count,
+            self.mutation_usage,
+            self.mutation_success_rate,
         ]
 
     # ============== 便捷记录方法 ==============
@@ -471,7 +537,7 @@ class ForgeDanMetrics:
         model: str = "unknown",
         attack_type: str = "jailbreak",
         category: str = "unknown",
-        duration: float = None
+        duration: float = None,
     ) -> None:
         """
         记录一次攻击
@@ -486,19 +552,19 @@ class ForgeDanMetrics:
         self.attacks_total.inc(model=model, attack_type=attack_type, category=category)
 
         if success:
-            self.attacks_success.inc(model=model, attack_type=attack_type, category=category)
+            self.attacks_success.inc(
+                model=model, attack_type=attack_type, category=category
+            )
         else:
-            self.attacks_blocked.inc(model=model, attack_type=attack_type, category=category)
+            self.attacks_blocked.inc(
+                model=model, attack_type=attack_type, category=category
+            )
 
         if duration is not None:
             self.attack_duration.observe(duration, model=model, attack_type=attack_type)
 
     def record_llm_query(
-        self,
-        model: str,
-        latency: float,
-        success: bool = True,
-        error_type: str = None
+        self, model: str, latency: float, success: bool = True, error_type: str = None
     ) -> None:
         """
         记录 LLM 查询
@@ -523,7 +589,7 @@ class ForgeDanMetrics:
         best_fitness: float,
         avg_fitness: float = None,
         generation: int = None,
-        population_size: int = None
+        population_size: int = None,
     ) -> None:
         """
         更新适应度指标
@@ -553,10 +619,7 @@ class ForgeDanMetrics:
         self.tasks_total.inc(task_type=task_type, status="started")
 
     def record_task_complete(
-        self,
-        task_type: str = "evolution",
-        success: bool = True,
-        duration: float = None
+        self, task_type: str = "evolution", success: bool = True, duration: float = None
     ) -> None:
         """记录任务完成"""
         self.active_tasks.dec(task_type=task_type)
@@ -566,11 +629,7 @@ class ForgeDanMetrics:
         if duration is not None:
             self.task_duration.observe(duration, task_type=task_type)
 
-    def record_cache_access(
-        self,
-        hit: bool,
-        cache_type: str = "response"
-    ) -> None:
+    def record_cache_access(self, hit: bool, cache_type: str = "response") -> None:
         """记录缓存访问"""
         if hit:
             self.cache_hits.inc(cache_type=cache_type)
@@ -594,7 +653,7 @@ class ForgeDanMetrics:
         cpu_percent: float = None,
         memory_resident: int = None,
         memory_virtual: int = None,
-        threads: int = None
+        threads: int = None,
     ) -> None:
         """更新系统资源指标"""
         if cpu_percent is not None:
@@ -674,15 +733,21 @@ class ForgeDanMetrics:
         """
         return {
             "attacks": {
-                "total": sum(self.attacks_total.get(model=m)
-                           for m in ["gpt-4", "gpt-3.5-turbo", "claude-3", "unknown"]),
-                "success": sum(self.attacks_success.get(model=m)
-                             for m in ["gpt-4", "gpt-3.5-turbo", "claude-3", "unknown"]),
+                "total": sum(
+                    self.attacks_total.get(model=m)
+                    for m in ["gpt-4", "gpt-3.5-turbo", "claude-3", "unknown"]
+                ),
+                "success": sum(
+                    self.attacks_success.get(model=m)
+                    for m in ["gpt-4", "gpt-3.5-turbo", "claude-3", "unknown"]
+                ),
             },
             "queries": {
-                "total": sum(self.queries_total.get(model=m, status=s)
-                           for m in ["gpt-4", "gpt-3.5-turbo", "claude-3", "unknown"]
-                           for s in ["success", "error"]),
+                "total": sum(
+                    self.queries_total.get(model=m, status=s)
+                    for m in ["gpt-4", "gpt-3.5-turbo", "claude-3", "unknown"]
+                    for s in ["success", "error"]
+                ),
             },
             "cache": {
                 "hits": self.cache_hits.get(cache_type="response"),
@@ -690,7 +755,7 @@ class ForgeDanMetrics:
             },
             "tasks": {
                 "active": self.active_tasks.get(task_type="evolution"),
-            }
+            },
         }
 
 

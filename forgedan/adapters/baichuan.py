@@ -6,12 +6,12 @@
 
 import time
 import asyncio
-import hashlib
 import json
 from typing import Any, Dict, List, Optional
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -51,9 +51,7 @@ class BaichuanAdapter(ModelAdapter):
         """
         super().__init__(config)
         if not HTTPX_AVAILABLE:
-            raise ImportError(
-                "httpx 包未安装，请运行: pip install httpx"
-            )
+            raise ImportError("httpx 包未安装，请运行: pip install httpx")
 
         self._base_url = config.base_url or self.DEFAULT_BASE_URL
         self._api_key = config.api_key
@@ -75,10 +73,7 @@ class BaichuanAdapter(ModelAdapter):
         self._retry_delay = config.extra_params.get("retry_delay", 1.0)
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         生成响应
@@ -100,10 +95,7 @@ class BaichuanAdapter(ModelAdapter):
             return await self._generate_with_retry(prompt, system_prompt, **kwargs)
 
     async def _generate_with_retry(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """带重试的生成逻辑"""
         last_exception = None
@@ -116,7 +108,10 @@ class BaichuanAdapter(ModelAdapter):
                 error_msg = str(e).lower()
 
                 # 可重试的错误
-                if any(x in error_msg for x in ["rate limit", "timeout", "503", "502", "500"]):
+                if any(
+                    x in error_msg
+                    for x in ["rate limit", "timeout", "503", "502", "500"]
+                ):
                     if attempt < self.config.max_retries - 1:
                         await asyncio.sleep(self._retry_delay * (attempt + 1))
                         continue
@@ -125,10 +120,7 @@ class BaichuanAdapter(ModelAdapter):
         raise last_exception
 
     async def _do_generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """实际生成逻辑"""
         start_time = time.time()
@@ -203,13 +195,11 @@ class BaichuanAdapter(ModelAdapter):
                 "finish_reason": choice.get("finish_reason"),
                 "request_id": result.get("id"),
                 "search_results": search_results,
-            }
+            },
         )
 
     async def _stream_generate(
-        self,
-        request_body: Dict[str, Any],
-        start_time: float
+        self, request_body: Dict[str, Any], start_time: float
     ) -> ModelResponse:
         """
         流式生成响应
@@ -257,14 +247,11 @@ class BaichuanAdapter(ModelAdapter):
             completion_tokens=0,
             total_tokens=0,
             latency=latency,
-            metadata={"streamed": True}
+            metadata={"streamed": True},
         )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """
         批量生成响应（并发执行）
@@ -277,10 +264,7 @@ class BaichuanAdapter(ModelAdapter):
         Returns:
             响应列表
         """
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     def get_model_info(self) -> Dict[str, Any]:
@@ -320,10 +304,7 @@ class BaichuanAdapter(ModelAdapter):
             await self._client.aclose()
 
     async def search_enhanced_query(
-        self,
-        query: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, query: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """
         使用搜索增强的查询
@@ -337,8 +318,5 @@ class BaichuanAdapter(ModelAdapter):
             ModelResponse: 包含搜索结果的响应
         """
         return await self.generate(
-            query,
-            system_prompt,
-            with_search_enhance=True,
-            **kwargs
+            query, system_prompt, with_search_enhance=True, **kwargs
         )

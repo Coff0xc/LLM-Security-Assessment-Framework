@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coff0xc.local/forgedan/schemas/suite-result.schema.json",
+  "title": "ForgeDAN Suite Result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "run_id",
+    "name",
+    "model",
+    "run_environment",
+    "suite_config",
+    "total_cases",
+    "successful_cases",
+    "attack_success_rate",
+    "prompt_findings",
+    "response_findings",
+    "max_risk_score",
+    "risk_level",
+    "executive_summary",
+    "findings",
+    "finding_summary",
+    "report_sections",
+    "policy_passed",
+    "policy_violations",
+    "score_summary",
+    "usage_summary",
+    "started_at",
+    "completed_at",
+    "duration_seconds",
+    "cases"
+  ],
+  "properties": {
+    "run_id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "run_environment": {
+      "type": "object",
+      "required": ["forgedan_version", "python_version", "platform"],
+      "properties": {
+        "forgedan_version": { "type": "string", "minLength": 1 },
+        "python_version": { "type": "string", "minLength": 1 },
+        "python_implementation": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "os": { "type": "string", "minLength": 1 }
+      }
+    },
+    "suite_config": {
+      "type": "object",
+      "required": ["name", "model", "report_metadata", "acceptance_criteria", "risk_register_defaults", "source_inventory", "cases"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "random_seed": { "type": ["integer", "null"], "minimum": 0 },
+        "report_metadata": { "type": "object" },
+        "acceptance_criteria": { "type": "array" },
+        "risk_register_defaults": { "type": "object" },
+        "mcp_trust_policy_file": { "type": ["string", "null"] },
+        "mcp_trust_tiers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["score"],
+            "properties": {
+              "score": { "type": "number", "minimum": 0, "maximum": 1 },
+              "rationale": { "type": "string" }
+            }
+          }
+        },
+        "response_cache_file": { "type": ["string", "null"] },
+        "model_serialization_files": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "source_inventory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "source_type",
+              "path",
+              "size_bytes",
+              "sha256",
+              "generated_case_count"
+            ],
+            "properties": {
+              "source_type": {
+                "type": "string",
+                "enum": ["cases_file", "mcp_manifest", "mcp_trust_policy_file", "model_artifact", "model_serialization_file", "usage_pricing_file"]
+              },
+              "path": { "type": "string", "minLength": 1 },
+              "size_bytes": { "type": "integer", "minimum": 0 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "generated_case_count": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "cases": { "type": "array" }
+      }
+    },
+    "total_cases": { "type": "integer", "minimum": 0 },
+    "successful_cases": { "type": "integer", "minimum": 0 },
+    "attack_success_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "prompt_findings": { "type": "integer", "minimum": 0 },
+    "response_findings": { "type": "integer", "minimum": 0 },
+    "max_risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "risk_level": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high", "critical"]
+    },
+    "executive_summary": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "trace_id",
+          "case",
+          "kind",
+          "severity",
+          "severity_rationale",
+          "evidence_fingerprint",
+          "confidence",
+          "taxonomy_id",
+          "policy_domain",
+          "owasp_llm_id",
+          "owasp_llm_category"
+        ],
+        "properties": {
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "severity_rationale": { "type": "string" },
+          "evidence_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "policy_domain": { "type": "string", "minLength": 1 },
+          "owasp_llm_id": { "type": "string", "minLength": 1 },
+          "owasp_llm_category": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "finding_summary": {
+      "type": "object",
+      "required": [
+        "taxonomy_version",
+        "total",
+        "highest_severity",
+        "by_severity",
+        "by_kind",
+        "by_source",
+        "by_policy_domain",
+        "by_owasp_llm_category",
+        "duplicate_evidence_groups"
+      ],
+      "properties": {
+        "duplicate_evidence_groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "evidence_fingerprint",
+              "count",
+              "cases",
+              "kinds",
+              "sources"
+            ],
+            "properties": {
+              "evidence_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "count": { "type": "integer", "minimum": 2 },
+              "cases": { "type": "array", "items": { "type": "string" } },
+              "kinds": { "type": "array", "items": { "type": "string" } },
+              "sources": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "report_sections": {
+      "type": "object",
+      "required": ["scope", "methodology", "source_inventory", "acceptance", "evidence", "usage", "limitations", "appendix"],
+      "properties": {
+        "source_inventory": {
+          "type": "object",
+          "required": [
+            "source_count",
+            "generated_case_count",
+            "total_size_bytes",
+            "entries"
+          ],
+          "properties": {
+            "source_count": { "type": "integer", "minimum": 0 },
+            "generated_case_count": { "type": "integer", "minimum": 0 },
+            "total_size_bytes": { "type": "integer", "minimum": 0 },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "source_type",
+                  "path",
+                  "size_bytes",
+                  "sha256",
+                  "generated_case_count"
+                ],
+                "properties": {
+                  "source_type": {
+                    "type": "string",
+                    "enum": ["cases_file", "mcp_manifest", "mcp_trust_policy_file", "model_artifact", "model_serialization_file", "usage_pricing_file"]
+                  },
+                  "path": { "type": "string", "minLength": 1 },
+                  "size_bytes": { "type": "integer", "minimum": 0 },
+                  "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                  "generated_case_count": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        "response_cache": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "path",
+            "loaded_entries",
+            "stored_entries",
+            "hits",
+            "misses",
+            "updated"
+          ],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "path": { "type": ["string", "null"] },
+            "loaded_entries": { "type": "integer", "minimum": 0 },
+            "stored_entries": { "type": "integer", "minimum": 0 },
+            "hits": { "type": "integer", "minimum": 0 },
+            "misses": { "type": "integer", "minimum": 0 },
+            "updated": { "type": "boolean" }
+          }
+        },
+        "model_serialization": {
+          "type": "object",
+          "required": ["artifact_count", "highest_risk", "artifacts"],
+          "properties": {
+            "artifact_count": { "type": "integer", "minimum": 0 },
+            "highest_risk": {
+              "type": "string",
+              "enum": ["none", "low", "medium", "high", "critical"]
+            },
+            "artifacts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "size_bytes",
+                  "sha256",
+                  "format",
+                  "risk_level",
+                  "finding_kind",
+                  "message",
+                  "recommendation"
+                ],
+                "properties": {
+                  "path": { "type": "string", "minLength": 1 },
+                  "size_bytes": { "type": "integer", "minimum": 0 },
+                  "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                  "format": { "type": "string", "minLength": 1 },
+                  "risk_level": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"]
+                  },
+                  "finding_kind": { "type": "string", "minLength": 1 },
+                  "message": { "type": "string", "minLength": 1 },
+                  "recommendation": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "acceptance": {
+          "type": "object",
+          "required": ["status", "criteria_count", "criteria"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["failed", "not_configured", "passed", "review_required"]
+            },
+            "criteria_count": { "type": "integer", "minimum": 0 },
+            "criteria": { "type": "array" }
+          }
+        }
+      }
+    },
+    "policy_passed": { "type": "boolean" },
+    "policy_violations": { "type": "array", "items": { "type": "string" } },
+    "score_summary": { "type": "object" },
+    "usage_summary": {
+      "type": "object",
+      "required": ["request_count", "prompt_tokens", "completion_tokens", "total_tokens"],
+      "properties": {
+        "request_count": { "type": "integer", "minimum": 0 },
+        "prompt_tokens": { "type": "integer", "minimum": 0 },
+        "completion_tokens": { "type": "integer", "minimum": 0 },
+        "total_tokens": { "type": "integer", "minimum": 0 },
+        "model_latency_ms": { "type": "number", "minimum": 0 },
+        "avg_model_latency_ms": { "type": "number", "minimum": 0 },
+        "estimated_cost_usd": { "type": ["number", "null"], "minimum": 0 },
+        "cost_note": { "type": "string" }
+      }
+    },
+    "started_at": { "type": "string" },
+    "completed_at": { "type": "string" },
+    "duration_seconds": { "type": "number", "minimum": 0 },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["case_id", "trace_id", "name", "goal", "success", "best_prompt", "best_response", "usage"],
+        "properties": {
+          "metadata": { "type": "object" },
+          "usage": { "$ref": "#/properties/usage_summary" }
+        }
+      }
+    }
+  }
+}

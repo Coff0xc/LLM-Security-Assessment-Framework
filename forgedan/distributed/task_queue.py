@@ -14,34 +14,32 @@ FORGEDAN 任务队列模块
 """
 
 import asyncio
-import json
 import time
 import uuid
 import heapq
 import pickle
-import threading
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, List, Dict, Any, Callable, Awaitable
-from collections import defaultdict
+from typing import Optional, List, Dict, Any
 
 
 class TaskStatus(Enum):
     """任务状态"""
-    PENDING = "pending"         # 等待执行
-    QUEUED = "queued"          # 已入队
-    RUNNING = "running"        # 执行中
-    COMPLETED = "completed"    # 已完成
-    FAILED = "failed"          # 失败
-    TIMEOUT = "timeout"        # 超时
-    CANCELLED = "cancelled"    # 已取消
-    RETRYING = "retrying"      # 重试中
+
+    PENDING = "pending"  # 等待执行
+    QUEUED = "queued"  # 已入队
+    RUNNING = "running"  # 执行中
+    COMPLETED = "completed"  # 已完成
+    FAILED = "failed"  # 失败
+    TIMEOUT = "timeout"  # 超时
+    CANCELLED = "cancelled"  # 已取消
+    RETRYING = "retrying"  # 重试中
 
 
 class TaskPriority(Enum):
     """任务优先级"""
+
     LOW = 1
     NORMAL = 5
     HIGH = 10
@@ -51,9 +49,10 @@ class TaskPriority(Enum):
 @dataclass
 class Task:
     """任务数据结构"""
+
     # 基本信息
     task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    task_type: str = "evolution"          # evolution / batch / single
+    task_type: str = "evolution"  # evolution / batch / single
     priority: int = TaskPriority.NORMAL.value
 
     # 任务内容
@@ -62,7 +61,7 @@ class Task:
     # 状态信息
     status: TaskStatus = TaskStatus.PENDING
     worker_id: Optional[str] = None
-    progress: float = 0.0                 # 0.0 - 1.0
+    progress: float = 0.0  # 0.0 - 1.0
 
     # 时间戳
     created_at: float = field(default_factory=time.time)
@@ -76,7 +75,7 @@ class Task:
     last_error: Optional[str] = None
 
     # 超时配置
-    timeout: float = 3600.0               # 任务超时（秒）
+    timeout: float = 3600.0  # 任务超时（秒）
 
     # 结果
     result: Optional[Dict[str, Any]] = None
@@ -216,10 +215,10 @@ class MemoryTaskQueue(TaskQueue):
         self.retry_delay = retry_delay
 
         # 任务存储
-        self._pending_queue: List[Task] = []    # 优先级堆
-        self._tasks: Dict[str, Task] = {}       # 所有任务
-        self._running: Dict[str, Task] = {}     # 运行中的任务
-        self._completed: Dict[str, Task] = {}   # 已完成的任务
+        self._pending_queue: List[Task] = []  # 优先级堆
+        self._tasks: Dict[str, Task] = {}  # 所有任务
+        self._running: Dict[str, Task] = {}  # 运行中的任务
+        self._completed: Dict[str, Task] = {}  # 已完成的任务
 
         # 线程安全锁
         self._lock = asyncio.Lock()
@@ -331,7 +330,9 @@ class MemoryTaskQueue(TaskQueue):
                 task.status = TaskStatus.CANCELLED
                 task.updated_at = time.time()
                 # 从待处理队列移除
-                self._pending_queue = [t for t in self._pending_queue if t.task_id != task_id]
+                self._pending_queue = [
+                    t for t in self._pending_queue if t.task_id != task_id
+                ]
                 heapq.heapify(self._pending_queue)
                 return True
 
@@ -377,7 +378,8 @@ class MemoryTaskQueue(TaskQueue):
             # 清理过期的已完成任务（超过 24 小时）
             expired_threshold = current_time - 86400
             expired_ids = [
-                task_id for task_id, task in self._completed.items()
+                task_id
+                for task_id, task in self._completed.items()
                 if task.completed_at and task.completed_at < expired_threshold
             ]
             for task_id in expired_ids:
@@ -392,7 +394,9 @@ class MemoryTaskQueue(TaskQueue):
         """获取待处理任务列表"""
         async with self._lock:
             # 返回排序后的待处理任务（不改变堆）
-            sorted_tasks = sorted(self._pending_queue, key=lambda t: (-t.priority, t.created_at))
+            sorted_tasks = sorted(
+                self._pending_queue, key=lambda t: (-t.priority, t.created_at)
+            )
             return sorted_tasks[:limit]
 
     async def get_running_tasks(self) -> List[Task]:
@@ -485,11 +489,11 @@ class RedisTaskQueue(TaskQueue):
         self._initialized = False
 
         # 键名
-        self._pending_key = f"{prefix}pending"          # 待处理队列（有序集合）
-        self._running_key = f"{prefix}running"          # 运行中任务（哈希）
-        self._completed_key = f"{prefix}completed"      # 已完成任务（哈希）
-        self._tasks_key = f"{prefix}tasks"              # 所有任务（哈希）
-        self._stats_key = f"{prefix}stats"              # 统计信息（哈希）
+        self._pending_key = f"{prefix}pending"  # 待处理队列（有序集合）
+        self._running_key = f"{prefix}running"  # 运行中任务（哈希）
+        self._completed_key = f"{prefix}completed"  # 已完成任务（哈希）
+        self._tasks_key = f"{prefix}tasks"  # 所有任务（哈希）
+        self._stats_key = f"{prefix}stats"  # 统计信息（哈希）
 
     async def _ensure_connected(self):
         """确保 Redis 连接"""
@@ -498,6 +502,7 @@ class RedisTaskQueue(TaskQueue):
 
         try:
             import redis.asyncio as redis
+
             self._redis = redis.Redis(
                 host=self.host,
                 port=self.port,
@@ -565,7 +570,11 @@ class RedisTaskQueue(TaskQueue):
                     if not results:
                         return None
 
-                    task_id = results[0].decode() if isinstance(results[0], bytes) else results[0]
+                    task_id = (
+                        results[0].decode()
+                        if isinstance(results[0], bytes)
+                        else results[0]
+                    )
 
                     # 原子操作：移除并更新
                     pipe.zrem(self._pending_key, task_id)
@@ -592,7 +601,7 @@ class RedisTaskQueue(TaskQueue):
 
                     return task
 
-            except Exception as e:
+            except Exception:
                 # 竞争条件，重试
                 continue
 
@@ -626,7 +635,9 @@ class RedisTaskQueue(TaskQueue):
                     pipe.zadd(self._pending_key, {task.task_id: score})
                     pipe.hincrby(self._stats_key, "total_retried", 1)
                 else:
-                    pipe.hset(self._completed_key, task.task_id, self._serialize_task(task))
+                    pipe.hset(
+                        self._completed_key, task.task_id, self._serialize_task(task)
+                    )
                     pipe.hincrby(self._stats_key, "total_failed", 1)
 
             elif task.status == TaskStatus.TIMEOUT:
@@ -702,8 +713,6 @@ class RedisTaskQueue(TaskQueue):
         await self._ensure_connected()
 
         cleaned = 0
-        current_time = time.time()
-
         # 获取运行中的任务
         running_tasks = await self._redis.hgetall(self._running_key)
 
@@ -733,7 +742,7 @@ def create_task_queue(config) -> TaskQueue:
     Returns:
         TaskQueue 实例
     """
-    from .config import QueueBackend, QueueConfig
+    from .config import QueueBackend
 
     if isinstance(config, dict):
         # 从字典创建配置

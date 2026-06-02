@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     import aiohttp
+
     AIOHTTP_AVAILABLE = True
 except ImportError:
     AIOHTTP_AVAILABLE = False
@@ -33,10 +34,7 @@ class OllamaAdapter(ModelAdapter):
         return self._session
 
     async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompt: str, system_prompt: Optional[str] = None, **kwargs
     ) -> ModelResponse:
         """生成单个响应"""
         start_time = time.time()
@@ -49,7 +47,7 @@ class OllamaAdapter(ModelAdapter):
             "options": {
                 "temperature": kwargs.get("temperature", self.config.temperature),
                 "top_p": kwargs.get("top_p", self.config.top_p),
-            }
+            },
         }
 
         if system_prompt:
@@ -80,21 +78,16 @@ class OllamaAdapter(ModelAdapter):
             metadata={
                 "context": data.get("context"),
                 "done": data.get("done"),
-            }
+            },
         )
 
     async def batch_generate(
-        self,
-        prompts: List[str],
-        system_prompt: Optional[str] = None,
-        **kwargs
+        self, prompts: List[str], system_prompt: Optional[str] = None, **kwargs
     ) -> List[ModelResponse]:
         """批量生成响应"""
         import asyncio
-        tasks = [
-            self.generate(prompt, system_prompt, **kwargs)
-            for prompt in prompts
-        ]
+
+        tasks = [self.generate(prompt, system_prompt, **kwargs) for prompt in prompts]
         return await asyncio.gather(*tasks)
 
     def get_model_info(self) -> Dict[str, Any]:

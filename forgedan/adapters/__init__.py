@@ -90,11 +90,9 @@ def __getattr__(name: str):
         "OpenAIAdapter": ("openai", "OpenAIAdapter"),
         "AnthropicAdapter": ("anthropic", "AnthropicAdapter"),
         "GeminiAdapter": ("gemini", "GeminiAdapter"),
-
         # 多模态适配器
         "OpenAIVisionAdapter": ("openai_vision", "OpenAIVisionAdapter"),
         "GeminiVisionAdapter": ("gemini_vision", "GeminiVisionAdapter"),
-
         # 国产模型
         "DeepSeekAdapter": ("deepseek", "DeepSeekAdapter"),
         "ZhipuAdapter": ("zhipu", "ZhipuAdapter"),
@@ -102,7 +100,6 @@ def __getattr__(name: str):
         "QwenAdapter": ("qwen", "QwenAdapter"),
         "MoonshotAdapter": ("moonshot", "MoonshotAdapter"),
         "YiAdapter": ("yi", "YiAdapter"),
-
         # 本地/自部署
         "OllamaAdapter": ("ollama", "OllamaAdapter"),
         "VLLMAdapter": ("vllm", "VLLMAdapter"),
@@ -113,6 +110,7 @@ def __getattr__(name: str):
     if name in adapter_map:
         module_name, class_name = adapter_map[name]
         import importlib
+
         module = importlib.import_module(f".{module_name}", __name__)
         return getattr(module, class_name)
 

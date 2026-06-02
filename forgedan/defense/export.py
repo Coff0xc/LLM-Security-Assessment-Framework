@@ -11,17 +11,15 @@
 """
 
 import json
-import hashlib
 from pathlib import Path
 from datetime import datetime
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from typing import (
     Any,
     Dict,
     List,
     Optional,
     Union,
-    IO,
 )
 from enum import Enum
 
@@ -31,26 +29,28 @@ from .safety_dataset import SafetyDataset
 
 class ExportFormat(str, Enum):
     """导出格式"""
-    JSONL = "jsonl"                    # 通用 JSONL
-    OPENAI = "openai"                  # OpenAI fine-tune 格式
-    ANTHROPIC = "anthropic"            # Anthropic 格式
-    HUGGINGFACE = "huggingface"        # HuggingFace datasets
-    PARQUET = "parquet"                # Apache Parquet
-    CSV = "csv"                        # CSV 格式
-    ALPACA = "alpaca"                  # Alpaca 格式 (instruction-tuning)
-    SHAREGPT = "sharegpt"              # ShareGPT 格式
+
+    JSONL = "jsonl"  # 通用 JSONL
+    OPENAI = "openai"  # OpenAI fine-tune 格式
+    ANTHROPIC = "anthropic"  # Anthropic 格式
+    HUGGINGFACE = "huggingface"  # HuggingFace datasets
+    PARQUET = "parquet"  # Apache Parquet
+    CSV = "csv"  # CSV 格式
+    ALPACA = "alpaca"  # Alpaca 格式 (instruction-tuning)
+    SHAREGPT = "sharegpt"  # ShareGPT 格式
 
 
 @dataclass
 class ExportConfig:
     """导出配置"""
+
     # 格式设置
     format: ExportFormat = ExportFormat.JSONL
-    pretty_print: bool = False          # JSON 美化输出
+    pretty_print: bool = False  # JSON 美化输出
 
     # OpenAI 设置
     openai_system_message: Optional[str] = None  # 系统消息
-    openai_include_system: bool = True           # 是否包含系统消息
+    openai_include_system: bool = True  # 是否包含系统消息
 
     # Anthropic 设置
     anthropic_human_prefix: str = "\n\nHuman: "
@@ -61,9 +61,9 @@ class ExportConfig:
     hf_split: str = "train"
 
     # 字段映射
-    prompt_field: str = "prompt"         # 提示字段名
-    response_field: str = "response"     # 响应字段名
-    include_metadata: bool = False       # 是否包含元数据
+    prompt_field: str = "prompt"  # 提示字段名
+    response_field: str = "response"  # 响应字段名
+    include_metadata: bool = False  # 是否包含元数据
 
     # 过滤设置
     sample_types: Optional[List[SampleType]] = None  # 只导出指定类型
@@ -90,9 +90,7 @@ class BaseExporter:
         self.config = config or ExportConfig()
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """
         导出样本
@@ -117,9 +115,7 @@ class JSONLExporter(BaseExporter):
     """JSONL 格式导出器"""
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 JSONL 格式"""
         output_path = Path(output_path)
@@ -165,16 +161,16 @@ class OpenAIExporter(BaseExporter):
     )
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 OpenAI fine-tune 格式"""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         filtered = self._filter_samples(samples)
-        system_message = self.config.openai_system_message or self.DEFAULT_SYSTEM_MESSAGE
+        system_message = (
+            self.config.openai_system_message or self.DEFAULT_SYSTEM_MESSAGE
+        )
 
         with open(output_path, "w", encoding="utf-8") as f:
             for sample in filtered:
@@ -182,22 +178,13 @@ class OpenAIExporter(BaseExporter):
 
                 # 系统消息 (可选)
                 if self.config.openai_include_system:
-                    messages.append({
-                        "role": "system",
-                        "content": system_message
-                    })
+                    messages.append({"role": "system", "content": system_message})
 
                 # 用户消息
-                messages.append({
-                    "role": "user",
-                    "content": sample.prompt
-                })
+                messages.append({"role": "user", "content": sample.prompt})
 
                 # 助手响应
-                messages.append({
-                    "role": "assistant",
-                    "content": sample.response
-                })
+                messages.append({"role": "assistant", "content": sample.response})
 
                 line = {"messages": messages}
                 f.write(json.dumps(line, ensure_ascii=False) + "\n")
@@ -217,9 +204,7 @@ class AnthropicExporter(BaseExporter):
     """
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 Anthropic 格式"""
         output_path = Path(output_path)
@@ -231,7 +216,7 @@ class AnthropicExporter(BaseExporter):
             for sample in filtered:
                 line = {
                     "prompt": f"{self.config.anthropic_human_prefix}{sample.prompt}{self.config.anthropic_assistant_prefix}",
-                    "completion": f" {sample.response}"
+                    "completion": f" {sample.response}",
                 }
                 f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
@@ -251,9 +236,7 @@ class AlpacaExporter(BaseExporter):
     """
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 Alpaca 格式"""
         output_path = Path(output_path)
@@ -266,7 +249,7 @@ class AlpacaExporter(BaseExporter):
             item = {
                 "instruction": sample.prompt,
                 "input": "",
-                "output": sample.response
+                "output": sample.response,
             }
 
             if self.config.include_metadata:
@@ -298,9 +281,7 @@ class ShareGPTExporter(BaseExporter):
     """
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 ShareGPT 格式"""
         output_path = Path(output_path)
@@ -314,8 +295,8 @@ class ShareGPTExporter(BaseExporter):
                 "id": sample.id,
                 "conversations": [
                     {"from": "human", "value": sample.prompt},
-                    {"from": "gpt", "value": sample.response}
-                ]
+                    {"from": "gpt", "value": sample.response},
+                ],
             }
             data.append(item)
 
@@ -333,9 +314,7 @@ class HuggingFaceExporter(BaseExporter):
     """
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """
         导出为 HuggingFace datasets 格式
@@ -382,7 +361,7 @@ class HuggingFaceExporter(BaseExporter):
             "splits": {
                 self.config.hf_split: {
                     "num_examples": len(filtered),
-                    "file": f"{self.config.hf_split}.jsonl"
+                    "file": f"{self.config.hf_split}.jsonl",
                 }
             },
             "created_at": datetime.now().isoformat(),
@@ -399,7 +378,7 @@ class HuggingFaceExporter(BaseExporter):
         samples: List[TrainingSample],
         repo_id: str,
         token: Optional[str] = None,
-        private: bool = True
+        private: bool = True,
     ) -> str:
         """
         直接导出到 HuggingFace Hub
@@ -414,7 +393,7 @@ class HuggingFaceExporter(BaseExporter):
             仓库URL
         """
         try:
-            from datasets import Dataset, DatasetDict
+            from datasets import Dataset
 
             filtered = self._filter_samples(samples)
 
@@ -432,11 +411,7 @@ class HuggingFaceExporter(BaseExporter):
             dataset = Dataset.from_dict(data)
 
             # 上传到 Hub
-            dataset.push_to_hub(
-                repo_id,
-                token=token,
-                private=private
-            )
+            dataset.push_to_hub(repo_id, token=token, private=private)
 
             return f"https://huggingface.co/datasets/{repo_id}"
 
@@ -452,9 +427,7 @@ class ParquetExporter(BaseExporter):
     """
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 Parquet 格式"""
         try:
@@ -494,9 +467,7 @@ class CSVExporter(BaseExporter):
     """CSV 格式导出器"""
 
     def export(
-        self,
-        samples: List[TrainingSample],
-        output_path: Union[str, Path]
+        self, samples: List[TrainingSample], output_path: Union[str, Path]
     ) -> str:
         """导出为 CSV 格式"""
         try:
@@ -563,7 +534,7 @@ class DataExporter:
     def __init__(
         self,
         samples: Optional[List[TrainingSample]] = None,
-        dataset: Optional[SafetyDataset] = None
+        dataset: Optional[SafetyDataset] = None,
     ):
         """
         初始化数据导出器
@@ -592,7 +563,7 @@ class DataExporter:
         self,
         output_path: Union[str, Path],
         format: Optional[ExportFormat] = None,
-        config: Optional[ExportConfig] = None
+        config: Optional[ExportConfig] = None,
     ) -> str:
         """
         导出数据
@@ -617,9 +588,7 @@ class DataExporter:
         return exporter.export(self._samples, output_path)
 
     def to_jsonl(
-        self,
-        output_path: Union[str, Path],
-        include_metadata: bool = False
+        self, output_path: Union[str, Path], include_metadata: bool = False
     ) -> str:
         """
         导出为通用 JSONL 格式
@@ -632,8 +601,7 @@ class DataExporter:
             输出文件路径
         """
         config = ExportConfig(
-            format=ExportFormat.JSONL,
-            include_metadata=include_metadata
+            format=ExportFormat.JSONL, include_metadata=include_metadata
         )
         return self.export(output_path, config=config)
 
@@ -641,7 +609,7 @@ class DataExporter:
         self,
         output_path: Union[str, Path],
         system_message: Optional[str] = None,
-        include_system: bool = True
+        include_system: bool = True,
     ) -> str:
         """
         导出为 OpenAI fine-tune 格式
@@ -657,14 +625,11 @@ class DataExporter:
         config = ExportConfig(
             format=ExportFormat.OPENAI,
             openai_system_message=system_message,
-            openai_include_system=include_system
+            openai_include_system=include_system,
         )
         return self.export(output_path, config=config)
 
-    def to_anthropic(
-        self,
-        output_path: Union[str, Path]
-    ) -> str:
+    def to_anthropic(self, output_path: Union[str, Path]) -> str:
         """
         导出为 Anthropic 格式
 
@@ -681,7 +646,7 @@ class DataExporter:
         self,
         output_path: Union[str, Path],
         dataset_name: str = "safety_training",
-        split: str = "train"
+        split: str = "train",
     ) -> str:
         """
         导出为 HuggingFace datasets 格式
@@ -697,15 +662,12 @@ class DataExporter:
         config = ExportConfig(
             format=ExportFormat.HUGGINGFACE,
             hf_dataset_name=dataset_name,
-            hf_split=split
+            hf_split=split,
         )
         return self.export(output_path, config=config)
 
     def to_huggingface_hub(
-        self,
-        repo_id: str,
-        token: Optional[str] = None,
-        private: bool = True
+        self, repo_id: str, token: Optional[str] = None, private: bool = True
     ) -> str:
         """
         直接导出到 HuggingFace Hub
@@ -721,10 +683,7 @@ class DataExporter:
         exporter = HuggingFaceExporter()
         return exporter.export_to_hub(self._samples, repo_id, token, private)
 
-    def to_parquet(
-        self,
-        output_path: Union[str, Path]
-    ) -> str:
+    def to_parquet(self, output_path: Union[str, Path]) -> str:
         """
         导出为 Parquet 格式
 
@@ -738,9 +697,7 @@ class DataExporter:
         return self.export(output_path, config=config)
 
     def to_alpaca(
-        self,
-        output_path: Union[str, Path],
-        include_metadata: bool = False
+        self, output_path: Union[str, Path], include_metadata: bool = False
     ) -> str:
         """
         导出为 Alpaca 格式
@@ -753,15 +710,11 @@ class DataExporter:
             输出文件路径
         """
         config = ExportConfig(
-            format=ExportFormat.ALPACA,
-            include_metadata=include_metadata
+            format=ExportFormat.ALPACA, include_metadata=include_metadata
         )
         return self.export(output_path, config=config)
 
-    def to_sharegpt(
-        self,
-        output_path: Union[str, Path]
-    ) -> str:
+    def to_sharegpt(self, output_path: Union[str, Path]) -> str:
         """
         导出为 ShareGPT 格式
 
@@ -774,10 +727,7 @@ class DataExporter:
         config = ExportConfig(format=ExportFormat.SHAREGPT)
         return self.export(output_path, config=config)
 
-    def to_csv(
-        self,
-        output_path: Union[str, Path]
-    ) -> str:
+    def to_csv(self, output_path: Union[str, Path]) -> str:
         """
         导出为 CSV 格式
 
@@ -791,9 +741,7 @@ class DataExporter:
         return self.export(output_path, config=config)
 
     def export_all_formats(
-        self,
-        output_dir: Union[str, Path],
-        base_name: str = "safety_data"
+        self, output_dir: Union[str, Path], base_name: str = "safety_data"
     ) -> Dict[str, str]:
         """
         导出为所有支持的格式
@@ -814,16 +762,22 @@ class DataExporter:
         results["jsonl"] = self.to_jsonl(output_dir / f"{base_name}.jsonl")
 
         # OpenAI
-        results["openai"] = self.to_openai_finetune(output_dir / f"{base_name}_openai.jsonl")
+        results["openai"] = self.to_openai_finetune(
+            output_dir / f"{base_name}_openai.jsonl"
+        )
 
         # Anthropic
-        results["anthropic"] = self.to_anthropic(output_dir / f"{base_name}_anthropic.jsonl")
+        results["anthropic"] = self.to_anthropic(
+            output_dir / f"{base_name}_anthropic.jsonl"
+        )
 
         # Alpaca
         results["alpaca"] = self.to_alpaca(output_dir / f"{base_name}_alpaca.json")
 
         # ShareGPT
-        results["sharegpt"] = self.to_sharegpt(output_dir / f"{base_name}_sharegpt.json")
+        results["sharegpt"] = self.to_sharegpt(
+            output_dir / f"{base_name}_sharegpt.json"
+        )
 
         # HuggingFace
         results["huggingface"] = self.to_huggingface(output_dir / "hf_dataset")

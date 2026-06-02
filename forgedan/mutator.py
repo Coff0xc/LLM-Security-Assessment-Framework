@@ -23,27 +23,29 @@ import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Dict, Any, Tuple, Callable
+from typing import List, Optional, Dict, Any, Tuple
 from collections import deque
 import time
 
 from .config import HOMOGLYPH_MAP, SYNONYM_DICT
 
-
 # ============== 策略选择算法枚举 ==============
+
 
 class SelectionAlgorithm(Enum):
     """策略选择算法"""
-    RANDOM = "random"           # 随机选择
-    WEIGHTED = "weighted"       # 加权随机
-    UCB1 = "ucb1"              # UCB1 算法
-    UCB_TUNED = "ucb_tuned"    # UCB-Tuned 算法
-    THOMPSON = "thompson"       # Thompson Sampling
+
+    RANDOM = "random"  # 随机选择
+    WEIGHTED = "weighted"  # 加权随机
+    UCB1 = "ucb1"  # UCB1 算法
+    UCB_TUNED = "ucb_tuned"  # UCB-Tuned 算法
+    THOMPSON = "thompson"  # Thompson Sampling
     EPSILON_GREEDY = "epsilon_greedy"  # ε-贪婪
 
 
 class StrategyLevel(Enum):
     """策略层级"""
+
     CHARACTER = "character"
     WORD = "word"
     SENTENCE = "sentence"
@@ -52,9 +54,11 @@ class StrategyLevel(Enum):
 
 # ============== 策略统计数据类 ==============
 
+
 @dataclass
 class StrategyStats:
     """策略统计信息"""
+
     total_uses: int = 0
     success_count: int = 0
     total_fitness_gain: float = 0.0
@@ -63,7 +67,7 @@ class StrategyStats:
     consecutive_failures: int = 0
     # Thompson Sampling 参数 (Beta 分布)
     alpha: float = 1.0  # 成功次数 + 1
-    beta: float = 1.0   # 失败次数 + 1
+    beta: float = 1.0  # 失败次数 + 1
     # 滑动窗口性能 (最近N次结果)
     recent_results: deque = field(default_factory=lambda: deque(maxlen=50))
 
@@ -83,7 +87,7 @@ class StrategyStats:
         if self.total_uses < 2:
             return 0.0
         mean = self.avg_fitness_gain
-        return (self.squared_fitness_gain / self.total_uses) - (mean ** 2)
+        return (self.squared_fitness_gain / self.total_uses) - (mean**2)
 
     @property
     def recent_success_rate(self) -> float:
@@ -96,7 +100,7 @@ class StrategyStats:
         """更新统计"""
         self.total_uses += 1
         self.total_fitness_gain += fitness_gain
-        self.squared_fitness_gain += fitness_gain ** 2
+        self.squared_fitness_gain += fitness_gain**2
         self.last_used = time.time()
         self.recent_results.append(fitness_gain)
 
@@ -125,6 +129,7 @@ class StrategyStats:
 
 
 # ============== 变异策略基类 ==============
+
 
 class MutationStrategy(ABC):
     """变异策略基类 (插件化架构)"""
@@ -156,6 +161,7 @@ class MutationStrategy(ABC):
 
 # ============== Character-Level Mutations ==============
 
+
 class HomoglyphSubstitution(MutationStrategy):
     """同形字替换: 用视觉相似字符替换 (e.g., 'o'->'0')"""
 
@@ -173,7 +179,7 @@ class HomoglyphSubstitution(MutationStrategy):
         for i, c in enumerate(chars):
             if c.lower() in HOMOGLYPH_MAP and random.random() < self.probability:
                 chars[i] = random.choice(HOMOGLYPH_MAP[c.lower()])
-        return ''.join(chars)
+        return "".join(chars)
 
 
 class NeighborSwap(MutationStrategy):
@@ -193,7 +199,7 @@ class NeighborSwap(MutationStrategy):
         chars = list(text)
         idx = random.randint(0, len(chars) - 2)
         chars[idx], chars[idx + 1] = chars[idx + 1], chars[idx]
-        return ''.join(chars)
+        return "".join(chars)
 
 
 class InsertChar(MutationStrategy):
@@ -211,7 +217,7 @@ class InsertChar(MutationStrategy):
         if not text:
             return text
         idx = random.randint(0, len(text))
-        char = random.choice(string.ascii_lowercase + ' ')
+        char = random.choice(string.ascii_lowercase + " ")
         return text[:idx] + char + text[idx:]
 
 
@@ -230,7 +236,7 @@ class DeleteChar(MutationStrategy):
         if len(text) <= 1:
             return text
         idx = random.randint(0, len(text) - 1)
-        return text[:idx] + text[idx + 1:]
+        return text[:idx] + text[idx + 1 :]
 
 
 class UnicodeObfuscation(MutationStrategy):
@@ -241,12 +247,12 @@ class UnicodeObfuscation(MutationStrategy):
         self._level = StrategyLevel.CHARACTER
         self.probability = probability
         self.obfuscations = {
-            ' ': ['\u200b', '\u00a0', '\u2003', '\u2002'],
-            'a': ['а', 'ａ'],
-            'e': ['е', 'ｅ'],
-            'o': ['о', 'ｏ'],
-            'c': ['с', 'ｃ'],
-            'p': ['р', 'ｐ'],
+            " ": ["\u200b", "\u00a0", "\u2003", "\u2002"],
+            "a": ["а", "ａ"],
+            "e": ["е", "ｅ"],
+            "o": ["о", "ｏ"],
+            "c": ["с", "ｃ"],
+            "p": ["р", "ｐ"],
         }
 
     @property
@@ -260,10 +266,11 @@ class UnicodeObfuscation(MutationStrategy):
                 result.append(random.choice(self.obfuscations[char.lower()]))
             else:
                 result.append(char)
-        return ''.join(result)
+        return "".join(result)
 
 
 # ============== Word-Level Mutations ==============
+
 
 class SynonymReplacement(MutationStrategy):
     """同义词替换: 用同义词替换关键词"""
@@ -280,13 +287,13 @@ class SynonymReplacement(MutationStrategy):
     def mutate(self, text: str) -> str:
         words = text.split()
         for i, word in enumerate(words):
-            word_lower = word.lower().strip('.,!?')
+            word_lower = word.lower().strip(".,!?")
             if word_lower in SYNONYM_DICT and random.random() < self.probability:
                 replacement = random.choice(SYNONYM_DICT[word_lower])
                 if word[0].isupper():
                     replacement = replacement.capitalize()
                 words[i] = replacement
-        return ' '.join(words)
+        return " ".join(words)
 
 
 class MorphologicalChange(MutationStrategy):
@@ -297,9 +304,12 @@ class MorphologicalChange(MutationStrategy):
         self._level = StrategyLevel.WORD
         self.probability = probability
         self.replacements = [
-            ("ing ", "tion "), ("tion ", "ing "),
-            ("ed ", "ing "), ("s ", " "),
-            ("ly ", " "), (" is ", " was "),
+            ("ing ", "tion "),
+            ("tion ", "ing "),
+            ("ed ", "ing "),
+            ("s ", " "),
+            ("ly ", " "),
+            (" is ", " was "),
         ]
 
     @property
@@ -336,13 +346,14 @@ class MultilingualMix(MutationStrategy):
     def mutate(self, text: str) -> str:
         words = text.split()
         for i, word in enumerate(words):
-            word_lower = word.lower().strip('.,!?')
+            word_lower = word.lower().strip(".,!?")
             if word_lower in self.translations and random.random() < self.probability:
                 words[i] = random.choice(self.translations[word_lower])
-        return ' '.join(words)
+        return " ".join(words)
 
 
 # ============== Sentence-Level Mutations ==============
+
 
 class Restructuring(MutationStrategy):
     """句式重构: 改变句子结构 (e.g., "How to X" -> "The process of X is...")"""
@@ -366,7 +377,7 @@ class Restructuring(MutationStrategy):
     def mutate(self, text: str) -> str:
         for old, new in self.patterns:
             if text.lower().startswith(old.lower()):
-                return new + text[len(old):]
+                return new + text[len(old) :]
         return text
 
 
@@ -382,11 +393,11 @@ class Reordering(MutationStrategy):
         return "reordering"
 
     def mutate(self, text: str) -> str:
-        if ',' in text:
-            parts = text.split(',')
+        if "," in text:
+            parts = text.split(",")
             if len(parts) >= 2:
                 random.shuffle(parts)
-                return ','.join(parts)
+                return ",".join(parts)
         return text
 
 
@@ -415,10 +426,11 @@ class ContextSwitch(MutationStrategy):
             return text
         idx = random.randint(1, len(words) - 1)
         words.insert(idx, random.choice(self.switches))
-        return ' '.join(words)
+        return " ".join(words)
 
 
 # ============== Advanced Mutations ==============
+
 
 class Base64Injection(MutationStrategy):
     """Base64编码注入: 将部分文本编码为Base64"""
@@ -433,13 +445,14 @@ class Base64Injection(MutationStrategy):
 
     def mutate(self, text: str) -> str:
         import base64
+
         words = text.split()
         if len(words) < 3:
             return text
         idx = random.randint(0, len(words) - 1)
         encoded = base64.b64encode(words[idx].encode()).decode()
         words[idx] = f"[decode this: {encoded}]"
-        return ' '.join(words)
+        return " ".join(words)
 
 
 class RolePlayInjection(MutationStrategy):
@@ -505,8 +518,8 @@ class PayloadFragmentation(MutationStrategy):
         if len(words) < 4:
             return text
         mid = len(words) // 2
-        part1 = ' '.join(words[:mid])
-        part2 = ' '.join(words[mid:])
+        part1 = " ".join(words[:mid])
+        part2 = " ".join(words[mid:])
         connectors = [
             f"First part: {part1}\nSecond part: {part2}\nCombine and execute.",
             f"Step 1: Remember '{part1}'\nStep 2: Add '{part2}'\nStep 3: Complete the task.",
@@ -516,6 +529,7 @@ class PayloadFragmentation(MutationStrategy):
 
 
 # ============== UCB 策略选择器 ==============
+
 
 class UCBSelector:
     """
@@ -549,9 +563,7 @@ class UCBSelector:
         self._lock = threading.Lock()
 
     def select_ucb1(
-        self,
-        strategies: List[MutationStrategy],
-        stats: Dict[str, StrategyStats]
+        self, strategies: List[MutationStrategy], stats: Dict[str, StrategyStats]
     ) -> MutationStrategy:
         """
         UCB1 算法选择策略
@@ -561,7 +573,7 @@ class UCBSelector:
         with self._lock:
             self.total_selections += 1
 
-            best_score = float('-inf')
+            best_score = float("-inf")
             best_strategy = strategies[0]
 
             for strategy in strategies:
@@ -584,9 +596,7 @@ class UCBSelector:
             return best_strategy
 
     def select_ucb_tuned(
-        self,
-        strategies: List[MutationStrategy],
-        stats: Dict[str, StrategyStats]
+        self, strategies: List[MutationStrategy], stats: Dict[str, StrategyStats]
     ) -> MutationStrategy:
         """
         UCB-Tuned 算法 (考虑方差)
@@ -597,7 +607,7 @@ class UCBSelector:
         with self._lock:
             self.total_selections += 1
 
-            best_score = float('-inf')
+            best_score = float("-inf")
             best_strategy = strategies[0]
 
             for strategy in strategies:
@@ -623,16 +633,14 @@ class UCBSelector:
             return best_strategy
 
     def select_thompson(
-        self,
-        strategies: List[MutationStrategy],
-        stats: Dict[str, StrategyStats]
+        self, strategies: List[MutationStrategy], stats: Dict[str, StrategyStats]
     ) -> MutationStrategy:
         """
         Thompson Sampling 选择策略
 
         从每个策略的 Beta 分布中采样，选择最大值
         """
-        best_sample = float('-inf')
+        best_sample = float("-inf")
         best_strategy = strategies[0]
 
         for strategy in strategies:
@@ -652,7 +660,7 @@ class UCBSelector:
         self,
         strategies: List[MutationStrategy],
         stats: Dict[str, StrategyStats],
-        weights: List[float]
+        weights: List[float],
     ) -> MutationStrategy:
         """
         ε-Greedy 选择策略
@@ -665,7 +673,7 @@ class UCBSelector:
         else:
             # 利用：选择平均收益最高的
             best_strategy = strategies[0]
-            best_avg = float('-inf')
+            best_avg = float("-inf")
 
             for i, strategy in enumerate(strategies):
                 s = stats.get(strategy.name)
@@ -682,6 +690,7 @@ class UCBSelector:
 
 
 # ============== 变异器主类 ==============
+
 
 class Mutator:
     """
@@ -795,10 +804,14 @@ class Mutator:
             return self.ucb_selector.select_ucb1(self.strategies, self.strategy_stats)
 
         elif algo == SelectionAlgorithm.UCB_TUNED:
-            return self.ucb_selector.select_ucb_tuned(self.strategies, self.strategy_stats)
+            return self.ucb_selector.select_ucb_tuned(
+                self.strategies, self.strategy_stats
+            )
 
         elif algo == SelectionAlgorithm.THOMPSON:
-            return self.ucb_selector.select_thompson(self.strategies, self.strategy_stats)
+            return self.ucb_selector.select_thompson(
+                self.strategies, self.strategy_stats
+            )
 
         elif algo == SelectionAlgorithm.EPSILON_GREEDY:
             return self.ucb_selector.select_epsilon_greedy(
@@ -842,7 +855,9 @@ class Mutator:
             result = strategy.mutate(result)
         return result
 
-    def mutate_tracked(self, text: str, num_mutations: int = 1) -> Tuple[str, List[str]]:
+    def mutate_tracked(
+        self, text: str, num_mutations: int = 1
+    ) -> Tuple[str, List[str]]:
         """
         带追踪的变异 - 返回变异后文本和使用的策略
 
@@ -862,9 +877,7 @@ class Mutator:
         return result, used_strategies
 
     def mutate_hierarchical(
-        self,
-        text: str,
-        levels: Optional[List[StrategyLevel]] = None
+        self, text: str, levels: Optional[List[StrategyLevel]] = None
     ) -> Tuple[str, List[str]]:
         """
         层次化变异 - 按层级顺序应用变异
@@ -877,8 +890,12 @@ class Mutator:
             (变异后文本, 使用的策略名称列表)
         """
         if levels is None:
-            levels = [StrategyLevel.CHARACTER, StrategyLevel.WORD,
-                      StrategyLevel.SENTENCE, StrategyLevel.ADVANCED]
+            levels = [
+                StrategyLevel.CHARACTER,
+                StrategyLevel.WORD,
+                StrategyLevel.SENTENCE,
+                StrategyLevel.ADVANCED,
+            ]
 
         result = text
         used_strategies = []
@@ -893,10 +910,7 @@ class Mutator:
         return result, used_strategies
 
     def update_strategy_weights(
-        self,
-        strategy_name: str,
-        fitness_before: float,
-        fitness_after: float
+        self, strategy_name: str, fitness_before: float, fitness_after: float
     ) -> None:
         """
         根据适应度变化更新策略权重和统计
@@ -926,7 +940,9 @@ class Mutator:
             # 归一化权重
             total_weight = sum(self.weights)
             if total_weight > 0:
-                self.weights = [w / total_weight * len(self.weights) for w in self.weights]
+                self.weights = [
+                    w / total_weight * len(self.weights) for w in self.weights
+                ]
 
     def update_level_weight(self, level: StrategyLevel, success: bool) -> None:
         """更新层级权重"""
@@ -946,17 +962,17 @@ class Mutator:
         for i, strategy in enumerate(self.strategies):
             stats = self.strategy_stats[strategy.name]
             performance[strategy.name] = {
-                'level': strategy.level.value,
-                'weight': self.weights[i],
-                'total_uses': stats.total_uses,
-                'success_count': stats.success_count,
-                'success_rate': stats.success_rate,
-                'avg_fitness_gain': stats.avg_fitness_gain,
-                'variance': stats.variance,
-                'recent_success_rate': stats.recent_success_rate,
-                'consecutive_failures': stats.consecutive_failures,
-                'thompson_alpha': stats.alpha,
-                'thompson_beta': stats.beta,
+                "level": strategy.level.value,
+                "weight": self.weights[i],
+                "total_uses": stats.total_uses,
+                "success_count": stats.success_count,
+                "success_rate": stats.success_rate,
+                "avg_fitness_gain": stats.avg_fitness_gain,
+                "variance": stats.variance,
+                "recent_success_rate": stats.recent_success_rate,
+                "consecutive_failures": stats.consecutive_failures,
+                "thompson_alpha": stats.alpha,
+                "thompson_beta": stats.beta,
             }
         return performance
 
@@ -964,11 +980,11 @@ class Mutator:
         """获取表现最好的 N 个策略"""
         perf = self.get_strategy_performance()
         sorted_strategies = sorted(
-            perf.items(),
-            key=lambda x: x[1]['avg_fitness_gain'],
-            reverse=True
+            perf.items(), key=lambda x: x[1]["avg_fitness_gain"], reverse=True
         )
-        return [(name, data['avg_fitness_gain']) for name, data in sorted_strategies[:n]]
+        return [
+            (name, data["avg_fitness_gain"]) for name, data in sorted_strategies[:n]
+        ]
 
     def get_level_performance(self) -> Dict[str, Dict[str, Any]]:
         """获取各层级的综合性能"""
@@ -978,26 +994,21 @@ class Mutator:
             if not strategies:
                 continue
 
-            total_uses = sum(
-                self.strategy_stats[s.name].total_uses
-                for s in strategies
-            )
+            total_uses = sum(self.strategy_stats[s.name].total_uses for s in strategies)
             total_success = sum(
-                self.strategy_stats[s.name].success_count
-                for s in strategies
+                self.strategy_stats[s.name].success_count for s in strategies
             )
             total_gain = sum(
-                self.strategy_stats[s.name].total_fitness_gain
-                for s in strategies
+                self.strategy_stats[s.name].total_fitness_gain for s in strategies
             )
 
             level_perf[level.value] = {
-                'strategy_count': len(strategies),
-                'total_uses': total_uses,
-                'total_success': total_success,
-                'success_rate': total_success / total_uses if total_uses > 0 else 0,
-                'avg_fitness_gain': total_gain / total_uses if total_uses > 0 else 0,
-                'weight': self.level_weights[level],
+                "strategy_count": len(strategies),
+                "total_uses": total_uses,
+                "total_success": total_success,
+                "success_rate": total_success / total_uses if total_uses > 0 else 0,
+                "avg_fitness_gain": total_gain / total_uses if total_uses > 0 else 0,
+                "weight": self.level_weights[level],
             }
         return level_perf
 
@@ -1005,9 +1016,7 @@ class Mutator:
         """重置权重为均匀分布"""
         with self._lock:
             self.weights = [1.0] * len(self.strategies)
-            self.strategy_stats = {
-                s.name: StrategyStats() for s in self.strategies
-            }
+            self.strategy_stats = {s.name: StrategyStats() for s in self.strategies}
             self.level_weights = {level: 1.0 for level in StrategyLevel}
             self.ucb_selector = UCBSelector()
 
@@ -1053,14 +1062,14 @@ class Mutator:
     def export_stats(self) -> Dict[str, Any]:
         """导出完整统计信息"""
         return {
-            'selection_algorithm': self.selection_algorithm.value,
-            'adaptive': self.adaptive,
-            'learning_rate': self.learning_rate,
-            'total_strategies': len(self.strategies),
-            'ucb_total_selections': self.ucb_selector.total_selections,
-            'ucb_exploration_constant': self.ucb_selector.c,
-            'epsilon': self.ucb_selector.epsilon,
-            'strategy_performance': self.get_strategy_performance(),
-            'level_performance': self.get_level_performance(),
-            'top_strategies': self.get_top_strategies(),
+            "selection_algorithm": self.selection_algorithm.value,
+            "adaptive": self.adaptive,
+            "learning_rate": self.learning_rate,
+            "total_strategies": len(self.strategies),
+            "ucb_total_selections": self.ucb_selector.total_selections,
+            "ucb_exploration_constant": self.ucb_selector.c,
+            "epsilon": self.ucb_selector.epsilon,
+            "strategy_performance": self.get_strategy_performance(),
+            "level_performance": self.get_level_performance(),
+            "top_strategies": self.get_top_strategies(),
         }

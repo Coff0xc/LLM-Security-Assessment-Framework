@@ -72,6 +72,7 @@ class TestSimpleFitness:
 # 仅在安装了 sentence-transformers 时运行
 try:
     from sentence_transformers import SentenceTransformer
+
     HAS_ST = True
 except ImportError:
     HAS_ST = False
@@ -84,12 +85,14 @@ class TestSemanticFitness:
     def test_initialization(self):
         """测试初始化"""
         from forgedan.fitness import SemanticFitness
+
         fitness = SemanticFitness()
         assert fitness.model_name == "all-MiniLM-L6-v2"
 
     def test_calculate_similar(self):
         """测试相似文本"""
         from forgedan.fitness import SemanticFitness
+
         fitness = SemanticFitness()
         result = fitness.calculate("I love programming", "I enjoy coding")
         assert result.score > 0.5
@@ -97,6 +100,7 @@ class TestSemanticFitness:
     def test_calculate_different(self):
         """测试不同文本"""
         from forgedan.fitness import SemanticFitness
+
         fitness = SemanticFitness()
         result = fitness.calculate("Hello world", "The weather is nice today")
         assert 0.0 <= result.score <= 1.0
@@ -104,6 +108,7 @@ class TestSemanticFitness:
     def test_batch_calculate(self):
         """测试批量计算"""
         from forgedan.fitness import SemanticFitness
+
         fitness = SemanticFitness()
         responses = ["I love coding", "Programming is fun", "Random text"]
         target = "I enjoy programming"

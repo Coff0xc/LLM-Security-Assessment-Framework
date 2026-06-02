@@ -1,0 +1,8 @@
+name: mcp-trust-calibrated-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+mcp_trust_policy_file: mcp-trust-policy.yml
+mcp_manifest_file: mcp-server-manifest.json
+mcp_manifest_case_category: mcp-manifest

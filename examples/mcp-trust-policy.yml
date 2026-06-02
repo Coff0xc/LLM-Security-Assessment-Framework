@@ -1,0 +1,7 @@
+tiers:
+  third_party:
+    score: 0.72
+    rationale: External vendor MCP server pending procurement review.
+  community:
+    score: 0.88
+    rationale: Community MCP server requires named owner approval before handoff.

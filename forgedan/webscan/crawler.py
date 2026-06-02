@@ -13,7 +13,7 @@ URL 爬取与内容提取
 import asyncio
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Set
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -29,6 +29,7 @@ logger = get_logger("forgedan.webscan.crawler")
 @dataclass
 class FormInfo:
     """表单信息"""
+
     action: str
     method: str
     inputs: List[Dict[str, str]]
@@ -37,6 +38,7 @@ class FormInfo:
 @dataclass
 class PageContent:
     """单页内容"""
+
     url: str
     title: str
     text: str
@@ -51,6 +53,7 @@ class PageContent:
 @dataclass
 class CrawlResult:
     """爬取结果"""
+
     pages: List[PageContent]
     total_pages: int
     errors: List[str]
@@ -107,9 +110,7 @@ class WebCrawler:
             if self.respect_robots:
                 await self._load_robots(client, url)
 
-            await self._crawl_recursive(
-                client, url, depth, visited, pages, errors
-            )
+            await self._crawl_recursive(client, url, depth, visited, pages, errors)
 
         duration_ms = (time.perf_counter() - start) * 1000
         logger.info(
@@ -182,9 +183,7 @@ class WebCrawler:
         if tasks:
             await asyncio.gather(*tasks)
 
-    async def _fetch_page(
-        self, client: httpx.AsyncClient, url: str
-    ) -> PageContent:
+    async def _fetch_page(self, client: httpx.AsyncClient, url: str) -> PageContent:
         resp = await client.get(url)
         resp.raise_for_status()
 
@@ -214,10 +213,7 @@ class WebCrawler:
         forms = self._extract_forms(soup, url)
 
         # 链接
-        links = [
-            urljoin(url, a.get("href", ""))
-            for a in soup.find_all("a", href=True)
-        ]
+        links = [urljoin(url, a.get("href", "")) for a in soup.find_all("a", href=True)]
 
         # meta 标签
         meta_tags: Dict[str, str] = {}
@@ -229,8 +225,7 @@ class WebCrawler:
 
         # 外部脚本
         scripts = [
-            urljoin(url, s.get("src", ""))
-            for s in soup.find_all("script", src=True)
+            urljoin(url, s.get("src", "")) for s in soup.find_all("script", src=True)
         ]
 
         return PageContent(
@@ -253,19 +248,19 @@ class WebCrawler:
             method = (form.get("method") or "GET").upper()
             inputs: List[Dict[str, str]] = []
             for inp in form.find_all(["input", "textarea", "select"]):
-                inputs.append({
-                    "name": inp.get("name", ""),
-                    "type": inp.get("type", "text"),
-                    "value": inp.get("value", ""),
-                })
+                inputs.append(
+                    {
+                        "name": inp.get("name", ""),
+                        "type": inp.get("type", "text"),
+                        "value": inp.get("value", ""),
+                    }
+                )
             forms.append(FormInfo(action=action, method=method, inputs=inputs))
         return forms
 
     # ---------- robots.txt ----------
 
-    async def _load_robots(
-        self, client: httpx.AsyncClient, url: str
-    ) -> None:
+    async def _load_robots(self, client: httpx.AsyncClient, url: str) -> None:
         parsed = urlparse(url)
         origin = f"{parsed.scheme}://{parsed.netloc}"
         if origin in self._robots_cache:

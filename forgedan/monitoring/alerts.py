@@ -30,7 +30,7 @@ FORGEDAN 告警规则
 import time
 import threading
 import logging
-from typing import Dict, List, Optional, Any, Callable, Set
+from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
@@ -42,16 +42,18 @@ logger = logging.getLogger(__name__)
 
 class AlertSeverity(Enum):
     """告警严重级别"""
-    INFO = "info"          # 信息
-    WARNING = "warning"    # 警告
+
+    INFO = "info"  # 信息
+    WARNING = "warning"  # 警告
     CRITICAL = "critical"  # 严重
 
 
 class AlertState(Enum):
     """告警状态"""
-    OK = "ok"              # 正常
-    PENDING = "pending"    # 待确认
-    FIRING = "firing"      # 触发中
+
+    OK = "ok"  # 正常
+    PENDING = "pending"  # 待确认
+    FIRING = "firing"  # 触发中
     RESOLVED = "resolved"  # 已解决
 
 
@@ -62,13 +64,14 @@ class AlertRule:
 
     定义何时触发告警的条件。
     """
-    name: str                           # 规则名称
+
+    name: str  # 规则名称
     condition: Callable[[ForgeDanMetrics], bool]  # 条件函数
     severity: AlertSeverity = AlertSeverity.WARNING  # 严重级别
-    message: str = ""                   # 告警消息模板
+    message: str = ""  # 告警消息模板
     labels: Dict[str, str] = field(default_factory=dict)  # 标签
-    for_duration: float = 0.0           # 持续多久才触发 (秒)
-    repeat_interval: float = 300.0      # 重复告警间隔 (秒)
+    for_duration: float = 0.0  # 持续多久才触发 (秒)
+    repeat_interval: float = 300.0  # 重复告警间隔 (秒)
     annotations: Dict[str, str] = field(default_factory=dict)  # 注释
 
     def __post_init__(self):
@@ -83,6 +86,7 @@ class Alert:
 
     表示一个触发的告警。
     """
+
     rule_name: str
     severity: AlertSeverity
     state: AlertState
@@ -111,10 +115,18 @@ class Alert:
             "labels": self.labels,
             "annotations": self.annotations,
             "starts_at": datetime.fromtimestamp(self.starts_at).isoformat(),
-            "ends_at": datetime.fromtimestamp(self.ends_at).isoformat() if self.ends_at else None,
-            "fired_at": datetime.fromtimestamp(self.fired_at).isoformat() if self.fired_at else None,
+            "ends_at": (
+                datetime.fromtimestamp(self.ends_at).isoformat()
+                if self.ends_at
+                else None
+            ),
+            "fired_at": (
+                datetime.fromtimestamp(self.fired_at).isoformat()
+                if self.fired_at
+                else None
+            ),
             "value": self.value,
-            "fingerprint": self.fingerprint
+            "fingerprint": self.fingerprint,
         }
 
 
@@ -132,9 +144,7 @@ class AlertManager:
     """
 
     def __init__(
-        self,
-        metrics_instance: ForgeDanMetrics = None,
-        check_interval: float = 15.0
+        self, metrics_instance: ForgeDanMetrics = None, check_interval: float = 15.0
     ):
         """
         初始化告警管理器
@@ -182,8 +192,9 @@ class AlertManager:
             if name in self._rules:
                 del self._rules[name]
                 # 同时移除相关的告警
-                to_remove = [fp for fp, alert in self._alerts.items()
-                           if alert.rule_name == name]
+                to_remove = [
+                    fp for fp, alert in self._alerts.items() if alert.rule_name == name
+                ]
                 for fp in to_remove:
                     del self._alerts[fp]
                 logger.debug(f"移除告警规则: {name}")
@@ -268,7 +279,7 @@ class AlertManager:
                                 annotations=rule.annotations.copy(),
                                 starts_at=self._pending_starts[fingerprint],
                                 fired_at=now,
-                                fingerprint=fingerprint
+                                fingerprint=fingerprint,
                             )
                             self._alerts[fingerprint] = alert
                             fired_alerts.append(alert)
@@ -307,7 +318,8 @@ class AlertManager:
         """获取所有活跃告警"""
         with self._lock:
             return [
-                alert for alert in self._alerts.values()
+                alert
+                for alert in self._alerts.values()
                 if alert.state == AlertState.FIRING
             ]
 
@@ -353,10 +365,7 @@ class AlertManager:
         self._running = True
 
         if background:
-            self._thread = threading.Thread(
-                target=self._check_loop,
-                daemon=True
-            )
+            self._thread = threading.Thread(target=self._check_loop, daemon=True)
             self._thread.start()
             logger.info(f"告警检查已启动，间隔: {self.check_interval}秒")
         else:
@@ -386,10 +395,12 @@ class AlertManager:
     def get_status(self) -> Dict[str, Any]:
         """获取告警管理器状态"""
         with self._lock:
-            firing = sum(1 for a in self._alerts.values()
-                        if a.state == AlertState.FIRING)
-            resolved = sum(1 for a in self._alerts.values()
-                          if a.state == AlertState.RESOLVED)
+            firing = sum(
+                1 for a in self._alerts.values() if a.state == AlertState.FIRING
+            )
+            resolved = sum(
+                1 for a in self._alerts.values() if a.state == AlertState.RESOLVED
+            )
 
             return {
                 "running": self._running,
@@ -397,11 +408,12 @@ class AlertManager:
                 "alerts_total": len(self._alerts),
                 "alerts_firing": firing,
                 "alerts_resolved": resolved,
-                "callbacks_count": len(self._callbacks)
+                "callbacks_count": len(self._callbacks),
             }
 
 
 # ============== 预定义告警规则 ==============
+
 
 def create_default_rules(metrics_instance: ForgeDanMetrics = None) -> List[AlertRule]:
     """
@@ -413,8 +425,6 @@ def create_default_rules(metrics_instance: ForgeDanMetrics = None) -> List[Alert
     Returns:
         规则列表
     """
-    metrics = metrics_instance or global_metrics
-
     rules = [
         # 高错误率告警
         AlertRule(
@@ -423,19 +433,18 @@ def create_default_rules(metrics_instance: ForgeDanMetrics = None) -> List[Alert
             severity=AlertSeverity.WARNING,
             message="LLM 查询错误率超过 10%",
             for_duration=60.0,
-            annotations={"description": "最近一段时间的 LLM 查询错误率过高"}
+            annotations={"description": "最近一段时间的 LLM 查询错误率过高"},
         ),
-
         # 内存使用告警
         AlertRule(
             name="high_memory_usage",
-            condition=lambda m: m.memory_usage.get(type="resident") > 2 * 1024 * 1024 * 1024,  # 2GB
+            condition=lambda m: m.memory_usage.get(type="resident")
+            > 2 * 1024 * 1024 * 1024,  # 2GB
             severity=AlertSeverity.WARNING,
             message="内存使用超过 2GB",
             for_duration=120.0,
-            annotations={"description": "进程内存使用量过高，可能需要释放缓存"}
+            annotations={"description": "进程内存使用量过高，可能需要释放缓存"},
         ),
-
         # 长时间无进展告警
         AlertRule(
             name="no_fitness_improvement",
@@ -443,9 +452,8 @@ def create_default_rules(metrics_instance: ForgeDanMetrics = None) -> List[Alert
             severity=AlertSeverity.INFO,
             message="适应度长时间无改进",
             for_duration=300.0,
-            annotations={"description": "进化算法可能陷入局部最优"}
+            annotations={"description": "进化算法可能陷入局部最优"},
         ),
-
         # 无活跃任务告警 (如果服务应该持续运行)
         # AlertRule(
         #     name="no_active_tasks",
@@ -454,7 +462,6 @@ def create_default_rules(metrics_instance: ForgeDanMetrics = None) -> List[Alert
         #     message="当前无活跃任务",
         #     for_duration=1800.0,  # 30分钟
         # ),
-
         # 缓存命中率低告警
         AlertRule(
             name="low_cache_hit_rate",
@@ -462,7 +469,7 @@ def create_default_rules(metrics_instance: ForgeDanMetrics = None) -> List[Alert
             severity=AlertSeverity.INFO,
             message="缓存命中率低于 30%",
             for_duration=300.0,
-            annotations={"description": "缓存效率较低，可能需要调整缓存策略"}
+            annotations={"description": "缓存效率较低，可能需要调整缓存策略"},
         ),
     ]
 
@@ -502,7 +509,7 @@ def _calc_cache_hit_rate(metrics: ForgeDanMetrics) -> float:
 
 
 def create_alert_manager_with_defaults(
-    metrics_instance: ForgeDanMetrics = None
+    metrics_instance: ForgeDanMetrics = None,
 ) -> AlertManager:
     """
     创建带默认规则的告警管理器
@@ -527,9 +534,7 @@ def create_alert_manager_with_defaults(
                 f"(rule: {alert.rule_name})"
             )
         elif alert.state == AlertState.RESOLVED:
-            logger.info(
-                f"[RESOLVED] {alert.rule_name}: {alert.message}"
-            )
+            logger.info(f"[RESOLVED] {alert.rule_name}: {alert.message}")
 
     manager.add_callback(log_alert)
 

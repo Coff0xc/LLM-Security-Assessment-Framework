@@ -13,7 +13,6 @@ import asyncio
 import json
 import time
 import pickle
-import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -25,6 +24,7 @@ import uuid
 @dataclass
 class TaskResult:
     """单个任务的结果"""
+
     task_id: str
     worker_id: str
     success: bool
@@ -99,6 +99,7 @@ class TaskResult:
 @dataclass
 class AggregatedReport:
     """聚合报告"""
+
     # 基本信息
     report_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     created_at: float = field(default_factory=time.time)
@@ -230,7 +231,9 @@ class ResultAggregator:
         async with self._lock:
             if len(self._results) >= self.max_results:
                 # 移除最旧的结果
-                oldest_id = min(self._results.keys(), key=lambda k: self._results[k].completed_at)
+                oldest_id = min(
+                    self._results.keys(), key=lambda k: self._results[k].completed_at
+                )
                 del self._results[oldest_id]
 
             self._results[result.task_id] = result
@@ -335,7 +338,9 @@ class ResultAggregator:
             all_results = list(self._results.values())
 
             fitness_values = [r.best_fitness for r in all_results if r.best_fitness > 0]
-            avg_fitness = sum(fitness_values) / len(fitness_values) if fitness_values else 0.0
+            avg_fitness = (
+                sum(fitness_values) / len(fitness_values) if fitness_values else 0.0
+            )
             max_fitness = max(fitness_values) if fitness_values else 0.0
 
             total_queries = sum(r.total_queries for r in all_results)
@@ -721,11 +726,11 @@ class ResultAggregator:
             self._stats = checkpoint_data["stats"]
             self._category_stats = defaultdict(
                 lambda: {"total": 0, "success": 0, "fitness_sum": 0.0},
-                checkpoint_data["category_stats"]
+                checkpoint_data["category_stats"],
             )
             self._worker_stats = defaultdict(
                 lambda: {"total": 0, "success": 0, "duration_sum": 0.0},
-                checkpoint_data["worker_stats"]
+                checkpoint_data["worker_stats"],
             )
 
             print(f"已加载检查点，包含 {len(self._results)} 个结果")

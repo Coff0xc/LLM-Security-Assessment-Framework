@@ -30,10 +30,55 @@ jobs:
       run: |
         pytest tests/ -v --ignore=tests/test_fitness.py -x
 
+    - name: Run suite preflight checks
+      run: |
+        python -m forgedan.cli suite preflight examples/smoke-suite.yml --output reports/suite-smoke/preflight-smoke
+        python -m forgedan.cli suite preflight examples/ready-for-handoff-suite.yml --strict --output reports/suite-smoke/preflight-ready
+        python -m forgedan.cli suite validate-report reports/suite-smoke/preflight-smoke/suite-preflight.json
+        python -m forgedan.cli suite validate-report reports/suite-smoke/preflight-ready/suite-preflight.json
+
+    - name: Run smoke suite
+      run: |
+        python -m forgedan.cli suite run examples/smoke-suite.yml --output reports/suite-smoke
+
+    - name: Validate smoke suite report pack
+      run: |
+        python -m forgedan.cli suite validate-report reports/suite-smoke/suite-result.json
+        python -m forgedan.cli suite validate-report reports/suite-smoke/suite-result-redacted.json
+        python -m forgedan.cli suite validate-report reports/suite-smoke/suite-config.json
+        python -m forgedan.cli suite validate-report reports/suite-smoke/suite-risk-register.json
+        python -m forgedan.cli suite validate-report reports/suite-smoke/suite-coverage.json
+        python -m forgedan.cli suite validate-report reports/suite-smoke/suite-preflight.json
+        python -m forgedan.cli suite verify-bundle reports/suite-smoke/suite-manifest.json
+        python -m forgedan.cli suite qa-report reports/suite-smoke/suite-manifest.json --output reports/suite-smoke/qa
+        python -m forgedan.cli suite validate-report reports/suite-smoke/qa/suite-qa-receipt.json
+
+    - name: Validate ready-for-handoff report pack
+      run: |
+        python -m forgedan.cli suite run examples/ready-for-handoff-suite.yml --output reports/suite-ready
+        python -m forgedan.cli suite validate-report reports/suite-ready/suite-result.json
+        python -m forgedan.cli suite validate-report reports/suite-ready/suite-preflight.json
+        python -m forgedan.cli suite verify-bundle reports/suite-ready/suite-manifest.json
+        python -m forgedan.cli suite qa-report reports/suite-ready/suite-manifest.json --output reports/suite-ready/qa --strict-handoff
+        python -m forgedan.cli suite validate-report reports/suite-ready/qa/suite-qa-receipt.json
+
+    - name: Upload suite report packs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: suite-smoke-${{ matrix.python-version }}
+        path: |
+          reports/suite-smoke
+          reports/suite-ready
+
     - name: Run linter
       run: |
         pip install flake8
-        flake8 forgedan/ --max-line-length=120 --ignore=E501,W503,E402
+        flake8 forgedan/ --select=E9,F63,F7,F82,E722,F401,F841 --show-source --statistics
+
+    - name: Run formatter check
+      run: |
+        black --check forgedan tests
 
   frontend:
     runs-on: ubuntu-latest

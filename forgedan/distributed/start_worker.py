@@ -36,7 +36,7 @@ def parse_args():
 
     # 使用自定义名称和标签
     python -m forgedan.distributed.start_worker --name gpu-worker-1 --tags gpu,fast
-        """
+        """,
     )
 
     # 协调器配置
@@ -44,55 +44,33 @@ def parse_args():
         "--coordinator",
         type=str,
         default="http://localhost:8765",
-        help="协调器 URL (默认: http://localhost:8765)"
+        help="协调器 URL (默认: http://localhost:8765)",
     )
-    parser.add_argument(
-        "--token",
-        type=str,
-        default=None,
-        help="认证令牌"
-    )
+    parser.add_argument("--token", type=str, default=None, help="认证令牌")
 
     # Worker 标识
+    parser.add_argument("--name", type=str, default=None, help="Worker 名称")
     parser.add_argument(
-        "--name",
-        type=str,
-        default=None,
-        help="Worker 名称"
+        "--id", type=str, default=None, help="Worker ID (默认: 自动生成)"
     )
     parser.add_argument(
-        "--id",
-        type=str,
-        default=None,
-        help="Worker ID (默认: 自动生成)"
-    )
-    parser.add_argument(
-        "--tags",
-        type=str,
-        default="",
-        help="Worker 标签，逗号分隔 (例: gpu,fast,prod)"
+        "--tags", type=str, default="", help="Worker 标签，逗号分隔 (例: gpu,fast,prod)"
     )
 
     # 性能配置
     parser.add_argument(
-        "--concurrent",
-        type=int,
-        default=4,
-        help="最大并发任务数 (默认: 4)"
+        "--concurrent", type=int, default=4, help="最大并发任务数 (默认: 4)"
     )
     parser.add_argument(
         "--workers",
         type=int,
         default=0,
-        help="多进程模式的进程数 (0=单进程, >0=多进程)"
+        help="多进程模式的进程数 (0=单进程, >0=多进程)",
     )
 
     # 心跳配置
     parser.add_argument(
-        "--heartbeat-interval",
-        type=float,
-        default=10.0,
-        help="心跳间隔(秒) (默认: 10)"
+        "--heartbeat-interval", type=float, default=10.0, help="心跳间隔(秒) (默认: 10)"
     )
 
     # 优雅退出
@@ -100,22 +78,14 @@ def parse_args():
         "--shutdown-timeout",
         type=float,
         default=60.0,
-        help="优雅退出超时(秒) (默认: 60)"
+        help="优雅退出超时(秒) (默认: 60)",
     )
 
     # 模型配置
     parser.add_argument(
-        "--model",
-        type=str,
-        default="mock:test",
-        help="使用的模型 (默认: mock:test)"
+        "--model", type=str, default="mock:test", help="使用的模型 (默认: mock:test)"
     )
-    parser.add_argument(
-        "--api-key",
-        type=str,
-        default=None,
-        help="API 密钥"
-    )
+    parser.add_argument("--api-key", type=str, default=None, help="API 密钥")
 
     # 其他
     parser.add_argument(
@@ -123,7 +93,7 @@ def parse_args():
         type=str,
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="日志级别 (默认: INFO)"
+        help="日志级别 (默认: INFO)",
     )
 
     return parser.parse_args()
@@ -140,6 +110,7 @@ def create_engine_factory(model: str, api_key: str = None):
     Returns:
         引擎工厂函数
     """
+
     def factory():
         from forgedan import ForgeDAN_Engine, ForgeDanConfig
         from forgedan.adapters import ModelAdapterFactory
@@ -171,6 +142,7 @@ def create_engine_factory(model: str, api_key: str = None):
 
             def sync_llm(prompt: str) -> str:
                 import asyncio
+
                 return asyncio.run(async_llm(prompt))
 
             engine.set_target_llm(sync_llm, model_name=model)
@@ -186,9 +158,10 @@ def main():
 
     # 配置日志
     import logging
+
     logging.basicConfig(
         level=getattr(logging, args.log_level),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # 创建配置
@@ -225,9 +198,6 @@ def main():
     print("按 Ctrl+C 停止 Worker")
     print()
 
-    # 创建引擎工厂
-    engine_factory = create_engine_factory(args.model, args.api_key)
-
     if args.workers > 0:
         # 多进程模式
         from forgedan.distributed.worker import MultiProcessWorker
@@ -243,6 +213,7 @@ def main():
 
             # 保持运行
             import time
+
             while True:
                 time.sleep(1)
 
@@ -252,7 +223,7 @@ def main():
 
     else:
         # 单进程模式
-        from forgedan.distributed.worker import DistributedWorker, run_worker
+        from forgedan.distributed.worker import run_worker
 
         try:
             asyncio.run(run_worker(config=worker_config))
