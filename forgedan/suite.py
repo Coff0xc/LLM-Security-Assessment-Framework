@@ -3379,6 +3379,20 @@ def _is_safe_archive_member_name(member_name: str) -> bool:
     return not member.is_absolute() and ".." not in member.parts
 
 
+_DETERMINISTIC_ZIP_DATETIME = (2026, 1, 1, 0, 0, 0)
+
+
+def _write_deterministic_zip_member(
+    archive: zipfile.ZipFile,
+    source_path: Path,
+    member_name: str,
+) -> None:
+    info = zipfile.ZipInfo(member_name, date_time=_DETERMINISTIC_ZIP_DATETIME)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
+    archive.writestr(info, source_path.read_bytes())
+
+
 def _archive_manifest_schema_name(payload: Any) -> Optional[str]:
     if not isinstance(payload, dict):
         return None
@@ -3450,7 +3464,7 @@ def archive_report_bundle(
         "w",
         compression=zipfile.ZIP_DEFLATED,
     ) as archive:
-        archive.write(manifest, manifest.name)
+        _write_deterministic_zip_member(archive, manifest, manifest.name)
         for item in manifest_payload.get("artifacts", []):
             if not isinstance(item, dict):
                 continue
@@ -3461,11 +3475,11 @@ def archive_report_bundle(
             if not _is_safe_archive_member_name(member_name):
                 raise ValueError(f"Unsafe archive member path: {relative_path}")
             artifact_path = base_dir / relative_path
-            archive.write(artifact_path, member_name)
+            _write_deterministic_zip_member(archive, artifact_path, member_name)
             archived_members.append(member_name)
         for supplemental_path in supplemental_artifacts:
             member_name = _archive_member_name(supplemental_path.name)
-            archive.write(supplemental_path, member_name)
+            _write_deterministic_zip_member(archive, supplemental_path, member_name)
             archived_members.append(member_name)
 
     archive_bytes = archive_path.read_bytes()

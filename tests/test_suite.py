@@ -6065,6 +6065,34 @@ cases:
     assert "Schema validations: 7" in verification_result.output
 
 
+def test_suite_archive_is_reproducible_when_source_mtime_changes(tmp_path):
+    suite = load_suite_config(Path("examples/ready-for-handoff-suite.yml"))
+    result = run_suite(suite)
+    paths = write_suite_artifacts(result, tmp_path / "out")
+    write_suite_qa_receipt(paths["manifest_json"], tmp_path / "out")
+
+    first_archive = archive_suite_bundle(paths["manifest_json"], tmp_path / "first.zip")
+    first_sha256 = hashlib.sha256(
+        Path(first_archive["archive"]).read_bytes()
+    ).hexdigest()
+
+    for artifact_path in paths.values():
+        os.utime(artifact_path, (946684800, 946684800))
+    os.utime(tmp_path / "out" / "suite-qa-receipt.json", (946684800, 946684800))
+    os.utime(tmp_path / "out" / "suite-qa-receipt.md", (946684800, 946684800))
+
+    second_archive = archive_suite_bundle(
+        paths["manifest_json"],
+        tmp_path / "second.zip",
+    )
+    second_sha256 = hashlib.sha256(
+        Path(second_archive["archive"]).read_bytes()
+    ).hexdigest()
+
+    assert second_archive["members"] == first_archive["members"]
+    assert second_sha256 == first_sha256
+
+
 def test_suite_archive_includes_qa_receipt_sidecars_when_present(tmp_path):
     suite = load_suite_config(Path("examples/ready-for-handoff-suite.yml"))
     result = run_suite(suite)
