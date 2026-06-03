@@ -1,7 +1,7 @@
 # Suite Preflight: ready-for-handoff-suite
 
 - Schema version: `suite-preflight.v1`
-- Generated at: `2026-06-03T08:13:58.967284Z`
+- Generated at: `2026-06-03T00:00:02Z`
 - Model: `mock:test-model`
 - Cases: 1
 - Status: `passed`

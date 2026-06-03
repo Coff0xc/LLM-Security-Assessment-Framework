@@ -4570,7 +4570,7 @@ def build_suite_qa_receipt(manifest_path: Union[str, Path]) -> dict:
 
     return {
         "schema_version": "suite-qa-receipt.v1",
-        "generated_at": _utc_now_iso(),
+        "generated_at": manifest.get("generated_at") or _utc_now_iso(),
         "manifest": _normalize_artifact_ref(path),
         "manifest_size_bytes": len(manifest_bytes),
         "manifest_sha256": manifest_sha256,
@@ -4818,6 +4818,23 @@ class SuiteReportMetadata(BaseModel):
     assessment_end: Optional[str] = None
 
 
+class SuiteRunMetadata(BaseModel):
+    """Optional deterministic run metadata for checked-in report fixtures."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str = ""
+    started_at: str = ""
+    completed_at: str = ""
+    generated_at: str = ""
+    case_id_prefix: str = ""
+    case_started_at: str = ""
+    case_completed_at: str = ""
+    duration_seconds: Optional[float] = Field(default=None, ge=0.0)
+    case_duration_seconds: Optional[float] = Field(default=None, ge=0.0)
+    latency_ms: Optional[float] = Field(default=None, ge=0.0)
+
+
 class SuiteAcceptanceCriterion(BaseModel):
     """Report acceptance item that can block QA handoff."""
 
@@ -4920,6 +4937,7 @@ class SuiteConfig(BaseModel):
     policy: SuitePolicy = Field(default_factory=SuitePolicy)
     tool_policy: SuiteToolPolicy = Field(default_factory=SuiteToolPolicy)
     report_metadata: SuiteReportMetadata = Field(default_factory=SuiteReportMetadata)
+    run_metadata: SuiteRunMetadata = Field(default_factory=SuiteRunMetadata)
     acceptance_criteria: List[SuiteAcceptanceCriterion] = Field(default_factory=list)
     review_decisions: List[SuiteReviewDecision] = Field(default_factory=list)
     risk_register_defaults: SuiteRiskRegisterDefaults = Field(
@@ -5046,6 +5064,29 @@ def _extract_cases_payload(payload: object, source: Path) -> List[dict]:
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _suite_metadata_value(
+    metadata: SuiteRunMetadata, field_name: str, fallback: str
+) -> str:
+    value = getattr(metadata, field_name, "")
+    return value or fallback
+
+
+def _suite_generated_at_from_config(
+    config: object, fallback: Optional[str] = None
+) -> str:
+    if isinstance(config, dict):
+        run_metadata = config.get("run_metadata")
+        if isinstance(run_metadata, dict):
+            generated_at = run_metadata.get("generated_at")
+            if isinstance(generated_at, str) and generated_at:
+                return generated_at
+    return fallback or _utc_now_iso()
+
+
+def _suite_generated_at(result: "SuiteRunResult") -> str:
+    return _suite_generated_at_from_config(result.suite_config, result.completed_at)
 
 
 def _build_run_environment() -> dict:
@@ -6288,7 +6329,10 @@ def build_suite_preflight_report(suite: SuiteConfig) -> dict:
 
     return {
         "schema_version": "suite-preflight.v1",
-        "generated_at": _utc_now_iso(),
+        "generated_at": _suite_generated_at_from_config(
+            suite.model_dump(),
+            _utc_now_iso(),
+        ),
         "suite": suite.name,
         "model": suite.model,
         "case_count": len(suite.cases),
@@ -7576,8 +7620,13 @@ def run_suite(
 ) -> SuiteRunResult:
     """Run all cases in a validated suite configuration."""
     started_at = time.time()
-    run_id = str(uuid.uuid4())
-    run_started_at = _utc_now_iso()
+    run_metadata = suite.run_metadata
+    run_id = run_metadata.run_id or str(uuid.uuid4())
+    run_started_at = _suite_metadata_value(
+        run_metadata,
+        "started_at",
+        _utc_now_iso(),
+    )
     raw_target = target_llm or _make_target_llm(suite)
     response_cache: Optional[_ResponseCache] = None
     if suite.response_cache_file:
@@ -7604,9 +7653,17 @@ def run_suite(
             population_size=case.population or suite.population,
             elite_size=case.elite or suite.elite,
         )
-        case_id = str(uuid.uuid4())
+        case_id = (
+            f"{run_metadata.case_id_prefix}{index}"
+            if run_metadata.case_id_prefix
+            else str(uuid.uuid4())
+        )
         trace_id = f"{run_id}:{index}:{case.name}"
-        case_started_at = _utc_now_iso()
+        case_started_at = _suite_metadata_value(
+            run_metadata,
+            "case_started_at",
+            _utc_now_iso(),
+        )
         case_started_timer = time.time()
         target.reset()
         with _quiet_engine_logs():
@@ -7620,8 +7677,16 @@ def run_suite(
                 category=case.category,
                 show_progress=False,
             )
-        case_completed_at = _utc_now_iso()
-        latency_ms = round((time.time() - case_started_timer) * 1000, 3)
+        case_completed_at = _suite_metadata_value(
+            run_metadata,
+            "case_completed_at",
+            _utc_now_iso(),
+        )
+        latency_ms = (
+            run_metadata.latency_ms
+            if run_metadata.latency_ms is not None
+            else round((time.time() - case_started_timer) * 1000, 3)
+        )
         usage = target.snapshot()
 
         prompt_scan = _apply_tool_policy_to_scan(
@@ -7650,7 +7715,11 @@ def run_suite(
                 best_fitness=result.best_fitness,
                 total_queries=result.total_queries,
                 generations=result.generations,
-                duration_seconds=result.duration_seconds,
+                duration_seconds=(
+                    run_metadata.case_duration_seconds
+                    if run_metadata.case_duration_seconds is not None
+                    else result.duration_seconds
+                ),
                 best_prompt=result.best_prompt,
                 best_response=result.best_response,
                 prompt_scan=prompt_scan,
@@ -7745,8 +7814,16 @@ def run_suite(
         score_summary=score_summary,
         usage_summary=usage_summary,
         started_at=run_started_at,
-        completed_at=_utc_now_iso(),
-        duration_seconds=time.time() - started_at,
+        completed_at=_suite_metadata_value(
+            run_metadata,
+            "completed_at",
+            _utc_now_iso(),
+        ),
+        duration_seconds=(
+            run_metadata.duration_seconds
+            if run_metadata.duration_seconds is not None
+            else time.time() - started_at
+        ),
         cases=case_results,
     )
 
@@ -9268,7 +9345,7 @@ def _build_suite_risk_register(result: SuiteRunResult) -> dict:
         "run_id": result.run_id,
         "suite": result.name,
         "model": result.model,
-        "generated_at": _utc_now_iso(),
+        "generated_at": _suite_generated_at(result),
         "risk_count": len(risks),
         "risks": risks,
     }
@@ -9498,7 +9575,7 @@ def _build_suite_coverage(result: SuiteRunResult) -> dict:
         "run_id": result.run_id,
         "suite": result.name,
         "model": result.model,
-        "generated_at": _utc_now_iso(),
+        "generated_at": _suite_generated_at(result),
         "case_count": result.total_cases,
         "finding_count": len(result.findings),
         "case_category_coverage": case_category_coverage,
@@ -10189,7 +10266,7 @@ def _build_suite_manifest(
         "suite": result.name,
         "model": result.model,
         "run_environment": result.run_environment,
-        "generated_at": _utc_now_iso(),
+        "generated_at": _suite_generated_at(result),
         "report_acceptance": _suite_report_acceptance_summary(result),
         "artifact_count": len(manifest_artifacts),
         "artifacts": manifest_artifacts,

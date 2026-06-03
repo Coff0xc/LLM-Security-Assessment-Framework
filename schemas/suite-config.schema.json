@@ -13,6 +13,7 @@
     "elite",
     "policy",
     "report_metadata",
+    "run_metadata",
     "acceptance_criteria",
     "review_decisions",
     "risk_register_defaults",
@@ -91,6 +92,22 @@
         "classification": { "type": "string" },
         "assessment_start": { "type": ["string", "null"] },
         "assessment_end": { "type": ["string", "null"] }
+      }
+    },
+    "run_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "run_id": { "type": "string" },
+        "started_at": { "type": "string" },
+        "completed_at": { "type": "string" },
+        "generated_at": { "type": "string" },
+        "case_id_prefix": { "type": "string" },
+        "case_started_at": { "type": "string" },
+        "case_completed_at": { "type": "string" },
+        "duration_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "case_duration_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "latency_ms": { "type": ["number", "null"], "minimum": 0 }
       }
     },
     "acceptance_criteria": {

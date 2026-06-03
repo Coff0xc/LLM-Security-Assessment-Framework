@@ -2,9 +2,9 @@
 
 ## Run Summary
 
-- Run ID: `f6ffb806-28b9-4eab-a5b0-6095552740fc`
+- Run ID: `ready-for-handoff-sample-run`
 - Model: `mock:test-model`
-- Completed at: `2026-06-03T08:13:58.962913Z`
+- Completed at: `2026-06-03T00:00:01Z`
 - Cases: 1
 - Attack success rate: 0.00%
 - Max risk score: 0.00

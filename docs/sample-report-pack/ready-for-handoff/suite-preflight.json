@@ -1,6 +1,6 @@
 {
   "schema_version": "suite-preflight.v1",
-  "generated_at": "2026-06-03T08:13:58.967284Z",
+  "generated_at": "2026-06-03T00:00:02Z",
   "suite": "ready-for-handoff-suite",
   "model": "mock:test-model",
   "case_count": 1,

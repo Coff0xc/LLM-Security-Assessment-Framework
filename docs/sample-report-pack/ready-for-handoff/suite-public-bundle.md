@@ -2,9 +2,9 @@
 
 ## Run Summary
 
-- Run ID: `f6ffb806-28b9-4eab-a5b0-6095552740fc`
+- Run ID: `ready-for-handoff-sample-run`
 - Model: `mock:test-model`
-- Completed at: `2026-06-03T08:13:58.962913Z`
+- Completed at: `2026-06-03T00:00:01Z`
 - Risk level: `none`
 - Cases: 1
 - Attack success rate: 0.00%
@@ -40,10 +40,10 @@
 
 | Artifact | Purpose | Media type | Size | SHA256 |
 | --- | --- | --- | --- | --- |
-| suite-result-redacted.json | Machine-readable suite result with prompt, response, and evidence text redacted. | application/json | 16548 | `5c2fef57587bc233bcfdb42de8a68ef8e30a5ca5b108f01ab28886f308791041` |
-| suite-cases-redacted.jsonl | Per-case evidence stream with content-bearing fields replaced by stable hashes. | application/x-ndjson | 1515 | `84bd4c006571c7d416807285ab31c184e6de77c5a16bfd646a1f4c1a627e79e1` |
-| suite-report-redacted.html | Standalone redacted report for browser review. | text/html | 11572 | `39336a01045800ebaaa40c6b47775adf26cbfd2761442cdafc361af1bbcd483a` |
-| suite-report-redacted.md | Editable redacted report body for external handoff. | text/markdown | 9022 | `4aee4d3822c577ec44dab134e47d05fa6c8f131577d4c2d90fc2fdc28b153991` |
-| suite-case-matrix.csv | Case-level coverage and risk matrix without prompt or response bodies. | text/csv | 939 | `6227736569a48066b6fc6f129e42e262def8eaa8093afd6fbbb91ac1d0d836f0` |
-| suite-coverage.json | Machine-readable assessment coverage summary without prompt or response bodies. | application/json | 1027 | `562850e715282f7530b5ace01b58fb99052163290b7ad4756d2a2f1fb43bfed8` |
-| suite-coverage.csv | Spreadsheet-ready coverage matrix for external reviewer handoff. | text/csv | 230 | `211d25fbc472a3408c59da599423c00f8d89b1fe7b3084e074ddf616da30d825` |
+| suite-result-redacted.json | Machine-readable suite result with prompt, response, and evidence text redacted. | application/json | 16931 | `eb81dbe9d96531de574b9ec53c8ccdebcc21be78629df05acc1cdd86329533a0` |
+| suite-cases-redacted.jsonl | Per-case evidence stream with content-bearing fields replaced by stable hashes. | application/x-ndjson | 1466 | `eea7b74638f92bcad9c7264005fe43481b48785c6db6787bd8be7e2d4ca21e04` |
+| suite-report-redacted.html | Standalone redacted report for browser review. | text/html | 11542 | `61866ee4a73d0716332cf6d8315de0e125823afb7f9c6a23751723d1fd5c55a2` |
+| suite-report-redacted.md | Editable redacted report body for external handoff. | text/markdown | 8992 | `13bc63a365baced42d00fc75f08718cb8a64fc0486d20f7e4f3160e74a9fbb94` |
+| suite-case-matrix.csv | Case-level coverage and risk matrix without prompt or response bodies. | text/csv | 914 | `f47849e890deea974b0553868e25f8966dab04c9f652333a14df3b0ceae64b24` |
+| suite-coverage.json | Machine-readable assessment coverage summary without prompt or response bodies. | application/json | 1012 | `bee2476b3b6e59fdbf7e153037e5ad52a67a57b38393bae84f853167ba193405` |
+| suite-coverage.csv | Spreadsheet-ready coverage matrix for external reviewer handoff. | text/csv | 222 | `c44a9785952f4fda904da2812065e14b9dccf612075eb74bda0167f641c7e975` |

@@ -38,6 +38,18 @@
     "assessment_start": "2026-05-01",
     "assessment_end": "2026-05-31"
   },
+  "run_metadata": {
+    "run_id": "ready-for-handoff-sample-run",
+    "started_at": "2026-06-03T00:00:00Z",
+    "completed_at": "2026-06-03T00:00:01Z",
+    "generated_at": "2026-06-03T00:00:02Z",
+    "case_id_prefix": "ready-for-handoff-case-",
+    "case_started_at": "2026-06-03T00:00:00Z",
+    "case_completed_at": "2026-06-03T00:00:01Z",
+    "duration_seconds": 1.0,
+    "case_duration_seconds": 1.0,
+    "latency_ms": 1000.0
+  },
   "acceptance_criteria": [
     {
       "id": "residual-risk-owner-signoff",

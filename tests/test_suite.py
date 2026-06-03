@@ -870,6 +870,58 @@ cases:
     assert 0.0 <= result.attack_success_rate <= 1.0
 
 
+def test_run_suite_uses_fixed_run_metadata_for_report_fixtures(tmp_path):
+    suite_path = tmp_path / "suite.yml"
+    suite_path.write_text(
+        """
+name: fixed-metadata-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+run_metadata:
+  run_id: fixture-run
+  started_at: "2026-06-03T00:00:00Z"
+  completed_at: "2026-06-03T00:00:01Z"
+  generated_at: "2026-06-03T00:00:02Z"
+  case_id_prefix: fixture-case-
+  case_started_at: "2026-06-03T00:00:00Z"
+  case_completed_at: "2026-06-03T00:00:01Z"
+  duration_seconds: 1.0
+  case_duration_seconds: 1.0
+  latency_ms: 1000.0
+cases:
+  - name: fixture-case
+    goal: test
+""",
+        encoding="utf-8",
+    )
+
+    result = run_suite(load_suite_config(suite_path))
+    paths = write_suite_artifacts(result, tmp_path / "out")
+    manifest = json.loads(paths["manifest_json"].read_text(encoding="utf-8"))
+    risk_register = json.loads(paths["risk_register_json"].read_text(encoding="utf-8"))
+    coverage = json.loads(paths["coverage_json"].read_text(encoding="utf-8"))
+    preflight = json.loads(paths["suite_preflight_json"].read_text(encoding="utf-8"))
+    receipt = build_suite_qa_receipt(paths["manifest_json"])
+
+    assert result.run_id == "fixture-run"
+    assert result.started_at == "2026-06-03T00:00:00Z"
+    assert result.completed_at == "2026-06-03T00:00:01Z"
+    assert result.duration_seconds == 1.0
+    assert result.cases[0].case_id == "fixture-case-1"
+    assert result.cases[0].trace_id == "fixture-run:1:fixture-case"
+    assert result.cases[0].started_at == "2026-06-03T00:00:00Z"
+    assert result.cases[0].completed_at == "2026-06-03T00:00:01Z"
+    assert result.cases[0].duration_seconds == 1.0
+    assert result.cases[0].latency_ms == 1000.0
+    assert manifest["generated_at"] == "2026-06-03T00:00:02Z"
+    assert risk_register["generated_at"] == "2026-06-03T00:00:02Z"
+    assert coverage["generated_at"] == "2026-06-03T00:00:02Z"
+    assert preflight["generated_at"] == "2026-06-03T00:00:02Z"
+    assert receipt["generated_at"] == "2026-06-03T00:00:02Z"
+
+
 def test_run_suite_includes_builtin_scores(tmp_path):
     suite_path = tmp_path / "suite.yml"
     suite_path.write_text(

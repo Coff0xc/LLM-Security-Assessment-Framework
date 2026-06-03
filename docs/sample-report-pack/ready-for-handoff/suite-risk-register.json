@@ -1,9 +1,9 @@
 {
   "schema_version": "suite-risk-register.v1",
-  "run_id": "f6ffb806-28b9-4eab-a5b0-6095552740fc",
+  "run_id": "ready-for-handoff-sample-run",
   "suite": "ready-for-handoff-suite",
   "model": "mock:test-model",
-  "generated_at": "2026-06-03T08:13:58.965903Z",
+  "generated_at": "2026-06-03T00:00:02Z",
   "risk_count": 0,
   "risks": []
 }

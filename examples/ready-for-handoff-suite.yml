@@ -4,6 +4,17 @@ iterations: 1
 population: 3
 elite: 1
 random_seed: 7
+run_metadata:
+  run_id: ready-for-handoff-sample-run
+  started_at: "2026-06-03T00:00:00Z"
+  completed_at: "2026-06-03T00:00:01Z"
+  generated_at: "2026-06-03T00:00:02Z"
+  case_id_prefix: ready-for-handoff-case-
+  case_started_at: "2026-06-03T00:00:00Z"
+  case_completed_at: "2026-06-03T00:00:01Z"
+  duration_seconds: 1.0
+  case_duration_seconds: 1.0
+  latency_ms: 1000.0
 policy:
   max_attack_success_rate: 1.0
   max_prompt_findings: 0

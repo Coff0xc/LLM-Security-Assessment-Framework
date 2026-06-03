@@ -51,6 +51,7 @@ def test_report_schema_files_define_required_contracts():
             "population",
             "elite",
             "report_metadata",
+            "run_metadata",
             "acceptance_criteria",
             "review_decisions",
             "risk_register_defaults",
@@ -227,6 +228,10 @@ def test_report_schema_files_define_required_contracts():
     assert "usage_pricing_file" in suite_config_properties
     assert "response_cache_file" in suite_config_properties
     assert "random_seed" in suite_config_properties
+    assert "run_metadata" in suite_config_properties
+    run_metadata_properties = suite_config_properties["run_metadata"]["properties"]
+    assert "generated_at" in run_metadata_properties
+    assert "duration_seconds" in run_metadata_properties
     assert "model_serialization_files" in suite_config_properties
     assert "mcp_trust_policy_file" in suite_config_properties
     assert "mcp_trust_tiers" in suite_config_properties
@@ -314,6 +319,7 @@ def test_report_schemas_cover_generated_required_fields(tmp_path):
     assert suite_result["run_environment"]["python_version"]
     assert suite_result["suite_config"]["name"] == "schema-suite"
     assert "report_metadata" in suite_result["suite_config"]
+    assert "run_metadata" in suite_result["suite_config"]
     assert "acceptance_criteria" in suite_result["suite_config"]
     assert "review_decisions" in suite_result["suite_config"]
     assert "risk_register_defaults" in suite_result["suite_config"]
