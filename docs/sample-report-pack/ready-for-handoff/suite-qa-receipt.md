@@ -3,12 +3,12 @@
 ## Summary
 
 - Status: passed
-- Run ID: `cc90e3cf-040f-4366-9f08-5e9c1df63ca0`
+- Run ID: `f6ffb806-28b9-4eab-a5b0-6095552740fc`
 - Model: `mock:test-model`
-- Generated at: `2026-06-03T06:47:51.895676Z`
-- Manifest: `docs\sample-report-pack\ready-for-handoff\suite-manifest.json`
+- Generated at: `2026-06-03T08:14:09.474902Z`
+- Manifest: `docs/sample-report-pack/ready-for-handoff/suite-manifest.json`
 - Manifest size: 8666
-- Manifest SHA256: `faff440ce74440b6f4c33e3ce37339459cea3e4f8b92e68edc29487cf3541082`
+- Manifest SHA256: `ac8debccd7a3e4f375d96403494d83c056e61af61d5a16d671d18c2e9cf96bc7`
 - Artifacts checked: 20
 - Schema validations: 7
 - Errors: 0
@@ -73,26 +73,26 @@
 
 | Artifact | Valid | Sensitivity | Audience | Size | SHA256 |
 | --- | --- | --- | --- | --- | --- |
-| suite-result.json | yes | restricted | authorized_reviewers | 16167 | `fb46d02eb1a7a6351c0da7ccb0d49cf780e36cc5fcb931e6b64d3a4c2f3430f8` |
-| suite-cases.jsonl | yes | restricted | authorized_reviewers | 1498 | `9d7b3f24ba250d1e2f94e48f2c3bc420c8769c655de83343f9f6c454bc9c3391` |
+| suite-result.json | yes | restricted | authorized_reviewers | 16166 | `aeaeeadd9faa1a13d352af70038ebd4d0ac2e8f1e332ad4de5fce4eac52c2108` |
+| suite-cases.jsonl | yes | restricted | authorized_reviewers | 1497 | `3674f1c589ba947667044795defc6699ffc1fecac00c54021646722bef1da11c` |
 | suite-evidence.csv | yes | restricted | authorized_reviewers | 232 | `4a83ed85fab8e7bfad546190e313377de52b028b9e3f867bc994fcafe63a9f96` |
-| suite-case-matrix.csv | yes | public | external_reviewers | 939 | `a9127ff0db59328f16d8f8680262f8e39c1fb6c8e9ef9ddd70b1f46eb947ec74` |
-| suite-risk-register.json | yes | internal | assessment_team | 259 | `d5b13b1828175f4cd9428ad6feae75073aaec20cc840336317689db0fefbb93f` |
+| suite-case-matrix.csv | yes | public | external_reviewers | 939 | `6227736569a48066b6fc6f129e42e262def8eaa8093afd6fbbb91ac1d0d836f0` |
+| suite-risk-register.json | yes | internal | assessment_team | 259 | `f07325defef106faa78852cfeabb0cef0d737f1c69566b359e7cccd03c3e6134` |
 | suite-risk-register.csv | yes | internal | assessment_team | 223 | `e96f0d29db9abc84e31aed106c958dc50f23420deff90d52e1f2415fdd67a6dc` |
-| suite-coverage.json | yes | public | external_reviewers | 1027 | `91da7b9f3bf59fe36a1cfffad961a54d6847c84af41701498ca6ce4d72a79cd9` |
-| suite-coverage.csv | yes | public | external_reviewers | 230 | `f3d07a2f6bfb3139601409fc00d9a8fd06e7890d3ca4698e6dcc22ff1d299e61` |
+| suite-coverage.json | yes | public | external_reviewers | 1027 | `562850e715282f7530b5ace01b58fb99052163290b7ad4756d2a2f1fb43bfed8` |
+| suite-coverage.csv | yes | public | external_reviewers | 230 | `211d25fbc472a3408c59da599423c00f8d89b1fe7b3084e074ddf616da30d825` |
 | suite-config.json | yes | internal | assessment_team | 3121 | `88d841f916cee298e23860c3f8b6e2726c8805d628d78b71159af68f474f742c` |
-| suite-preflight.json | yes | internal | assessment_team | 3736 | `89023e17bbbe7a32fad456a2eb0a49ade206c38a4692716460838d1c1dfcfd38` |
-| suite-preflight.md | yes | internal | assessment_team | 1894 | `acc921b6e2c053361665e3e5a3bca4ecca6af0b5096acdc08fdc94791426d73a` |
-| suite-report.html | yes | restricted | authorized_reviewers | 11408 | `3f34516292e6dfbd737d45e97a7ebba4943bb21edac547b9a940ebf07cb6465b` |
-| suite-report.md | yes | restricted | authorized_reviewers | 8858 | `df0564e92a7ba0ee4e8818e4fc57348a3fe67de3caf947ed012b2bd89423efae` |
-| suite-release-notes.md | yes | restricted | authorized_reviewers | 2099 | `ff752332735aacb89d084606e9298f39b3b2c8ba025254b2c38f3a6b55170e66` |
-| suite-result-redacted.json | yes | public | external_reviewers | 16549 | `04ebe53a6d3a3c553272a0aa6416a80cfd84ffe108aecf37a7ebc78ab1c0a532` |
-| suite-cases-redacted.jsonl | yes | public | external_reviewers | 1516 | `90fa882e46b09c4fc56b659379ea8af6aa06fc40406628c52f550a961ad378d9` |
-| suite-report-redacted.html | yes | public | external_reviewers | 11572 | `d8d5db1a3b9e1b0a49488ce985c05b55cd7dafdc98beb8c2b13ff17dc793d74d` |
-| suite-report-redacted.md | yes | public | external_reviewers | 9022 | `9c76257732d4b5be2e43890804fc2f9a32bf3d513c000bca7bbf28209969872b` |
-| suite-public-bundle.md | yes | public | external_reviewers | 2595 | `0ee858d4565efcf4db9bdba0ec84aaa7c7ca35f5da534a98df9333c428ba515d` |
-| suite-report-bundle.md | yes | restricted | authorized_reviewers | 7232 | `dc6df5d3c914f574865e220de298c2269b85e40806bb3381cc42ca9ffa8d684c` |
+| suite-preflight.json | yes | internal | assessment_team | 3736 | `66ed73580ee8bd1628a3f6bebbb2b81c436496d7a6f22685ec1018f9aa46a0ce` |
+| suite-preflight.md | yes | internal | assessment_team | 1894 | `2b8674577c1fc9be5ee5267ebb35913c318b992dc1f48c92e68d8bb56b367dd9` |
+| suite-report.html | yes | restricted | authorized_reviewers | 11408 | `dfe7f9523d8b18ea64859d74dc1f557e462755a4ccddb25fbffce2d18bd4154e` |
+| suite-report.md | yes | restricted | authorized_reviewers | 8858 | `dd1d5d873f0a90a888d971078cc08100b88ed4417b8949c8e0edb5b285b81903` |
+| suite-release-notes.md | yes | restricted | authorized_reviewers | 2099 | `51acd033615780cdfb89e8f3a4aca492d2608e0477ff94a7e6b0da62f17a079a` |
+| suite-result-redacted.json | yes | public | external_reviewers | 16548 | `5c2fef57587bc233bcfdb42de8a68ef8e30a5ca5b108f01ab28886f308791041` |
+| suite-cases-redacted.jsonl | yes | public | external_reviewers | 1515 | `84bd4c006571c7d416807285ab31c184e6de77c5a16bfd646a1f4c1a627e79e1` |
+| suite-report-redacted.html | yes | public | external_reviewers | 11572 | `39336a01045800ebaaa40c6b47775adf26cbfd2761442cdafc361af1bbcd483a` |
+| suite-report-redacted.md | yes | public | external_reviewers | 9022 | `4aee4d3822c577ec44dab134e47d05fa6c8f131577d4c2d90fc2fdc28b153991` |
+| suite-public-bundle.md | yes | public | external_reviewers | 2595 | `95bb792bcf976f6a2e1adaed7ef5c1fbbd897d8c6a388131220e999bcc72ec45` |
+| suite-report-bundle.md | yes | restricted | authorized_reviewers | 7232 | `1fbb9c9f3bb289f35f91ce5a674e145c98ff690f4cba6db622838406cc375ea0` |
 
 ## Schema Checks
 

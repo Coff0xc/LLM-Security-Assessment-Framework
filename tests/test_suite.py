@@ -6314,6 +6314,7 @@ cases:
     receipt_paths = write_suite_qa_receipt(paths["manifest_json"], tmp_path / "qa")
     receipt_json = json.loads(receipt_paths["json"].read_text(encoding="utf-8"))
     receipt_markdown = receipt_paths["markdown"].read_text(encoding="utf-8")
+    manifest_validation = validate_report_artifact(paths["manifest_json"])
     manifest_bytes = paths["manifest_json"].read_bytes()
     manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
 
@@ -6321,11 +6322,14 @@ cases:
     assert receipt["status"] == "passed"
     assert receipt["valid"] is True
     assert receipt["suite"] == "qa-receipt-suite"
+    assert "\\" not in manifest_validation["artifact"]
+    assert "\\" not in receipt["manifest"]
     assert receipt["manifest_size_bytes"] == len(manifest_bytes)
     assert receipt["manifest_sha256"] == manifest_sha256
     assert receipt["run_environment"]["forgedan_version"] == "1.2.0"
     assert receipt["artifact_count"] == 20
     assert receipt["schema_validation_count"] == 7
+    assert all("\\" not in item["artifact"] for item in receipt["schema_validations"])
     assert receipt["acceptance"]["ready_for_handoff"] is True
     readiness = receipt["handoff_readiness"]
     assert readiness["status"] == "review_required"
@@ -6369,11 +6373,18 @@ cases:
     assert receipt_json["run_id"] == result.run_id
     assert receipt_json["manifest_size_bytes"] == len(manifest_bytes)
     assert receipt_json["manifest_sha256"] == manifest_sha256
+    assert receipt_json["manifest"] == receipt["manifest"]
+    assert "\\" not in receipt_json["manifest"]
+    assert all(
+        "\\" not in item["artifact"] for item in receipt_json["schema_validations"]
+    )
     assert receipt_json["handoff_checklist"] == receipt["handoff_checklist"]
     assert receipt_json["handoff_readiness"] == receipt["handoff_readiness"]
     assert receipt_paths["json"].name == "suite-qa-receipt.json"
     assert receipt_paths["markdown"].name == "suite-qa-receipt.md"
     assert "# Report QA Receipt: qa-receipt-suite" in receipt_markdown
+    assert f"- Manifest: `{receipt['manifest']}`" in receipt_markdown
+    assert "\\suite-" not in receipt_markdown
     assert f"- Manifest size: {len(manifest_bytes)}" in receipt_markdown
     assert f"- Manifest SHA256: `{manifest_sha256}`" in receipt_markdown
     assert "## Handoff Readiness" in receipt_markdown

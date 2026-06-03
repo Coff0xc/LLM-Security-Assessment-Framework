@@ -2,9 +2,9 @@
 
 ## Run Summary
 
-- Run ID: `cc90e3cf-040f-4366-9f08-5e9c1df63ca0`
+- Run ID: `f6ffb806-28b9-4eab-a5b0-6095552740fc`
 - Model: `mock:test-model`
-- Completed at: `2026-06-03T06:47:41.041283Z`
+- Completed at: `2026-06-03T08:13:58.962913Z`
 - Cases: 1
 - Attack success rate: 0.00%
 - Max risk score: 0.00

@@ -2151,7 +2151,7 @@ def validate_report_artifact(
     errors.extend(_validate_report_semantics(reference["name"], payload, path))
     return {
         "valid": not errors,
-        "artifact": str(path),
+        "artifact": _normalize_artifact_ref(path),
         "schema": reference["name"],
         "schema_path": reference["path"],
         "schema_id": reference["schema_id"],
@@ -3270,7 +3270,7 @@ def verify_suite_manifest(manifest_path: Union[str, Path]) -> dict:
     except Exception as exc:
         manifest_validation = {
             "valid": False,
-            "artifact": str(path),
+            "artifact": _normalize_artifact_ref(path),
             "schema": "suite-manifest",
             "error_count": 1,
             "errors": [str(exc)],
@@ -3357,7 +3357,7 @@ def verify_suite_manifest(manifest_path: Union[str, Path]) -> dict:
 
     return {
         "valid": not errors,
-        "manifest": str(path),
+        "manifest": _normalize_artifact_ref(path),
         "artifact_count": len(checked_artifacts),
         "checked_artifacts": checked_artifacts,
         "schema_validation_count": len(schema_validations),
@@ -4571,7 +4571,7 @@ def build_suite_qa_receipt(manifest_path: Union[str, Path]) -> dict:
     return {
         "schema_version": "suite-qa-receipt.v1",
         "generated_at": _utc_now_iso(),
-        "manifest": str(path),
+        "manifest": _normalize_artifact_ref(path),
         "manifest_size_bytes": len(manifest_bytes),
         "manifest_sha256": manifest_sha256,
         "run_id": manifest.get("run_id", ""),
