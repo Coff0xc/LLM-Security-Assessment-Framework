@@ -890,6 +890,12 @@ run_metadata:
   duration_seconds: 1.0
   case_duration_seconds: 1.0
   latency_ms: 1000.0
+  run_environment:
+    forgedan_version: "fixture-version"
+    python_version: "fixture-python"
+    python_implementation: "fixture-implementation"
+    platform: "fixture-platform"
+    os: "fixture-os"
 cases:
   - name: fixture-case
     goal: test
@@ -915,7 +921,15 @@ cases:
     assert result.cases[0].completed_at == "2026-06-03T00:00:01Z"
     assert result.cases[0].duration_seconds == 1.0
     assert result.cases[0].latency_ms == 1000.0
+    assert result.run_environment == {
+        "forgedan_version": "fixture-version",
+        "python_version": "fixture-python",
+        "python_implementation": "fixture-implementation",
+        "platform": "fixture-platform",
+        "os": "fixture-os",
+    }
     assert manifest["generated_at"] == "2026-06-03T00:00:02Z"
+    assert manifest["run_environment"] == result.run_environment
     assert risk_register["generated_at"] == "2026-06-03T00:00:02Z"
     assert coverage["generated_at"] == "2026-06-03T00:00:02Z"
     assert preflight["generated_at"] == "2026-06-03T00:00:02Z"

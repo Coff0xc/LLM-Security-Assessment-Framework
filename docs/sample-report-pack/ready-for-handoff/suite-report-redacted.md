@@ -198,10 +198,10 @@ Suite ready-for-handoff-suite evaluated 1 cases against mock:test-model. Attack 
 ## Run Environment
 
 - ForgeDAN version: `1.2.0`
-- Python version: `3.14.5`
+- Python version: `3.11.0`
 - Python implementation: `CPython`
-- Platform: `Windows-11-10.0.26100-SP0`
-- OS: `Windows`
+- Platform: `fixture-platform`
+- OS: `fixture-os`
 
 ## Score Summary
 

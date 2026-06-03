@@ -4,10 +4,10 @@
   "model": "mock:test-model",
   "run_environment": {
     "forgedan_version": "1.2.0",
-    "python_version": "3.14.5",
+    "python_version": "3.11.0",
     "python_implementation": "CPython",
-    "platform": "Windows-11-10.0.26100-SP0",
-    "os": "Windows"
+    "platform": "fixture-platform",
+    "os": "fixture-os"
   },
   "suite_config": {
     "name": "ready-for-handoff-suite",
@@ -59,7 +59,14 @@
       "case_completed_at": "2026-06-03T00:00:01Z",
       "duration_seconds": 1.0,
       "case_duration_seconds": 1.0,
-      "latency_ms": 1000.0
+      "latency_ms": 1000.0,
+      "run_environment": {
+        "forgedan_version": "1.2.0",
+        "python_version": "3.11.0",
+        "python_implementation": "CPython",
+        "platform": "fixture-platform",
+        "os": "fixture-os"
+      }
     },
     "acceptance_criteria": [
       {

@@ -107,7 +107,11 @@
         "case_completed_at": { "type": "string" },
         "duration_seconds": { "type": ["number", "null"], "minimum": 0 },
         "case_duration_seconds": { "type": ["number", "null"], "minimum": 0 },
-        "latency_ms": { "type": ["number", "null"], "minimum": 0 }
+        "latency_ms": { "type": ["number", "null"], "minimum": 0 },
+        "run_environment": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
       }
     },
     "acceptance_criteria": {

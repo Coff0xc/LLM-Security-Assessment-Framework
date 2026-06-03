@@ -7,8 +7,8 @@
 - Model: `mock:test-model`
 - Generated at: `2026-06-03T00:00:02Z`
 - Manifest: `docs/sample-report-pack/ready-for-handoff/suite-manifest.json`
-- Manifest size: 8651
-- Manifest SHA256: `3f28af1bf4b78709fb6b673ca765e33425e696bf21b3cd6b6f9f0c4c4d540d56`
+- Manifest size: 8645
+- Manifest SHA256: `dfb8cd25167164d8d0217009c3abfd72df7ac6667a1a099175791525b0dee7fe`
 - Artifacts checked: 20
 - Schema validations: 7
 - Errors: 0
@@ -64,16 +64,16 @@
 ## Run Environment
 
 - ForgeDAN version: `1.2.0`
-- Python version: `3.14.5`
+- Python version: `3.11.0`
 - Python implementation: `CPython`
-- Platform: `Windows-11-10.0.26100-SP0`
-- OS: `Windows`
+- Platform: `fixture-platform`
+- OS: `fixture-os`
 
 ## Artifact Checks
 
 | Artifact | Valid | Sensitivity | Audience | Size | SHA256 |
 | --- | --- | --- | --- | --- | --- |
-| suite-result.json | yes | restricted | authorized_reviewers | 16549 | `595291ef136b75a62724556bc5890df1d8c211eb8ce28e8cc803defdc5ab433e` |
+| suite-result.json | yes | restricted | authorized_reviewers | 16770 | `be9d3dc1d4956cd875cf62da38d66745b3be3b4292a9111dec8db385f74aa036` |
 | suite-cases.jsonl | yes | restricted | authorized_reviewers | 1448 | `e9647b6e7e447fa11454aae637414fe8deb7481c469588574eb29750d5f096a6` |
 | suite-evidence.csv | yes | restricted | authorized_reviewers | 232 | `4a83ed85fab8e7bfad546190e313377de52b028b9e3f867bc994fcafe63a9f96` |
 | suite-case-matrix.csv | yes | public | external_reviewers | 914 | `f47849e890deea974b0553868e25f8966dab04c9f652333a14df3b0ceae64b24` |
@@ -81,18 +81,18 @@
 | suite-risk-register.csv | yes | internal | assessment_team | 223 | `e96f0d29db9abc84e31aed106c958dc50f23420deff90d52e1f2415fdd67a6dc` |
 | suite-coverage.json | yes | public | external_reviewers | 1012 | `bee2476b3b6e59fdbf7e153037e5ad52a67a57b38393bae84f853167ba193405` |
 | suite-coverage.csv | yes | public | external_reviewers | 222 | `c44a9785952f4fda904da2812065e14b9dccf612075eb74bda0167f641c7e975` |
-| suite-config.json | yes | internal | assessment_team | 3567 | `bdb9395bf869795dc4c16521982941a1ab4b4999c8996a81be2a89bad9bbef01` |
+| suite-config.json | yes | internal | assessment_team | 3780 | `19d82bbefdd4e21cbbd7de73881867aacda58ee56ee6833d62b679adcbfc788b` |
 | suite-preflight.json | yes | internal | assessment_team | 3729 | `2984aa398c6cc387c80dfe1d7bd7dc13fdee164a71e4ac4975a547c0c9d40d7a` |
 | suite-preflight.md | yes | internal | assessment_team | 1887 | `63309d4e516e7adaee9eda0627b8230cb45b2785e8c2b4a11b7214ff44b2543c` |
-| suite-report.html | yes | restricted | authorized_reviewers | 11378 | `83463ee88145c3527ac33248e4c381c7496752beae8e1a2c5d53afc18d739ae2` |
-| suite-report.md | yes | restricted | authorized_reviewers | 8828 | `af4434309b905f4d49e8b1901138c41b186d614723748f3d51af4a70b28640b6` |
+| suite-report.html | yes | restricted | authorized_reviewers | 11372 | `f11ccb9ab335103dcde4f1601ccef753edff32f4cb1c3bdf6b696cac46d5b9e8` |
+| suite-report.md | yes | restricted | authorized_reviewers | 8822 | `90a93e8fb007ea6efe84ab7c5cdd5379ec1c6ec38c43d4a3256de71b9020a348` |
 | suite-release-notes.md | yes | restricted | authorized_reviewers | 2084 | `10a45f7acfa4dd92ad08cb39cd0ddbdb609df68154f65e7d5d1f8b8c047cb848` |
-| suite-result-redacted.json | yes | public | external_reviewers | 16931 | `eb81dbe9d96531de574b9ec53c8ccdebcc21be78629df05acc1cdd86329533a0` |
+| suite-result-redacted.json | yes | public | external_reviewers | 17152 | `0ce5976382189d06306d9e1422dd9436d442748328467e848ea4507449b43aba` |
 | suite-cases-redacted.jsonl | yes | public | external_reviewers | 1466 | `eea7b74638f92bcad9c7264005fe43481b48785c6db6787bd8be7e2d4ca21e04` |
-| suite-report-redacted.html | yes | public | external_reviewers | 11542 | `61866ee4a73d0716332cf6d8315de0e125823afb7f9c6a23751723d1fd5c55a2` |
-| suite-report-redacted.md | yes | public | external_reviewers | 8992 | `13bc63a365baced42d00fc75f08718cb8a64fc0486d20f7e4f3160e74a9fbb94` |
-| suite-public-bundle.md | yes | public | external_reviewers | 2580 | `037cff9a40d24384b54d3a3c9730e721b76229be3cfc01968a2a916ea6062906` |
-| suite-report-bundle.md | yes | restricted | authorized_reviewers | 7217 | `1dad1eee6ef90d2512a629a9da007d2feca6279e23a56d1cd2898075efc2aa28` |
+| suite-report-redacted.html | yes | public | external_reviewers | 11536 | `afa04f2279a8c78e04d614e911ae597f5bbacb12203c236488a93879f096e65c` |
+| suite-report-redacted.md | yes | public | external_reviewers | 8986 | `12864ac99add8d742f205e22634b8474a5ea244ccdf192b0128de3e8f7dcd2ba` |
+| suite-public-bundle.md | yes | public | external_reviewers | 2580 | `cce5c050e9179c6bb89efabd7deb5894811e92b58f12a01f17c1b7eb602c8b53` |
+| suite-report-bundle.md | yes | restricted | authorized_reviewers | 7217 | `f257391db2c459b4379e755872f9bb34b2c9723408871ec21e18a8ed2de42b77` |
 
 ## Schema Checks
 

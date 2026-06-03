@@ -5,10 +5,10 @@
   "model": "mock:test-model",
   "run_environment": {
     "forgedan_version": "1.2.0",
-    "python_version": "3.14.5",
+    "python_version": "3.11.0",
     "python_implementation": "CPython",
-    "platform": "Windows-11-10.0.26100-SP0",
-    "os": "Windows"
+    "platform": "fixture-platform",
+    "os": "fixture-os"
   },
   "generated_at": "2026-06-03T00:00:02Z",
   "report_acceptance": {
@@ -21,8 +21,8 @@
     {
       "path": "suite-result.json",
       "media_type": "application/json",
-      "size_bytes": 16549,
-      "sha256": "595291ef136b75a62724556bc5890df1d8c211eb8ce28e8cc803defdc5ab433e",
+      "size_bytes": 16770,
+      "sha256": "be9d3dc1d4956cd875cf62da38d66745b3be3b4292a9111dec8db385f74aa036",
       "sensitivity": "restricted",
       "audience": "authorized_reviewers"
     },
@@ -85,8 +85,8 @@
     {
       "path": "suite-config.json",
       "media_type": "application/json",
-      "size_bytes": 3567,
-      "sha256": "bdb9395bf869795dc4c16521982941a1ab4b4999c8996a81be2a89bad9bbef01",
+      "size_bytes": 3780,
+      "sha256": "19d82bbefdd4e21cbbd7de73881867aacda58ee56ee6833d62b679adcbfc788b",
       "sensitivity": "internal",
       "audience": "assessment_team"
     },
@@ -109,16 +109,16 @@
     {
       "path": "suite-report.html",
       "media_type": "text/html",
-      "size_bytes": 11378,
-      "sha256": "83463ee88145c3527ac33248e4c381c7496752beae8e1a2c5d53afc18d739ae2",
+      "size_bytes": 11372,
+      "sha256": "f11ccb9ab335103dcde4f1601ccef753edff32f4cb1c3bdf6b696cac46d5b9e8",
       "sensitivity": "restricted",
       "audience": "authorized_reviewers"
     },
     {
       "path": "suite-report.md",
       "media_type": "text/markdown",
-      "size_bytes": 8828,
-      "sha256": "af4434309b905f4d49e8b1901138c41b186d614723748f3d51af4a70b28640b6",
+      "size_bytes": 8822,
+      "sha256": "90a93e8fb007ea6efe84ab7c5cdd5379ec1c6ec38c43d4a3256de71b9020a348",
       "sensitivity": "restricted",
       "audience": "authorized_reviewers"
     },
@@ -133,8 +133,8 @@
     {
       "path": "suite-result-redacted.json",
       "media_type": "application/json",
-      "size_bytes": 16931,
-      "sha256": "eb81dbe9d96531de574b9ec53c8ccdebcc21be78629df05acc1cdd86329533a0",
+      "size_bytes": 17152,
+      "sha256": "0ce5976382189d06306d9e1422dd9436d442748328467e848ea4507449b43aba",
       "sensitivity": "public",
       "audience": "external_reviewers"
     },
@@ -149,16 +149,16 @@
     {
       "path": "suite-report-redacted.html",
       "media_type": "text/html",
-      "size_bytes": 11542,
-      "sha256": "61866ee4a73d0716332cf6d8315de0e125823afb7f9c6a23751723d1fd5c55a2",
+      "size_bytes": 11536,
+      "sha256": "afa04f2279a8c78e04d614e911ae597f5bbacb12203c236488a93879f096e65c",
       "sensitivity": "public",
       "audience": "external_reviewers"
     },
     {
       "path": "suite-report-redacted.md",
       "media_type": "text/markdown",
-      "size_bytes": 8992,
-      "sha256": "13bc63a365baced42d00fc75f08718cb8a64fc0486d20f7e4f3160e74a9fbb94",
+      "size_bytes": 8986,
+      "sha256": "12864ac99add8d742f205e22634b8474a5ea244ccdf192b0128de3e8f7dcd2ba",
       "sensitivity": "public",
       "audience": "external_reviewers"
     },
@@ -166,7 +166,7 @@
       "path": "suite-public-bundle.md",
       "media_type": "text/markdown",
       "size_bytes": 2580,
-      "sha256": "037cff9a40d24384b54d3a3c9730e721b76229be3cfc01968a2a916ea6062906",
+      "sha256": "cce5c050e9179c6bb89efabd7deb5894811e92b58f12a01f17c1b7eb602c8b53",
       "sensitivity": "public",
       "audience": "external_reviewers"
     },
@@ -174,7 +174,7 @@
       "path": "suite-report-bundle.md",
       "media_type": "text/markdown",
       "size_bytes": 7217,
-      "sha256": "1dad1eee6ef90d2512a629a9da007d2feca6279e23a56d1cd2898075efc2aa28",
+      "sha256": "f257391db2c459b4379e755872f9bb34b2c9723408871ec21e18a8ed2de42b77",
       "sensitivity": "restricted",
       "audience": "authorized_reviewers"
     }

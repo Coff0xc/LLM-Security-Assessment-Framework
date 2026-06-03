@@ -232,6 +232,7 @@ def test_report_schema_files_define_required_contracts():
     run_metadata_properties = suite_config_properties["run_metadata"]["properties"]
     assert "generated_at" in run_metadata_properties
     assert "duration_seconds" in run_metadata_properties
+    assert "run_environment" in run_metadata_properties
     assert "model_serialization_files" in suite_config_properties
     assert "mcp_trust_policy_file" in suite_config_properties
     assert "mcp_trust_tiers" in suite_config_properties

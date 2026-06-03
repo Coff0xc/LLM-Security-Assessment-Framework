@@ -4847,6 +4847,7 @@ class SuiteRunMetadata(BaseModel):
     duration_seconds: Optional[float] = Field(default=None, ge=0.0)
     case_duration_seconds: Optional[float] = Field(default=None, ge=0.0)
     latency_ms: Optional[float] = Field(default=None, ge=0.0)
+    run_environment: Dict[str, str] = Field(default_factory=dict)
 
 
 class SuiteAcceptanceCriterion(BaseModel):
@@ -7809,7 +7810,11 @@ def run_suite(
         run_id=run_id,
         name=suite.name,
         model=suite.model,
-        run_environment=_build_run_environment(),
+        run_environment=(
+            dict(run_metadata.run_environment)
+            if run_metadata.run_environment
+            else _build_run_environment()
+        ),
         suite_config=suite.model_dump(),
         total_cases=total_cases,
         successful_cases=successful_cases,

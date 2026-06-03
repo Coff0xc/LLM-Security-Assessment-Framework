@@ -36,7 +36,7 @@ Expected results:
 `handoff.zip` SHA256:
 
 ```text
-ab902eb347eeab9a5251c7ed0103ac141c4cab5fdf66a6fe07c0c7031ffb4786
+3dcb3c453b403c058255cb76b481bf5fe15d3a73135d8f9d51202ef93ce00eb4
 ```
 
 ## Sensitivity / 敏感度

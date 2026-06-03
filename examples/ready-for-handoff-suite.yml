@@ -15,6 +15,12 @@ run_metadata:
   duration_seconds: 1.0
   case_duration_seconds: 1.0
   latency_ms: 1000.0
+  run_environment:
+    forgedan_version: "1.2.0"
+    python_version: "3.11.0"
+    python_implementation: CPython
+    platform: fixture-platform
+    os: fixture-os
 policy:
   max_attack_success_rate: 1.0
   max_prompt_findings: 0
