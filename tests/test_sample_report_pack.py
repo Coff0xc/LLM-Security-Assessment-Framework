@@ -72,6 +72,30 @@ def test_ready_for_handoff_sample_readme_matches_archive_hash_and_commands():
     ) in readme
 
 
+def test_ready_for_handoff_sample_readme_documents_handoff_checklist():
+    readme = (SAMPLE_PACK / "README.md").read_text(encoding="utf-8")
+    match = re.search(
+        r"## Handoff Checklist / 交接清单\s+(?P<section>.*?)\s+## Verification / 校验",
+        readme,
+        re.DOTALL,
+    )
+
+    assert match is not None
+    section = match.group("section")
+    assert "Open `suite-release-notes.md` first" in section
+    assert "`suite-report.md` or `suite-report.html`" in section
+    assert "`suite-evidence.csv`, `suite-case-matrix.csv`" in section
+    assert "`suite-qa-receipt.md`" in section
+    assert "handoff readiness is passed" in section
+    assert "Run `verify-bundle`, `validate-report`, and `verify-archive`" in section
+    assert "Compare the documented `handoff.zip` SHA256" in section
+    assert "`suite-public-bundle.md` and redacted artifacts" in section
+    assert (
+        "do not treat raw prompt, response, trace, or evidence artifacts as public"
+        in section
+    )
+
+
 def test_ready_for_handoff_sample_pack_can_be_rebuilt_byte_for_byte(
     tmp_path, monkeypatch
 ):
