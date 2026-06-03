@@ -20,6 +20,7 @@ from forgedan.adapters.base import ModelResponse
 from forgedan.cli import cli
 from forgedan.finding_taxonomy import TAXONOMY_VERSION, list_finding_taxonomy
 from forgedan.suite import (
+    _CROSS_ARTIFACT_CONSISTENCY_ARTIFACTS,
     SuiteComparison,
     archive_suite_bundle,
     build_suite_preflight_report,
@@ -6067,6 +6068,74 @@ cases:
         in error
         for error in verification["errors"]
     )
+
+
+def test_verify_suite_archive_checks_cross_artifact_consistency(tmp_path):
+    suite_path = tmp_path / "suite.yml"
+    suite_path.write_text(
+        """
+name: archive-cross-artifact-suite
+model: mock:test-model
+iterations: 1
+population: 3
+elite: 1
+cases:
+  - name: archive-cross-artifact-case
+    goal: test
+""",
+        encoding="utf-8",
+    )
+    result = run_suite(load_suite_config(suite_path))
+    paths = write_suite_artifacts(result, tmp_path / "out")
+    archive = archive_suite_bundle(paths["manifest_json"], tmp_path / "handoff.zip")
+    invalid_path = tmp_path / "handoff-cross-artifact.zip"
+
+    with zipfile.ZipFile(archive["archive"], "r") as source:
+        manifest = json.loads(source.read("suite-manifest.json").decode("utf-8"))
+        risk_register = json.loads(
+            source.read("suite-risk-register.json").decode("utf-8")
+        )
+        risk_register["run_id"] = "tampered-archive-run"
+        risk_bytes = json.dumps(risk_register, ensure_ascii=False, indent=2).encode(
+            "utf-8"
+        )
+        risk_artifact = next(
+            item
+            for item in manifest["artifacts"]
+            if item["path"] == "suite-risk-register.json"
+        )
+        risk_artifact["size_bytes"] = len(risk_bytes)
+        risk_artifact["sha256"] = hashlib.sha256(risk_bytes).hexdigest()
+        manifest_bytes = json.dumps(manifest, ensure_ascii=False, indent=2).encode(
+            "utf-8"
+        )
+
+        with zipfile.ZipFile(invalid_path, "w") as invalid_archive:
+            for member in source.infolist():
+                data = source.read(member.filename)
+                if member.filename == "suite-manifest.json":
+                    data = manifest_bytes
+                elif member.filename == "suite-risk-register.json":
+                    data = risk_bytes
+                invalid_archive.writestr(member.filename, data)
+
+    verification = verify_suite_archive(invalid_path)
+
+    checked_by_path = {item["path"]: item for item in verification["checked_artifacts"]}
+    assert checked_by_path["suite-risk-register.json"]["valid"] is True
+    assert verification["valid"] is False
+    expected_error = (
+        "cross-artifact run_id mismatch: "
+        "suite-risk-register.json run_id tampered-archive-run "
+        f"!= suite-result.json run_id {result.run_id}"
+    )
+    assert verification["cross_artifact_consistency"] == {
+        "valid": False,
+        "error_count": 1,
+        "errors": [expected_error],
+        "checked_artifacts": list(_CROSS_ARTIFACT_CONSISTENCY_ARTIFACTS),
+    }
+    assert expected_error in verification["errors"]
 
 
 def test_suite_archive_cli_supports_comparison_manifest(tmp_path):

@@ -19,6 +19,7 @@ import platform
 import random
 import re
 import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -3610,6 +3611,38 @@ def _archive_comparison_manifest_summary_errors(
     return errors
 
 
+def _archive_suite_cross_artifact_consistency_errors(
+    archive: zipfile.ZipFile,
+    names: Dict[str, str],
+    manifest_member: str,
+    manifest_payload: dict,
+) -> List[str]:
+    """Run bundle cross-artifact checks against suite members inside a ZIP."""
+    with tempfile.TemporaryDirectory(prefix="forgedan-archive-verify-") as temp_dir:
+        base_dir = Path(temp_dir)
+        manifest_target = base_dir / manifest_member
+        manifest_target.parent.mkdir(parents=True, exist_ok=True)
+        manifest_target.write_bytes(archive.read(names[manifest_member]))
+
+        for item in manifest_payload.get("artifacts", []):
+            if not isinstance(item, dict):
+                continue
+            relative_path = item.get("path")
+            if not isinstance(relative_path, str) or not relative_path:
+                continue
+            member_name = _archive_member_name(relative_path)
+            if (
+                not _is_safe_archive_member_name(member_name)
+                or member_name not in names
+            ):
+                continue
+            target = base_dir / member_name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read(names[member_name]))
+
+        return _bundle_cross_artifact_consistency_errors(base_dir)
+
+
 def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
     """Verify a ZIP archive produced from a suite report bundle manifest."""
     path = Path(archive_path)
@@ -3617,6 +3650,7 @@ def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
     checked_artifacts: List[dict] = []
     schema_validations: List[dict] = []
     manifest_schema = ""
+    cross_artifact_errors: List[str] = []
 
     try:
         with zipfile.ZipFile(path, "r") as archive:
@@ -3724,7 +3758,17 @@ def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
                         "archive artifact_count mismatch: expected "
                         f"{declared_count}, checked {len(checked_artifacts)}"
                     )
-                if manifest_schema == "suite-comparison-manifest":
+                if manifest_schema == "suite-manifest":
+                    cross_artifact_errors = (
+                        _archive_suite_cross_artifact_consistency_errors(
+                            archive,
+                            names,
+                            manifest_member,
+                            manifest_payload,
+                        )
+                    )
+                    errors.extend(cross_artifact_errors)
+                elif manifest_schema == "suite-comparison-manifest":
                     summary_errors = _archive_comparison_manifest_summary_errors(
                         archive,
                         names,
@@ -3745,6 +3789,16 @@ def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
         "checked_artifacts": checked_artifacts,
         "schema_validation_count": len(schema_validations),
         "schema_validations": schema_validations,
+        "cross_artifact_consistency": {
+            "valid": not cross_artifact_errors,
+            "error_count": len(cross_artifact_errors),
+            "errors": cross_artifact_errors,
+            "checked_artifacts": (
+                list(_CROSS_ARTIFACT_CONSISTENCY_ARTIFACTS)
+                if manifest_schema == "suite-manifest"
+                else []
+            ),
+        },
         "error_count": len(errors),
         "errors": errors,
     }

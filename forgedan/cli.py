@@ -437,7 +437,7 @@ def archive_command(manifest: Path, output: Optional[Path], as_json: bool):
 @click.argument("archive", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("--json", "as_json", is_flag=True, help="以 JSON 格式输出归档校验结果")
 def verify_archive_command(archive: Path, as_json: bool):
-    """校验 suite report ZIP archive 的 manifest 和 artifact checksums。"""
+    """校验 suite report ZIP archive 的 manifest、checksums、schema 和跨 artifact 一致性。"""
     from forgedan.suite import verify_suite_archive
 
     try:

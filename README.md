@@ -16,24 +16,33 @@
 
 **可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
 
-[English Full Guide](#overview) · [中文完整说明](#中文完整说明) · [简体中文独立版](README.zh-CN.md)
+[English Guide](#overview) · [中文完整指南](#中文完整说明) · [Standalone Chinese](README.zh-CN.md)
 
-[Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development)
+English: [Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development) · [Roadmap](#roadmap)
+
+中文：[快速开始](#快速开始) · [使用截图](#使用截图) · [报告工作流](#报告工作流) · [报告包组成](#报告包组成) · [开发与验证](#开发与验证) · [当前路线图](#当前路线图)
 
 </div>
 
 ---
 
-## Language Layout
+## Bilingual Format / 双语格式
 
-This README is formatted as a full bilingual document: the complete English
-guide appears first, followed by the complete Chinese guide in
-[中文完整说明](#中文完整说明). A standalone Chinese copy is also available at
-[README.zh-CN.md](README.zh-CN.md).
+This README is a complete bilingual guide. The English section appears first,
+then the Chinese section mirrors the project positioning, workflow, report
+artifacts, verification path, development commands, roadmap, and safety notes.
 
-本 README 采用全量双语格式：前半部分是完整英文说明，后半部分是
-[中文完整说明](#中文完整说明)。独立中文版本仍保留在
-[README.zh-CN.md](README.zh-CN.md)，便于单独阅读和转发。
+本 README 采用完整双语格式：前半部分是英文完整说明，后半部分是中文完整说明。
+中文部分同步覆盖项目定位、工作流、报告包、校验链路、开发命令、路线图和安全说明。
+独立中文版本仍保留在 [README.zh-CN.md](README.zh-CN.md)，便于单独阅读和转发。
+
+| Reader path | English | 中文 |
+|-------------|---------|------|
+| Main guide | Start at [Overview](#overview) | 从 [中文完整说明](#中文完整说明) 开始 |
+| Smoke path | [Quick Start](#quick-start) | [快速开始](#快速开始) |
+| Report delivery | [Report Workflow](#report-workflow) | [报告工作流](#报告工作流) |
+| Artifact inventory | [Report Pack Anatomy](#report-pack-anatomy) | [报告包组成](#报告包组成) |
+| Local verification | [Development](#development) | [开发与验证](#开发与验证) |
 
 ---
 
@@ -277,7 +286,7 @@ forgedan suite schemas --json                 # Export report artifact schema re
 forgedan suite validate-report suite-result.json # Validate a report artifact contract
 forgedan suite verify-bundle suite-manifest.json # Verify report pack checksums and schemas
 forgedan suite archive suite-manifest.json --output handoff.zip # Zip a verified report or comparison pack
-forgedan suite verify-archive handoff.zip # Verify an archived report pack
+forgedan suite verify-archive handoff.zip # Verify archive checksums, schemas, and suite cross-artifact consistency
 forgedan suite qa-report suite-manifest.json  # Write JSON/Markdown QA handoff receipt
 forgedan suite qa-report suite-manifest.json --strict-handoff # Fail when readiness is not passed
 forgedan report --input logs/attacks/          # Generate report
@@ -663,8 +672,9 @@ Use `forgedan suite archive <suite-manifest.json> --output handoff.zip` or
 after bundle verification to produce a single ZIP handoff artifact containing
 the manifest and declared report files. Use `forgedan suite verify-archive
 handoff.zip` after copying or sharing the archive to re-check the embedded
-manifest schema, archived JSON artifact schemas, and every archived member's
-size and SHA256.
+manifest schema, archived JSON artifact schemas, every archived member's size
+and SHA256, and suite report cross-artifact consistency for normal report
+archives.
 
 Use `forgedan suite taxonomy` for a readable taxonomy table with internal IDs
 and OWASP LLM mappings, or `forgedan suite taxonomy --json` when attaching the
@@ -943,8 +953,8 @@ npm run build                     # Production build → dist/
 - [x] Deterministic scanners for prompt injection, jailbreak framing, system prompt leakage, secrets/PII, Agent/MCP/tool policy risk, and model artifact signals
 - [x] Report pack generation with Markdown/HTML reports, redacted publication artifacts, evidence matrices, case matrices, risk registers, coverage summaries, release notes, and bundle indexes
 - [x] JSON Schema contracts, semantic artifact validation, manifest verification, cross-artifact consistency checks, QA receipts, and archive verification
+- [x] In-archive suite cross-artifact verification parity with directory-based `verify-bundle`
 - [x] CI gates for unit tests, preflight, smoke report pack validation, ready-for-handoff QA, selected flake8 rules, Black, and frontend build
-- [ ] Add optional in-archive cross-artifact verification parity with directory-based `verify-bundle`
 - [ ] Add more real-world Agent/MCP manifest fixtures to calibrate trust scoring and policy defaults
 - [ ] Add benchmark-style examples for HarmBench/JailbreakBench only where they improve report evidence quality
 - [ ] Add deeper model serialization analysis if the report scope requires more than lightweight static heuristics
@@ -994,6 +1004,10 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 ---
 
 ## 中文完整说明
+
+本节是主 README 的完整中文说明，覆盖项目定位、架构、截图、安装运行、报告工作流、CLI、报告包、Schema 校验、API、项目结构、开发验证、路线图、安全说明和许可证。
+
+[项目定位](#项目定位) · [架构概览](#架构概览) · [使用截图](#使用截图) · [快速开始](#快速开始) · [攻击方法](#攻击方法) · [模型适配器](#模型适配器) · [Web 扫描](#web-扫描) · [报告工作流](#报告工作流) · [报告包组成](#报告包组成) · [API 端点](#api-端点) · [开发与验证](#开发与验证)
 
 ### 项目定位
 
@@ -1068,6 +1082,16 @@ frontend/                 # Vue 3 SPA 仪表盘
 
 ![归档校验](docs/screenshots/archive-verification.png)
 
+### 文档导航
+
+| 文档 | 用途 |
+|------|------|
+| [docs/llm-security-landscape.md](docs/llm-security-landscape.md) | 同类项目扫描、差异化定位和后续优化优先级 |
+| [docs/lint-roadmap.md](docs/lint-roadmap.md) | 当前 CI lint 门禁、历史债务统计和更严格质量门禁推进路径 |
+| [README.zh-CN.md](README.zh-CN.md) | 独立中文说明，便于转发给中文评审人或报告交接方 |
+| [schemas/](schemas/) | 报告制品 JSON Schema 合约，用于机器校验与交付验收 |
+| [examples/](examples/) | 可运行 suite 样例、case fixture、MCP manifest 和模型制品输入样例 |
+
 ### 快速开始
 
 #### 前置要求
@@ -1126,6 +1150,43 @@ npm run dev
 
 后端默认在 `:5000`，前端默认在 `:5173`。
 
+### 攻击方法
+
+| 方法 | 类型 | 中文说明 | 论文 |
+|------|------|----------|------|
+| **FORGEDAN** | Evolutionary | 多层级字符/词/句变异，结合语义适应度和双 judge 机制 | [arXiv:2511.13548](https://arxiv.org/abs/2511.13548) |
+| **AutoDAN** | Evolutionary | 面向隐蔽越狱 prompt 的层次化遗传算法 | [ICLR 2024](https://arxiv.org/abs/2310.04451) |
+| **PAIR** | LLM-iterative | 通过 attacker-target LLM 迭代完成黑盒越狱 | [NeurIPS 2024](https://arxiv.org/abs/2310.08419) |
+| **GCG** | Gradient-free | 基于贪心坐标搜索的 adversarial suffix 生成 | [ICML 2023](https://arxiv.org/abs/2307.15043) |
+| **Crescendo** | Multi-turn | 从低风险内容逐步升级到高风险请求的多轮攻击 | [USENIX Security 2025](https://arxiv.org/abs/2404.01833) |
+| **TAP** | Tree search | Tree-of-thought 攻击搜索，带剪枝与多 LLM 协作 | [NeurIPS 2024](https://arxiv.org/abs/2312.02119) |
+
+### 模型适配器
+
+| Provider | 模型范围 | 配置示例 |
+|----------|----------|----------|
+| OpenAI | GPT-3.5、GPT-4、GPT-4o | `openai:gpt-4` |
+| Anthropic | Claude 3 Opus/Sonnet/Haiku | `anthropic:claude-3-opus` |
+| Google | Gemini Pro、Gemini Vision | `gemini:gemini-pro` |
+| DeepSeek | DeepSeek-Chat、DeepSeek-Coder | `deepseek:deepseek-chat` |
+| Zhipu / 智谱 | GLM-4、GLM-3 | `zhipu:glm-4` |
+| Qwen / 通义千问 | Qwen-Max、Qwen-Plus | `qwen:qwen-max` |
+| Moonshot / 月之暗面 | Kimi | `moonshot:moonshot-v1-8k` |
+| Yi / 零一万物 | Yi-Large、Yi-Medium | `yi:yi-large` |
+| Baichuan / 百川 | Baichuan-4、Baichuan-3 | `baichuan:baichuan-4` |
+| Ollama | 任意本地 Ollama 模型 | `ollama:llama2` |
+| vLLM | 高性能本地推理服务 | `vllm:model-name` |
+| HuggingFace | 任意 HuggingFace 模型 | `huggingface:model-name` |
+| Mock | 本地测试，无需 API key | `mock:test-model` |
+
+### Web 扫描
+
+| 模式 | 说明 | 适用场景 |
+|------|------|----------|
+| URL Crawler | 异步抓取页面标题、表单、链接和脚本 | 收集目标站点中的攻击素材与上下文 |
+| Security Scanner | 检查 XSS、SQLi、路径穿越、安全 Header 和 HTTP Method 暴露 | 传统 Web 漏洞评估 |
+| LLM Interaction Test | 使用网页内容触发间接 Prompt Injection，并结合进化式优化 | 评估 LLM 处理网页内容时的安全性 |
+
 ### 报告工作流
 
 1. **定义评估范围**：在 suite YAML 中配置 cases、导入证据源、报告元数据、策略门禁、覆盖率要求、验收准则、评审决策和风险登记默认值。
@@ -1133,7 +1194,7 @@ npm run dev
 3. **生成报告包**：使用 `forgedan suite run` 写出原始与脱敏 JSON/JSONL、Markdown/HTML 报告、CSV 矩阵、覆盖率、风险登记、发布说明和 manifest。
 4. **本地验证**：使用 `forgedan suite validate-report` 与 `forgedan suite verify-bundle` 校验 schema、hash、摘要计数、脱敏制品、Markdown/HTML sidecar 与跨制品身份。
 5. **准备交接**：使用 `forgedan suite qa-report --strict-handoff` 生成 QA 回执，记录 checklist、blocker、验收准则、Source Inventory、schema 校验和人工评审证据。
-6. **归档并复核**：使用 `forgedan suite archive` 和 `forgedan suite verify-archive` 生成单文件 ZIP，并在复制或分享后重新校验。普通报告包和历史对比报告都支持同一归档流程。
+6. **归档并复核**：使用 `forgedan suite archive` 和 `forgedan suite verify-archive` 生成单文件 ZIP，并在复制或分享后重新校验。普通报告包会在 ZIP 内重新做跨制品一致性校验，历史对比报告也支持同一归档流程。
 
 ### 常用 CLI
 
@@ -1153,6 +1214,21 @@ forgedan web
 ```
 
 更完整的 CLI 说明见英文版 [CLI Reference](#cli-reference)。
+
+### CLI 能力分组
+
+| 场景 | 关键命令 | 说明 |
+|------|----------|------|
+| 报告套件运行 | `forgedan suite run` | 从 YAML suite 生成完整报告包 |
+| 运行前预检 | `forgedan suite preflight` | 在消耗模型预算前检查报告元数据、验收条件、来源证明和策略门禁 |
+| 报告制品校验 | `forgedan suite validate-report` | 校验 JSON Schema，并复核 Source Inventory、usage、risk、coverage 和 Markdown/HTML 摘要 |
+| 目录包完整性 | `forgedan suite verify-bundle` | 校验 manifest、hash、schema、sidecar 和跨制品一致性 |
+| QA 交接 | `forgedan suite qa-report --strict-handoff` | 生成 JSON/Markdown QA 回执，并在交接条件不满足时失败 |
+| 单文件归档 | `forgedan suite archive` / `forgedan suite verify-archive` | 生成 ZIP，并在复制或分享后重新校验 hash、schema 和归档内跨制品一致性 |
+| 历史对比 | `forgedan suite compare` | 比较两个 suite result，输出 regression、policy-domain delta 和对比 manifest |
+| Taxonomy / Schema 导出 | `forgedan suite taxonomy` / `forgedan suite schemas` | 导出 finding taxonomy 和报告制品 schema references |
+| 攻击 Demo | `forgedan run --quick` | 使用 mock 或真实模型快速演示攻击流程 |
+| Web Dashboard | `forgedan web` + `npm run dev` | 启动 Flask API 与 Vue 3 前端 |
 
 ### 报告包组成
 
@@ -1189,6 +1265,83 @@ forgedan web
 
 `validate-report` 不只检查 JSON Schema，还会复算 Source Inventory、usage cost、risk register、coverage totals、comparison regression count、policy-domain delta、QA receipt readiness、manifest binding 和 Markdown/HTML sidecar 摘要，尽量避免手工改报告后出现机器结果与人工报告不一致。
 
+### API 端点
+
+后端使用 Flask Blueprint 暴露 REST API，适合把报告能力接入自动化脚本、内部评估平台或演示仪表盘。
+
+```bash
+# Attacks
+POST   /api/attacks/run
+GET    /api/attacks/{id}/status
+GET    /api/attacks/{id}/result
+POST   /api/attacks/{id}/stop
+
+# Models
+GET    /api/models/providers
+POST   /api/models/test
+
+# Web Scanning
+POST   /api/webscan/crawl
+POST   /api/webscan/scan
+POST   /api/webscan/llm-test
+
+# Reports
+POST   /api/reports/generate
+GET    /api/reports/{id}
+GET    /api/reports/{id}/download
+
+# Datasets
+GET    /api/datasets
+POST   /api/datasets/upload
+
+# Monitoring
+GET    /api/health
+GET    /api/metrics
+```
+
+### 项目结构
+
+```text
+LLM-Security-Assessment-Framework/
+├── forgedan/                  # Python package
+│   ├── api/                   # Flask Blueprint REST API
+│   ├── attacks/               # 6 种攻击算法与 registry
+│   ├── adapters/              # 18 类模型适配器
+│   ├── webscan/               # crawler / scanner / llm_tester
+│   ├── datasets/              # AdvBench 与自定义数据集管理
+│   ├── defense/               # 防御训练数据生成
+│   ├── distributed/           # 分布式 coordinator / worker
+│   ├── monitoring/            # Prometheus metrics 与 alerting
+│   ├── multimodal/            # Vision model attacks
+│   ├── web/                   # Legacy Flask web app
+│   ├── suite.py               # Suite runner、报告包、验证器、QA 回执、归档校验
+│   ├── scanners.py            # 确定性 prompt/response/tool/model scanner
+│   ├── scorers.py             # 确定性 suite scorer helper
+│   ├── finding_taxonomy.py    # finding taxonomy 与 OWASP LLM 映射
+│   ├── engine.py              # 进化算法引擎
+│   ├── mutator.py             # 15 种 mutation strategy
+│   ├── fitness.py             # 语义相似度 fitness
+│   ├── judge.py               # 双 judge 机制
+│   ├── config.py              # 配置管理
+│   ├── cli.py                 # CLI interface
+│   └── utils.py               # retry、cache、circuit breaker 等工具
+├── frontend/                  # Vue 3 SPA dashboard
+│   └── src/
+│       ├── views/             # 页面
+│       ├── components/        # 可复用组件
+│       ├── stores/            # Pinia state
+│       └── api/               # API client 与 WebSocket
+├── schemas/                   # 生成报告制品的 JSON Schema 合约
+├── examples/                  # suite、case、MCP 和 model fixture
+├── docs/                      # landscape scan、lint roadmap、metadata guidance
+├── tests/                     # pytest 测试
+├── monitoring/                # Prometheus/Grafana 配置
+├── reports/                   # 生成报告输出目录，默认不跟踪运行产物
+├── pyproject.toml             # Python package config
+├── .env.example               # 环境变量模板
+└── LICENSE                    # MIT License
+```
+
 ### 开发与验证
 
 ```bash
@@ -1218,8 +1371,8 @@ npm run build
 - [x] Prompt Injection、越狱框架、系统提示泄漏、敏感信息/PII、Agent/MCP/工具策略风险和模型制品信号扫描
 - [x] Markdown/HTML 报告、脱敏发布包、证据矩阵、case matrix、风险登记、覆盖率摘要、release notes 和 bundle index
 - [x] JSON Schema、语义校验、manifest verification、跨制品一致性、QA receipt 和 archive verification
+- [x] ZIP 归档内 suite 跨制品一致性校验，与目录版 `verify-bundle` 对齐
 - [x] CI 覆盖 unit tests、preflight、smoke report pack、ready-for-handoff QA、selected flake8、Black 和 frontend build
-- [ ] 补齐 archive 内部跨制品一致性校验，与目录版 `verify-bundle` 对齐
 - [ ] 增加更多真实 Agent/MCP manifest fixture，校准 trust score 和默认 policy
 - [ ] 仅在能提升报告证据质量时加入 HarmBench/JailbreakBench 示例
 - [ ] 在报告范围需要时补更深的 model serialization 分析
@@ -1237,6 +1390,16 @@ npm run build
   year={2025}
 }
 ```
+
+### 贡献
+
+欢迎提交改进。建议先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)，并尽量保持报告制品、Schema、测试和 README 同步更新。
+
+1. Fork 本仓库
+2. 创建功能分支，例如 `git checkout -b feature/report-pack-improvement`
+3. 提交改动，例如 `git commit -m "Improve report pack validation"`
+4. Push 到你的分支
+5. 创建 Pull Request，并说明报告产物、验证命令和剩余风险
 
 ### 安全说明
 
