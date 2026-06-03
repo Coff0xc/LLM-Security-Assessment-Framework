@@ -954,7 +954,7 @@ npm run build                     # Production build → dist/
 - [x] Report pack generation with Markdown/HTML reports, redacted publication artifacts, evidence matrices, case matrices, risk registers, coverage summaries, release notes, and bundle indexes
 - [x] JSON Schema contracts, semantic artifact validation, manifest verification, cross-artifact consistency checks, QA receipts, and archive verification
 - [x] In-archive suite cross-artifact verification parity with directory-based `verify-bundle`
-- [x] CI gates for unit tests, preflight, smoke report pack validation, ready-for-handoff QA, selected flake8 rules, Black, and frontend build
+- [x] CI gates for unit tests, preflight, smoke report pack validation, ready-for-handoff QA, handoff ZIP archive verification, selected flake8 rules, Black, and frontend build
 - [ ] Add more real-world Agent/MCP manifest fixtures to calibrate trust scoring and policy defaults
 - [ ] Add benchmark-style examples for HarmBench/JailbreakBench only where they improve report evidence quality
 - [ ] Add deeper model serialization analysis if the report scope requires more than lightweight static heuristics
@@ -1372,7 +1372,7 @@ npm run build
 - [x] Markdown/HTML 报告、脱敏发布包、证据矩阵、case matrix、风险登记、覆盖率摘要、release notes 和 bundle index
 - [x] JSON Schema、语义校验、manifest verification、跨制品一致性、QA receipt 和 archive verification
 - [x] ZIP 归档内 suite 跨制品一致性校验，与目录版 `verify-bundle` 对齐
-- [x] CI 覆盖 unit tests、preflight、smoke report pack、ready-for-handoff QA、selected flake8、Black 和 frontend build
+- [x] CI 覆盖 unit tests、preflight、smoke report pack、ready-for-handoff QA、handoff ZIP 归档校验、selected flake8、Black 和 frontend build
 - [ ] 增加更多真实 Agent/MCP manifest fixture，校准 trust score 和默认 policy
 - [ ] 仅在能提升报告证据质量时加入 HarmBench/JailbreakBench 示例
 - [ ] 在报告范围需要时补更深的 model serialization 分析

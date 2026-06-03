@@ -52,6 +52,8 @@ jobs:
         python -m forgedan.cli suite verify-bundle reports/suite-smoke/suite-manifest.json
         python -m forgedan.cli suite qa-report reports/suite-smoke/suite-manifest.json --output reports/suite-smoke/qa
         python -m forgedan.cli suite validate-report reports/suite-smoke/qa/suite-qa-receipt.json
+        python -m forgedan.cli suite archive reports/suite-smoke/suite-manifest.json --output reports/suite-smoke/handoff.zip
+        python -m forgedan.cli suite verify-archive reports/suite-smoke/handoff.zip
 
     - name: Validate ready-for-handoff report pack
       run: |
@@ -61,6 +63,8 @@ jobs:
         python -m forgedan.cli suite verify-bundle reports/suite-ready/suite-manifest.json
         python -m forgedan.cli suite qa-report reports/suite-ready/suite-manifest.json --output reports/suite-ready/qa --strict-handoff
         python -m forgedan.cli suite validate-report reports/suite-ready/qa/suite-qa-receipt.json
+        python -m forgedan.cli suite archive reports/suite-ready/suite-manifest.json --output reports/suite-ready/handoff.zip
+        python -m forgedan.cli suite verify-archive reports/suite-ready/handoff.zip
 
     - name: Upload suite report packs
       if: always()
