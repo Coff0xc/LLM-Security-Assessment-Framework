@@ -3396,6 +3396,21 @@ def _validate_local_manifest_for_archive(manifest: Path, schema_name: str) -> di
     return validate_report_artifact(manifest, schema_name=schema_name)
 
 
+def _archive_supplemental_handoff_artifacts(
+    manifest: Path, schema_name: str
+) -> List[Path]:
+    if schema_name != "suite-manifest":
+        return []
+    return [
+        path
+        for path in (
+            manifest.parent / "suite-qa-receipt.json",
+            manifest.parent / "suite-qa-receipt.md",
+        )
+        if path.is_file()
+    ]
+
+
 def archive_report_bundle(
     manifest_path: Union[str, Path],
     output_path: Optional[Union[str, Path]] = None,
@@ -3426,6 +3441,10 @@ def archive_report_bundle(
     archive_path.parent.mkdir(parents=True, exist_ok=True)
     base_dir = manifest.parent
     archived_members = [manifest.name]
+    supplemental_artifacts = _archive_supplemental_handoff_artifacts(
+        manifest,
+        schema_name,
+    )
     with zipfile.ZipFile(
         archive_path,
         "w",
@@ -3444,14 +3463,23 @@ def archive_report_bundle(
             artifact_path = base_dir / relative_path
             archive.write(artifact_path, member_name)
             archived_members.append(member_name)
+        for supplemental_path in supplemental_artifacts:
+            member_name = _archive_member_name(supplemental_path.name)
+            archive.write(supplemental_path, member_name)
+            archived_members.append(member_name)
 
     archive_bytes = archive_path.read_bytes()
+    manifest_artifacts = manifest_payload.get("artifacts", [])
+    if not isinstance(manifest_artifacts, list):
+        manifest_artifacts = []
     return {
         "valid": True,
         "archive": str(archive_path),
         "manifest": str(manifest),
         "manifest_schema": schema_name,
         "artifact_count": len(archived_members) - 1,
+        "manifest_artifact_count": len(manifest_artifacts),
+        "supplemental_artifact_count": len(supplemental_artifacts),
         "member_count": len(archived_members),
         "members": archived_members,
         "size_bytes": len(archive_bytes),
@@ -3507,6 +3535,42 @@ def _validate_archive_json_artifact(
         "error_count": len(errors),
         "errors": errors,
     }
+
+
+def _archive_supplemental_member_check(
+    archive: zipfile.ZipFile,
+    names: Dict[str, str],
+    member_name: str,
+    schema_reference: Optional[dict] = None,
+) -> dict:
+    check = {
+        "path": member_name,
+        "exists": member_name in names,
+        "size_bytes": 0,
+        "sha256": "",
+        "valid": False,
+        "errors": [],
+        "supplemental": True,
+    }
+    if member_name not in names:
+        check["errors"].append("missing archive member")
+        return check
+    data = archive.read(names[member_name])
+    check["size_bytes"] = len(data)
+    check["sha256"] = hashlib.sha256(data).hexdigest()
+    if schema_reference is not None:
+        validation = _validate_archive_json_artifact(
+            archive,
+            names[member_name],
+            schema_reference,
+        )
+        validation["artifact"] = member_name
+        check["schema_validation"] = validation
+        check["errors"].extend(
+            f"{validation['schema']} schema: {error}" for error in validation["errors"]
+        )
+    check["valid"] = not check["errors"]
+    return check
 
 
 def _archive_manifest_candidates(names: Dict[str, str]) -> List[str]:
@@ -3660,11 +3724,55 @@ def _archive_suite_cross_artifact_consistency_errors(
         return _bundle_cross_artifact_consistency_errors(base_dir)
 
 
+def _archive_qa_receipt_consistency_errors(
+    archive: zipfile.ZipFile,
+    names: Dict[str, str],
+    manifest_member: str,
+    manifest_payload: dict,
+) -> List[str]:
+    if "suite-qa-receipt.json" not in names:
+        return []
+    with tempfile.TemporaryDirectory(prefix="forgedan-archive-qa-verify-") as temp_dir:
+        base_dir = Path(temp_dir)
+        manifest_target = base_dir / manifest_member
+        manifest_target.parent.mkdir(parents=True, exist_ok=True)
+        manifest_target.write_bytes(archive.read(names[manifest_member]))
+        receipt_target = base_dir / "suite-qa-receipt.json"
+        receipt_target.write_bytes(archive.read(names["suite-qa-receipt.json"]))
+        if "suite-qa-receipt.md" in names:
+            (base_dir / "suite-qa-receipt.md").write_bytes(
+                archive.read(names["suite-qa-receipt.md"])
+            )
+
+        for item in manifest_payload.get("artifacts", []):
+            if not isinstance(item, dict):
+                continue
+            relative_path = item.get("path")
+            if not isinstance(relative_path, str) or not relative_path:
+                continue
+            member_name = _archive_member_name(relative_path)
+            if (
+                not _is_safe_archive_member_name(member_name)
+                or member_name not in names
+            ):
+                continue
+            target = base_dir / member_name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read(names[member_name]))
+
+        validation = validate_report_artifact(
+            receipt_target,
+            schema_name="suite-qa-receipt",
+        )
+    return [f"archive QA receipt mismatch: {error}" for error in validation["errors"]]
+
+
 def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
     """Verify a ZIP archive produced from a suite report bundle manifest."""
     path = Path(archive_path)
     errors: List[str] = []
     checked_artifacts: List[dict] = []
+    supplemental_artifacts: List[dict] = []
     schema_validations: List[dict] = []
     manifest_schema = ""
     cross_artifact_errors: List[str] = []
@@ -3785,6 +3893,35 @@ def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
                         )
                     )
                     errors.extend(cross_artifact_errors)
+                    for supplemental_name, schema_reference in (
+                        (
+                            "suite-qa-receipt.json",
+                            _schema_reference_for_name("suite-qa-receipt"),
+                        ),
+                        ("suite-qa-receipt.md", None),
+                    ):
+                        if supplemental_name not in names:
+                            continue
+                        check = _archive_supplemental_member_check(
+                            archive,
+                            names,
+                            supplemental_name,
+                            schema_reference,
+                        )
+                        supplemental_artifacts.append(check)
+                        errors.extend(
+                            f"{supplemental_name}: {error}" for error in check["errors"]
+                        )
+                        if "schema_validation" in check:
+                            schema_validations.append(check["schema_validation"])
+                    errors.extend(
+                        _archive_qa_receipt_consistency_errors(
+                            archive,
+                            names,
+                            manifest_member,
+                            manifest_payload,
+                        )
+                    )
                 elif manifest_schema == "suite-comparison-manifest":
                     summary_errors = _archive_comparison_manifest_summary_errors(
                         archive,
@@ -3804,6 +3941,8 @@ def verify_suite_archive(archive_path: Union[str, Path]) -> dict:
         "manifest_schema": manifest_schema,
         "artifact_count": len(checked_artifacts),
         "checked_artifacts": checked_artifacts,
+        "supplemental_artifact_count": len(supplemental_artifacts),
+        "supplemental_artifacts": supplemental_artifacts,
         "schema_validation_count": len(schema_validations),
         "schema_validations": schema_validations,
         "cross_artifact_consistency": {

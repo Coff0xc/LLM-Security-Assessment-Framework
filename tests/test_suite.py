@@ -6013,6 +6013,65 @@ cases:
     assert "Schema validations: 7" in verification_result.output
 
 
+def test_suite_archive_includes_qa_receipt_sidecars_when_present(tmp_path):
+    suite = load_suite_config(Path("examples/ready-for-handoff-suite.yml"))
+    result = run_suite(suite)
+    paths = write_suite_artifacts(result, tmp_path / "out")
+    write_suite_qa_receipt(paths["manifest_json"], tmp_path / "out")
+    archive_path = tmp_path / "handoff-with-qa.zip"
+
+    archive = archive_suite_bundle(paths["manifest_json"], archive_path)
+    verification = verify_suite_archive(archive_path)
+
+    assert archive["artifact_count"] == 22
+    assert archive["manifest_artifact_count"] == 20
+    assert archive["supplemental_artifact_count"] == 2
+    assert archive["member_count"] == 23
+    assert "suite-qa-receipt.json" in archive["members"]
+    assert "suite-qa-receipt.md" in archive["members"]
+    assert verification["valid"] is True
+    assert verification["artifact_count"] == 20
+    assert verification["supplemental_artifact_count"] == 2
+    assert verification["schema_validation_count"] == 8
+    supplemental_by_path = {
+        item["path"]: item for item in verification["supplemental_artifacts"]
+    }
+    assert supplemental_by_path["suite-qa-receipt.json"]["valid"] is True
+    assert supplemental_by_path["suite-qa-receipt.md"]["valid"] is True
+
+
+def test_verify_suite_archive_checks_qa_receipt_consistency(tmp_path):
+    suite = load_suite_config(Path("examples/ready-for-handoff-suite.yml"))
+    result = run_suite(suite)
+    paths = write_suite_artifacts(result, tmp_path / "out")
+    write_suite_qa_receipt(paths["manifest_json"], tmp_path / "out")
+    archive = archive_suite_bundle(paths["manifest_json"], tmp_path / "handoff.zip")
+    invalid_path = tmp_path / "handoff-invalid-qa.zip"
+
+    with zipfile.ZipFile(archive["archive"], "r") as source:
+        receipt = json.loads(source.read("suite-qa-receipt.json").decode("utf-8"))
+        receipt["handoff_readiness"]["status"] = "failed"
+        receipt_bytes = json.dumps(receipt, ensure_ascii=False, indent=2).encode(
+            "utf-8"
+        )
+        with zipfile.ZipFile(invalid_path, "w") as invalid_archive:
+            for member in source.infolist():
+                data = source.read(member.filename)
+                if member.filename == "suite-qa-receipt.json":
+                    data = receipt_bytes
+                invalid_archive.writestr(member.filename, data)
+
+    verification = verify_suite_archive(invalid_path)
+
+    assert verification["valid"] is False
+    assert verification["supplemental_artifact_count"] == 2
+    assert any(
+        "archive QA receipt mismatch: "
+        "$.handoff_readiness.status: expected passed, got failed" in error
+        for error in verification["errors"]
+    )
+
+
 def test_verify_suite_archive_rejects_tampered_member(tmp_path):
     suite_path = tmp_path / "suite.yml"
     suite_path.write_text(

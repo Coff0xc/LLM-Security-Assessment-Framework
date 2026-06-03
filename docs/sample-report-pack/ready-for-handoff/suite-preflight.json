@@ -1,0 +1,115 @@
+{
+  "schema_version": "suite-preflight.v1",
+  "generated_at": "2026-06-03T06:47:41.046821Z",
+  "suite": "ready-for-handoff-suite",
+  "model": "mock:test-model",
+  "case_count": 1,
+  "status": "passed",
+  "ready_for_report": true,
+  "score": 1.0,
+  "summary": {
+    "passed": 10,
+    "review_required": 0,
+    "failed": 0,
+    "not_applicable": 2
+  },
+  "blockers": [],
+  "checks": [
+    {
+      "id": "report-metadata",
+      "title": "Formal report metadata is complete",
+      "status": "passed",
+      "severity": "recommended",
+      "evidence": "assessment_id=LLM-HANDOFF-001; reviewers=1",
+      "action": "No action required."
+    },
+    {
+      "id": "acceptance-criteria",
+      "title": "Report handoff acceptance criteria are recorded",
+      "status": "passed",
+      "severity": "required",
+      "evidence": "criteria=3; status=passed",
+      "action": "No action required."
+    },
+    {
+      "id": "risk-register-defaults",
+      "title": "Risk register owner and due-date defaults are set",
+      "status": "passed",
+      "severity": "recommended",
+      "evidence": "owner=Risk Owner; due_date=2026-06-15; status=open",
+      "action": "No action required."
+    },
+    {
+      "id": "policy-gates",
+      "title": "Suite has explicit report gating policy",
+      "status": "passed",
+      "severity": "recommended",
+      "evidence": "configured policy gates=5",
+      "action": "No action required."
+    },
+    {
+      "id": "case-coverage",
+      "title": "Cases are named, categorized, and aligned to required categories",
+      "status": "passed",
+      "severity": "required",
+      "evidence": "cases=1; categories=baseline",
+      "action": "No action required."
+    },
+    {
+      "id": "scorer-definitions",
+      "title": "Configured scorers resolve before the suite run",
+      "status": "passed",
+      "severity": "required",
+      "evidence": "scorers=target_prefix, refusal, response_safety",
+      "action": "No action required."
+    },
+    {
+      "id": "deterministic-replay",
+      "title": "Suite has deterministic replay controls",
+      "status": "passed",
+      "severity": "recommended",
+      "evidence": "random_seed=7; response_cache_file=not required",
+      "action": "No action required."
+    },
+    {
+      "id": "usage-pricing",
+      "title": "Provider usage pricing is reproducible when cost is in scope",
+      "status": "passed",
+      "severity": "recommended",
+      "evidence": "mock/fake model; provider cost estimate not required",
+      "action": "No action required."
+    },
+    {
+      "id": "source-inventory",
+      "title": "Imported source files have report provenance",
+      "status": "passed",
+      "severity": "required",
+      "evidence": "external_sources=0; inventory_entries=0",
+      "action": "No action required."
+    },
+    {
+      "id": "mcp-trust-policy",
+      "title": "MCP trust policy is explicit when MCP manifests are imported",
+      "status": "not_applicable",
+      "severity": "recommended",
+      "evidence": "no mcp_manifest_file configured",
+      "action": "No action required."
+    },
+    {
+      "id": "model-serialization-scope",
+      "title": "Model serialization scanning scope is acknowledged",
+      "status": "not_applicable",
+      "severity": "recommended",
+      "evidence": "no model_serialization_files configured",
+      "action": "No action required."
+    },
+    {
+      "id": "review-decisions",
+      "title": "Reviewer decisions are complete when exceptions exist",
+      "status": "passed",
+      "severity": "recommended",
+      "evidence": "decisions=0",
+      "action": "No action required."
+    }
+  ]
+}

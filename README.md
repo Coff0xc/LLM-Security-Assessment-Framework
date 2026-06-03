@@ -9,43 +9,48 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Paper](https://img.shields.io/badge/arXiv-2511.13548-b31b1b.svg)](https://arxiv.org/abs/2511.13548)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Tests](https://img.shields.io/badge/tests-259%20passed%20%2F%204%20skipped-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-261%20passed%20%2F%204%20skipped-brightgreen.svg)]()
 [![Report Pack](https://img.shields.io/badge/report%20pack-schema%20verified-2ea44f.svg)]()
 
 **Reproducible suites | Evidence-rich report packs | QA receipts | Archive verification**
 
 **可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
 
-[English Guide](#overview) · [完整中文镜像](#中文完整说明) · [Standalone Chinese / 独立中文版](README.zh-CN.md)
+[English Complete Guide](#english-complete-guide) · [中文完整镜像](#中文完整说明) · [Standalone Chinese / 独立中文版](README.zh-CN.md)
 
-English: [Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development) · [Roadmap](#roadmap)
+English: [Overview](#overview) · [Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development) · [Roadmap](#roadmap)
 
-中文：[快速开始](#快速开始) · [使用截图](#使用截图) · [报告工作流](#报告工作流) · [报告包组成](#报告包组成) · [开发与验证](#开发与验证) · [当前路线图](#当前路线图)
+中文：[项目定位](#项目定位) · [快速开始](#快速开始) · [使用截图](#使用截图) · [报告工作流](#报告工作流) · [报告包组成](#报告包组成) · [开发与验证](#开发与验证) · [当前路线图](#当前路线图)
 
 </div>
 
 ---
 
-## Bilingual Reading Map / 双语阅读地图
+## README Format / README 格式
 
-This README is maintained as a complete English guide with a complete Chinese
-mirror in the same file. The two language paths cover the same project
+This README is intentionally maintained as **two complete language tracks**:
+the English complete guide first, followed by a full Chinese mirror. The
+Chinese section is not a short translation; it covers the same project
 positioning, screenshots, smoke path, report workflow, artifact inventory,
 verification gates, development commands, roadmap, safety notes, and license.
 
-本 README 是“英文完整说明 + 中文完整镜像”的双语格式。两条阅读路径覆盖同一套
-项目定位、使用截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、
-路线图、安全说明和许可证。独立中文版本保留在
-[README.zh-CN.md](README.zh-CN.md)，方便中文评审人或报告交接方单独转发。
+本 README 按 **English Complete Guide + 中文完整镜像** 维护。中文部分不是
+摘要版，而是覆盖同一套项目定位、使用截图、快速 smoke path、报告工作流、制品清单、
+校验门禁、开发命令、路线图、安全说明和许可证。独立中文版本保留在
+[README.zh-CN.md](README.zh-CN.md)，便于中文评审人或报告交接方单独转发。
 
-| Need | English path | 中文路径 |
-|------|--------------|----------|
-| Understand the project position | [Overview](#overview) | [中文完整说明](#中文完整说明) |
-| Run the report smoke path | [Quick Start](#quick-start) | [快速开始](#快速开始) |
-| Inspect screenshots | [Screenshots](#screenshots) | [使用截图](#使用截图) |
-| Review the handoff workflow | [Report Workflow](#report-workflow) | [报告工作流](#报告工作流) |
-| Check report artifacts | [Report Pack Anatomy](#report-pack-anatomy) | [报告包组成](#报告包组成) |
-| Verify locally before push/handoff | [Development](#development) | [开发与验证](#开发与验证) |
+| Content | English complete guide | 中文完整镜像 |
+|---------|------------------------|--------------|
+| Positioning and scope | [Overview](#overview) | [项目定位](#项目定位) |
+| Capabilities | [Key Capabilities](#key-capabilities) | [核心能力](#核心能力) |
+| Architecture | [Architecture](#architecture) | [架构概览](#架构概览) |
+| Screenshots and rendered sample | [Screenshots](#screenshots) | [使用截图](#使用截图) |
+| Install and smoke path | [Quick Start](#quick-start) | [快速开始](#快速开始) |
+| Handoff flow | [Report Workflow](#report-workflow) | [报告工作流](#报告工作流) |
+| Artifact inventory | [Report Pack Anatomy](#report-pack-anatomy) | [报告包组成](#报告包组成) |
+| Schema and consistency gates | [JSON Schema and Verification](#json-schema-and-verification) | [JSON Schema 与验证](#json-schema-与验证) |
+| API and project layout | [API Endpoints](#api-endpoints) / [Project Structure](#project-structure) | [API 端点](#api-端点) / [项目结构](#项目结构) |
+| Development and roadmap | [Development](#development) / [Roadmap](#roadmap) | [开发与验证](#开发与验证) / [当前路线图](#当前路线图) |
 
 ## Report Delivery Snapshot / 报告交付速览
 
@@ -55,8 +60,14 @@ verification gates, development commands, roadmap, safety notes, and license.
 | Primary smoke path | `preflight` -> `suite run` -> `validate-report` -> `verify-bundle` -> `qa-report --strict-handoff` -> `archive` -> `verify-archive`. | 推荐 smoke path：预检、生成报告包、校验制品、验证目录包、生成严格 QA 回执、打包 ZIP、交付后复核归档。 |
 | Reviewer evidence | Markdown/HTML reports, evidence CSVs, case matrix, coverage summary, risk register, release notes, QA receipt, manifest. | 面向评审的证据包括 Markdown/HTML 报告、证据矩阵、case matrix、覆盖率摘要、风险登记、发布说明、QA 回执和 manifest。 |
 | Handoff protection | Generated release notes and the full bundle index include the archive handoff commands, and `verify-bundle` checks those lines. | 生成的发布说明和完整 bundle index 会写入归档交接命令，并由 `verify-bundle` 回查，避免交接指南被手工改坏。 |
+| Rendered sample | [Ready-for-handoff sample pack](docs/sample-report-pack/ready-for-handoff/README.md) includes a report, QA receipt, manifest, and verified ZIP archive. | [可交付样例包](docs/sample-report-pack/ready-for-handoff/README.md) 已包含报告、QA 回执、manifest 和已校验 ZIP 归档。 |
 
 ---
+
+## English Complete Guide
+
+This is the full English README track. It is mirrored later in
+[中文完整说明](#中文完整说明) for Chinese reviewers and report handoff recipients.
 
 ## Overview
 
@@ -123,6 +134,9 @@ frontend/                 # Vue 3 SPA dashboard
 
 The screenshots below are generated from `examples/ready-for-handoff-suite.yml`
 and show the repository's current report-delivery workflow.
+
+The full rendered sample lives in
+[docs/sample-report-pack/ready-for-handoff](docs/sample-report-pack/ready-for-handoff/README.md).
 
 ### Report Pack Overview
 
@@ -214,6 +228,7 @@ packages the deliverable into a ZIP that can be verified after handoff.
 - [LLM Security Assessment Landscape](docs/llm-security-landscape.md) — competitor scan and optimization priorities.
 - [Staged Lint Roadmap](docs/lint-roadmap.md) — current CI lint gate, measured
   lint debt, and promotion plan for stricter quality gates.
+- [Ready-for-Handoff Sample Report Pack](docs/sample-report-pack/ready-for-handoff/README.md) — rendered mock report pack with QA receipt and a verified handoff ZIP.
 
 ### Attack Methods
 
@@ -682,11 +697,13 @@ report pack.
 Use `forgedan suite archive <suite-manifest.json> --output handoff.zip` or
 `forgedan suite archive <comparison-manifest.json> --output comparison.zip`
 after bundle verification to produce a single ZIP handoff artifact containing
-the manifest and declared report files. Use `forgedan suite verify-archive
-handoff.zip` after copying or sharing the archive to re-check the embedded
-manifest schema, archived JSON artifact schemas, every archived member's size
-and SHA256, and suite report cross-artifact consistency for normal report
-archives.
+the manifest and declared report files. For suite report packs, the archive
+also includes same-directory `suite-qa-receipt.json` and `suite-qa-receipt.md`
+sidecars when they exist. Use `forgedan suite verify-archive handoff.zip` after
+copying or sharing the archive to re-check the embedded manifest schema,
+archived JSON artifact schemas, QA receipt schema/sidecar consistency, every
+archived member's size and SHA256, and suite report cross-artifact consistency
+for normal report archives.
 
 Use `forgedan suite taxonomy` for a readable taxonomy table with internal IDs
 and OWASP LLM mappings, or `forgedan suite taxonomy --json` when attaching the
@@ -872,7 +889,7 @@ screen. A normal suite run can produce:
 | `suite-coverage.json` / `suite-coverage.csv` | Coverage summary by case category, policy domain, taxonomy category, and OWASP LLM category. |
 | `suite-release-notes.md` / `suite-report-bundle.md` | Compact handoff notes, verification commands, and artifact index for reviewers. |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | Handoff receipt with schema, checksum, cross-artifact, acceptance, and readiness checks. |
-| `handoff.zip` | Single-file archive that can be verified after copying or sharing. |
+| `handoff.zip` | Single-file archive that can be verified after copying or sharing; suite archives include QA receipt sidecars when present. |
 
 ---
 
@@ -972,7 +989,7 @@ npm run build                     # Production build → dist/
 - [ ] Add more real-world Agent/MCP manifest fixtures to calibrate trust scoring and policy defaults
 - [ ] Add benchmark-style examples for HarmBench/JailbreakBench only where they improve report evidence quality
 - [ ] Add deeper model serialization analysis if the report scope requires more than lightweight static heuristics
-- [ ] Publish rendered sample report packs for reviewers who want to inspect output before running the CLI
+- [x] Publish a rendered ready-for-handoff sample report pack for reviewers who want to inspect output before running the CLI
 
 ---
 
@@ -1084,6 +1101,8 @@ frontend/                 # Vue 3 SPA 仪表盘
 
 下面的截图来自 `examples/ready-for-handoff-suite.yml` 生成的真实报告交付链路，展示当前项目最核心的报告包、QA 回执和归档校验能力。
 
+完整可渲染样例包见 [docs/sample-report-pack/ready-for-handoff](docs/sample-report-pack/ready-for-handoff/README.md)。
+
 #### 报告包总览
 
 ![报告包总览](docs/screenshots/report-overview.png)
@@ -1102,6 +1121,7 @@ frontend/                 # Vue 3 SPA 仪表盘
 |------|------|
 | [docs/llm-security-landscape.md](docs/llm-security-landscape.md) | 同类项目扫描、差异化定位和后续优化优先级 |
 | [docs/lint-roadmap.md](docs/lint-roadmap.md) | 当前 CI lint 门禁、历史债务统计和更严格质量门禁推进路径 |
+| [docs/sample-report-pack/ready-for-handoff/](docs/sample-report-pack/ready-for-handoff/README.md) | 可直接查看的 mock 样例报告包，包含 QA 回执和已校验 ZIP |
 | [README.zh-CN.md](README.zh-CN.md) | 独立中文说明，便于转发给中文评审人或报告交接方 |
 | [schemas/](schemas/) | 报告制品 JSON Schema 合约，用于机器校验与交付验收 |
 | [examples/](examples/) | 可运行 suite 样例、case fixture、MCP manifest 和模型制品输入样例 |
@@ -1260,7 +1280,7 @@ forgedan web
 | 脱敏 report/result/cases | 外部评审人 | 低敏发布包，隐藏原始 prompt、response 和 evidence |
 | `suite-manifest.json` | 评估团队 | 含大小、SHA256、schema references、敏感度、受众分类和验收状态的完整性清单 |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | 评估负责人 | 交接回执，覆盖 manifest、schema、hash、跨制品一致性、预检、验收、risk owner 和限制项 |
-| `handoff.zip` | 交付接收方 | 可在复制或分享后用 `verify-archive` 重新校验的单文件交付包 |
+| `handoff.zip` | 交付接收方 | 可在复制或分享后用 `verify-archive` 重新校验的单文件交付包；suite 归档会在同目录存在 QA 回执时一并带上 |
 
 ### JSON Schema 与验证
 
@@ -1390,7 +1410,7 @@ npm run build
 - [ ] 增加更多真实 Agent/MCP manifest fixture，校准 trust score 和默认 policy
 - [ ] 仅在能提升报告证据质量时加入 HarmBench/JailbreakBench 示例
 - [ ] 在报告范围需要时补更深的 model serialization 分析
-- [ ] 发布可渲染 sample report pack，方便评审人在运行 CLI 前直接查看输出
+- [x] 发布可渲染 ready-for-handoff 样例报告包，方便评审人在运行 CLI 前直接查看输出
 
 ### 引用
 

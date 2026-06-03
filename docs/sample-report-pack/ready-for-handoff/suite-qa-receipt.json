@@ -1,0 +1,511 @@
+{
+  "schema_version": "suite-qa-receipt.v1",
+  "generated_at": "2026-06-03T06:47:51.895676Z",
+  "manifest": "docs\\sample-report-pack\\ready-for-handoff\\suite-manifest.json",
+  "manifest_size_bytes": 8666,
+  "manifest_sha256": "faff440ce74440b6f4c33e3ce37339459cea3e4f8b92e68edc29487cf3541082",
+  "run_id": "cc90e3cf-040f-4366-9f08-5e9c1df63ca0",
+  "suite": "ready-for-handoff-suite",
+  "model": "mock:test-model",
+  "run_environment": {
+    "forgedan_version": "1.2.0",
+    "python_version": "3.14.5",
+    "python_implementation": "CPython",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "os": "Windows"
+  },
+  "status": "passed",
+  "valid": true,
+  "artifact_count": 20,
+  "schema_validation_count": 7,
+  "error_count": 0,
+  "errors": [],
+  "acceptance": {
+    "manifest_valid": true,
+    "artifacts_valid": true,
+    "schemas_valid": true,
+    "report_acceptance_status": "passed",
+    "report_acceptance_criteria": 3,
+    "ready_for_handoff": true
+  },
+  "cross_artifact_consistency": {
+    "valid": true,
+    "error_count": 0,
+    "errors": [],
+    "checked_artifacts": [
+      "suite-result.json",
+      "suite-report.md",
+      "suite-report.html",
+      "suite-report-redacted.md",
+      "suite-report-redacted.html",
+      "suite-cases.jsonl",
+      "suite-evidence.csv",
+      "suite-case-matrix.csv",
+      "suite-config.json",
+      "suite-preflight.json",
+      "suite-preflight.md",
+      "suite-risk-register.json",
+      "suite-risk-register.csv",
+      "suite-coverage.json",
+      "suite-coverage.csv",
+      "suite-release-notes.md",
+      "suite-report-bundle.md",
+      "suite-public-bundle.md",
+      "suite-result-redacted.json",
+      "suite-cases-redacted.jsonl"
+    ]
+  },
+  "handoff_readiness": {
+    "status": "passed",
+    "score": 1.0,
+    "required_items": 16,
+    "passed": 16,
+    "failed": 0,
+    "review_required": 0,
+    "blockers": []
+  },
+  "handoff_checklist": [
+    {
+      "id": "manifest-verified",
+      "title": "Integrity manifest verified",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-manifest.json schema validation passed",
+      "action": "Attach the manifest and keep it with the report pack."
+    },
+    {
+      "id": "artifact-integrity",
+      "title": "Artifact checksums verified",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "20 artifacts checked for existence, size, and SHA256",
+      "action": "Re-run verify-bundle after copying or archiving the pack."
+    },
+    {
+      "id": "schema-contracts",
+      "title": "Schema contracts validated",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-config, suite-coverage, suite-manifest, suite-preflight, suite-result, suite-risk-register",
+      "action": "Validate JSON artifacts before reviewer handoff."
+    },
+    {
+      "id": "cross-artifact-consistency",
+      "title": "Cross-artifact consistency verified",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "checked=suite-result.json, suite-report.md, suite-report.html, suite-report-redacted.md, suite-report-redacted.html, suite-cases.jsonl, suite-evidence.csv, suite-case-matrix.csv, suite-config.json, suite-preflight.json, suite-preflight.md, suite-risk-register.json, suite-risk-register.csv, suite-coverage.json, suite-coverage.csv, suite-release-notes.md, suite-report-bundle.md, suite-public-bundle.md, suite-result-redacted.json, suite-cases-redacted.jsonl; errors=0",
+      "action": "Resolve mismatched run IDs or report counts before handoff."
+    },
+    {
+      "id": "release-notes",
+      "title": "Release notes reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-release-notes.md",
+      "action": "Review suite-release-notes.md before final report sign-off."
+    },
+    {
+      "id": "preflight-readiness",
+      "title": "Suite preflight readiness reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-preflight.json status=passed; score=1.0000; blockers=None; artifacts=suite-preflight.json, suite-preflight.md",
+      "action": "Keep suite-preflight.json and suite-preflight.md with the report pack."
+    },
+    {
+      "id": "source-inventory",
+      "title": "Imported source inventory reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "sources=0; generated_cases=0; total_size_bytes=0",
+      "action": "Review imported source paths, SHA256 values, and generated case counts before sign-off."
+    },
+    {
+      "id": "coverage-review",
+      "title": "Coverage artifacts reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-coverage.json, suite-coverage.csv",
+      "action": "Review case-category, policy-domain, OWASP LLM, and coverage-gap summaries before sign-off."
+    },
+    {
+      "id": "redacted-publication-pack",
+      "title": "Redacted publication pack present",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-result-redacted.json, suite-cases-redacted.jsonl, suite-report-redacted.html, suite-report-redacted.md, suite-public-bundle.md",
+      "action": "Use the redacted/public artifacts for lower-sensitivity sharing."
+    },
+    {
+      "id": "raw-artifact-handling",
+      "title": "Raw artifact handling reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "acceptance_criteria.raw-artifact-handling: Raw prompts and responses restricted to authorized reviewers.",
+      "action": "Restrict raw prompts, responses, and evidence to authorized reviewers."
+    },
+    {
+      "id": "policy-gate",
+      "title": "Policy gate reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "suite-result.json policy_passed=true",
+      "action": "Resolve failed policy gates or document accepted risk."
+    },
+    {
+      "id": "review-decisions",
+      "title": "Reviewer decisions documented",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "decisions=0; policy_violations=0",
+      "action": "Document accepted risk, mitigation requirements, or rejection decisions for policy exceptions."
+    },
+    {
+      "id": "risk-owner-assignment",
+      "title": "Risk register owners and due dates assigned",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "risks=0; assigned_owners=0; due_dates=0",
+      "action": "Assign owners and due dates for open report risks before handoff."
+    },
+    {
+      "id": "residual-risk-owner-signoff",
+      "title": "Residual risk owner sign-off recorded",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "acceptance_criteria.residual-risk-owner-signoff: No open residual risks require exception approval for this sample.",
+      "action": "Record residual risk owner sign-off or accepted risk evidence before handoff."
+    },
+    {
+      "id": "acceptance-criteria",
+      "title": "Report acceptance criteria reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "criteria=3; status=passed",
+      "action": "Resolve failed acceptance criteria before report handoff."
+    },
+    {
+      "id": "limitations-reviewed",
+      "title": "Limitations reviewed",
+      "status": "passed",
+      "required_for_handoff": true,
+      "evidence": "acceptance_criteria.limitations-reviewed: Report limitations match the scoped assessment.",
+      "action": "Confirm limitations match the assessment scope before sign-off."
+    }
+  ],
+  "checked_artifacts": [
+    {
+      "path": "suite-result.json",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 16167,
+      "expected_size_bytes": 16167,
+      "sha256": "fb46d02eb1a7a6351c0da7ccb0d49cf780e36cc5fcb931e6b64d3a4c2f3430f8",
+      "expected_sha256": "fb46d02eb1a7a6351c0da7ccb0d49cf780e36cc5fcb931e6b64d3a4c2f3430f8",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-cases.jsonl",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 1498,
+      "expected_size_bytes": 1498,
+      "sha256": "9d7b3f24ba250d1e2f94e48f2c3bc420c8769c655de83343f9f6c454bc9c3391",
+      "expected_sha256": "9d7b3f24ba250d1e2f94e48f2c3bc420c8769c655de83343f9f6c454bc9c3391",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-evidence.csv",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 232,
+      "expected_size_bytes": 232,
+      "sha256": "4a83ed85fab8e7bfad546190e313377de52b028b9e3f867bc994fcafe63a9f96",
+      "expected_sha256": "4a83ed85fab8e7bfad546190e313377de52b028b9e3f867bc994fcafe63a9f96",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-case-matrix.csv",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 939,
+      "expected_size_bytes": 939,
+      "sha256": "a9127ff0db59328f16d8f8680262f8e39c1fb6c8e9ef9ddd70b1f46eb947ec74",
+      "expected_sha256": "a9127ff0db59328f16d8f8680262f8e39c1fb6c8e9ef9ddd70b1f46eb947ec74",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-risk-register.json",
+      "sensitivity": "internal",
+      "audience": "assessment_team",
+      "exists": true,
+      "size_bytes": 259,
+      "expected_size_bytes": 259,
+      "sha256": "d5b13b1828175f4cd9428ad6feae75073aaec20cc840336317689db0fefbb93f",
+      "expected_sha256": "d5b13b1828175f4cd9428ad6feae75073aaec20cc840336317689db0fefbb93f",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-risk-register.csv",
+      "sensitivity": "internal",
+      "audience": "assessment_team",
+      "exists": true,
+      "size_bytes": 223,
+      "expected_size_bytes": 223,
+      "sha256": "e96f0d29db9abc84e31aed106c958dc50f23420deff90d52e1f2415fdd67a6dc",
+      "expected_sha256": "e96f0d29db9abc84e31aed106c958dc50f23420deff90d52e1f2415fdd67a6dc",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-coverage.json",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 1027,
+      "expected_size_bytes": 1027,
+      "sha256": "91da7b9f3bf59fe36a1cfffad961a54d6847c84af41701498ca6ce4d72a79cd9",
+      "expected_sha256": "91da7b9f3bf59fe36a1cfffad961a54d6847c84af41701498ca6ce4d72a79cd9",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-coverage.csv",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 230,
+      "expected_size_bytes": 230,
+      "sha256": "f3d07a2f6bfb3139601409fc00d9a8fd06e7890d3ca4698e6dcc22ff1d299e61",
+      "expected_sha256": "f3d07a2f6bfb3139601409fc00d9a8fd06e7890d3ca4698e6dcc22ff1d299e61",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-config.json",
+      "sensitivity": "internal",
+      "audience": "assessment_team",
+      "exists": true,
+      "size_bytes": 3121,
+      "expected_size_bytes": 3121,
+      "sha256": "88d841f916cee298e23860c3f8b6e2726c8805d628d78b71159af68f474f742c",
+      "expected_sha256": "88d841f916cee298e23860c3f8b6e2726c8805d628d78b71159af68f474f742c",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-preflight.json",
+      "sensitivity": "internal",
+      "audience": "assessment_team",
+      "exists": true,
+      "size_bytes": 3736,
+      "expected_size_bytes": 3736,
+      "sha256": "89023e17bbbe7a32fad456a2eb0a49ade206c38a4692716460838d1c1dfcfd38",
+      "expected_sha256": "89023e17bbbe7a32fad456a2eb0a49ade206c38a4692716460838d1c1dfcfd38",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-preflight.md",
+      "sensitivity": "internal",
+      "audience": "assessment_team",
+      "exists": true,
+      "size_bytes": 1894,
+      "expected_size_bytes": 1894,
+      "sha256": "acc921b6e2c053361665e3e5a3bca4ecca6af0b5096acdc08fdc94791426d73a",
+      "expected_sha256": "acc921b6e2c053361665e3e5a3bca4ecca6af0b5096acdc08fdc94791426d73a",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-report.html",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 11408,
+      "expected_size_bytes": 11408,
+      "sha256": "3f34516292e6dfbd737d45e97a7ebba4943bb21edac547b9a940ebf07cb6465b",
+      "expected_sha256": "3f34516292e6dfbd737d45e97a7ebba4943bb21edac547b9a940ebf07cb6465b",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-report.md",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 8858,
+      "expected_size_bytes": 8858,
+      "sha256": "df0564e92a7ba0ee4e8818e4fc57348a3fe67de3caf947ed012b2bd89423efae",
+      "expected_sha256": "df0564e92a7ba0ee4e8818e4fc57348a3fe67de3caf947ed012b2bd89423efae",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-release-notes.md",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 2099,
+      "expected_size_bytes": 2099,
+      "sha256": "ff752332735aacb89d084606e9298f39b3b2c8ba025254b2c38f3a6b55170e66",
+      "expected_sha256": "ff752332735aacb89d084606e9298f39b3b2c8ba025254b2c38f3a6b55170e66",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-result-redacted.json",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 16549,
+      "expected_size_bytes": 16549,
+      "sha256": "04ebe53a6d3a3c553272a0aa6416a80cfd84ffe108aecf37a7ebc78ab1c0a532",
+      "expected_sha256": "04ebe53a6d3a3c553272a0aa6416a80cfd84ffe108aecf37a7ebc78ab1c0a532",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-cases-redacted.jsonl",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 1516,
+      "expected_size_bytes": 1516,
+      "sha256": "90fa882e46b09c4fc56b659379ea8af6aa06fc40406628c52f550a961ad378d9",
+      "expected_sha256": "90fa882e46b09c4fc56b659379ea8af6aa06fc40406628c52f550a961ad378d9",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-report-redacted.html",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 11572,
+      "expected_size_bytes": 11572,
+      "sha256": "d8d5db1a3b9e1b0a49488ce985c05b55cd7dafdc98beb8c2b13ff17dc793d74d",
+      "expected_sha256": "d8d5db1a3b9e1b0a49488ce985c05b55cd7dafdc98beb8c2b13ff17dc793d74d",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-report-redacted.md",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 9022,
+      "expected_size_bytes": 9022,
+      "sha256": "9c76257732d4b5be2e43890804fc2f9a32bf3d513c000bca7bbf28209969872b",
+      "expected_sha256": "9c76257732d4b5be2e43890804fc2f9a32bf3d513c000bca7bbf28209969872b",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-public-bundle.md",
+      "sensitivity": "public",
+      "audience": "external_reviewers",
+      "exists": true,
+      "size_bytes": 2595,
+      "expected_size_bytes": 2595,
+      "sha256": "0ee858d4565efcf4db9bdba0ec84aaa7c7ca35f5da534a98df9333c428ba515d",
+      "expected_sha256": "0ee858d4565efcf4db9bdba0ec84aaa7c7ca35f5da534a98df9333c428ba515d",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "path": "suite-report-bundle.md",
+      "sensitivity": "restricted",
+      "audience": "authorized_reviewers",
+      "exists": true,
+      "size_bytes": 7232,
+      "expected_size_bytes": 7232,
+      "sha256": "dc6df5d3c914f574865e220de298c2269b85e40806bb3381cc42ca9ffa8d684c",
+      "expected_sha256": "dc6df5d3c914f574865e220de298c2269b85e40806bb3381cc42ca9ffa8d684c",
+      "valid": true,
+      "errors": []
+    }
+  ],
+  "schema_validations": [
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-manifest.json",
+      "schema": "suite-manifest",
+      "schema_path": "schemas/suite-manifest.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-manifest.schema.json",
+      "target_artifact": "suite-manifest.json",
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-result.json",
+      "schema": "suite-result",
+      "schema_path": "schemas/suite-result.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-result.schema.json",
+      "target_artifact": "suite-result.json",
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-risk-register.json",
+      "schema": "suite-risk-register",
+      "schema_path": "schemas/suite-risk-register.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-risk-register.schema.json",
+      "target_artifact": "suite-risk-register.json",
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-coverage.json",
+      "schema": "suite-coverage",
+      "schema_path": "schemas/suite-coverage.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-coverage.schema.json",
+      "target_artifact": "suite-coverage.json",
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-config.json",
+      "schema": "suite-config",
+      "schema_path": "schemas/suite-config.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-config.schema.json",
+      "target_artifact": "suite-config.json",
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-preflight.json",
+      "schema": "suite-preflight",
+      "schema_path": "schemas/suite-preflight.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-preflight.schema.json",
+      "target_artifact": "suite-preflight.json",
+      "error_count": 0,
+      "errors": []
+    },
+    {
+      "valid": true,
+      "artifact": "docs\\sample-report-pack\\ready-for-handoff\\suite-result-redacted.json",
+      "schema": "suite-result",
+      "schema_path": "schemas/suite-result.schema.json",
+      "schema_id": "https://coff0xc.local/forgedan/schemas/suite-result.schema.json",
+      "target_artifact": "suite-result.json",
+      "error_count": 0,
+      "errors": []
+    }
+  ]
+}

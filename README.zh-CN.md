@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Paper](https://img.shields.io/badge/arXiv-2511.13548-b31b1b.svg)](https://arxiv.org/abs/2511.13548)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Tests](https://img.shields.io/badge/tests-259%20passed%20%2F%204%20skipped-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-261%20passed%20%2F%204%20skipped-brightgreen.svg)]()
 [![Report Pack](https://img.shields.io/badge/report%20pack-schema%20verified-2ea44f.svg)]()
 
 **可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
@@ -22,9 +22,11 @@
 
 ---
 
-## 双语格式说明
+## README 格式说明
 
-主 [README.md](README.md) 采用“英文完整说明 + 中文完整镜像”的结构。两套内容覆盖相同的项目定位、截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、路线图、安全说明和许可证。本文件保留为独立中文版本，便于中文评审人、报告接收方或内部交接场景直接阅读。
+主 [README.md](README.md) 采用 **English Complete Guide + 中文完整镜像** 的双语结构。两套内容不是摘要关系，而是覆盖相同的项目定位、截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、路线图、安全说明和许可证。
+
+本文件是独立中文版本，便于中文评审人、报告接收方或内部交接场景直接阅读与转发。需要中英对照时，请使用主 [README.md](README.md)。
 
 ---
 
@@ -93,6 +95,8 @@ frontend/                 # Vue 3 SPA 仪表盘
 
 下面的截图来自 `examples/ready-for-handoff-suite.yml` 生成的真实报告交付链路，展示当前项目最核心的报告包、QA 回执和归档校验能力。
 
+完整可渲染样例包见 [docs/sample-report-pack/ready-for-handoff](docs/sample-report-pack/ready-for-handoff/README.md)。
+
 ### 报告包总览
 
 ![报告包总览](docs/screenshots/report-overview.png)
@@ -113,6 +117,7 @@ frontend/                 # Vue 3 SPA 仪表盘
 |------|------|
 | [docs/llm-security-landscape.md](docs/llm-security-landscape.md) | 同类项目扫描、差异化定位和后续优化优先级 |
 | [docs/lint-roadmap.md](docs/lint-roadmap.md) | 当前 CI lint 门禁、历史债务统计和更严格质量门禁推进路径 |
+| [docs/sample-report-pack/ready-for-handoff/](docs/sample-report-pack/ready-for-handoff/README.md) | 可直接查看的 mock 样例报告包，包含 QA 回执和已校验 ZIP |
 | [README.md](README.md) | 主 README，全量英文 + 中文说明 |
 | [schemas/](schemas/) | 报告制品 JSON Schema 合约，用于机器校验与交付验收 |
 | [examples/](examples/) | 可运行 suite 样例、case fixture、MCP manifest 和模型制品输入样例 |
@@ -287,7 +292,7 @@ forgedan web
 | 脱敏 report/result/cases | 外部评审人 | 低敏发布包，隐藏原始 prompt、response 和 evidence |
 | `suite-manifest.json` | 评估团队 | 含大小、SHA256、schema references、敏感度、受众分类和验收状态的完整性清单 |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | 评估负责人 | 交接回执，覆盖 manifest、schema、hash、跨制品一致性、预检、验收、risk owner 和限制项 |
-| `handoff.zip` | 交付接收方 | 可在复制或分享后用 `verify-archive` 重新校验的单文件交付包 |
+| `handoff.zip` | 交付接收方 | 可在复制或分享后用 `verify-archive` 重新校验的单文件交付包；suite 归档会在同目录存在 QA 回执时一并带上 |
 
 ---
 
@@ -427,7 +432,7 @@ npm run build
 - [ ] 增加更多真实 Agent/MCP manifest fixture，校准 trust score 和默认 policy
 - [ ] 仅在能提升报告证据质量时加入 HarmBench/JailbreakBench 示例
 - [ ] 在报告范围需要时补更深的 model serialization 分析
-- [ ] 发布可渲染 sample report pack，方便评审人在运行 CLI 前直接查看输出
+- [x] 发布可渲染 ready-for-handoff 样例报告包，方便评审人在运行 CLI 前直接查看输出
 
 ---
 

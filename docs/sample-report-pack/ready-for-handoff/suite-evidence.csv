@@ -1,0 +1,1 @@
+run_id,trace_id,case,case_category,source,kind,severity,severity_rationale,confidence,taxonomy_id,taxonomy_category,policy_domain,owasp_llm_id,owasp_llm_category,report_priority,message,evidence,evidence_fingerprint,recommendation
