@@ -2669,6 +2669,14 @@ cases:
     assert "MCP trust cases: 0" in release_notes
     assert "suite-report.md" in release_notes
     assert "suite-manifest.json" in release_notes
+    handoff_commands = [
+        "- `forgedan suite verify-bundle suite-manifest.json`",
+        "- `forgedan suite qa-report suite-manifest.json`",
+        "- `forgedan suite archive suite-manifest.json --output handoff.zip`",
+        "- `forgedan suite verify-archive handoff.zip`",
+    ]
+    for command in handoff_commands:
+        assert command in release_notes
     bundle_index = paths["bundle_index"].read_text(encoding="utf-8")
     assert "# Report Bundle: artifacts-suite" in bundle_index
     assert "Sensitivity" in bundle_index
@@ -2683,6 +2691,9 @@ cases:
     assert "suite-risk-register.csv" in bundle_index
     assert "suite-coverage.json" in bundle_index
     assert "suite-coverage.csv" in bundle_index
+    assert "## Verification Commands" in bundle_index
+    for command in handoff_commands:
+        assert command in bundle_index
     assert "suite-config.json" in bundle_index
     assert "suite-result-redacted.json" in bundle_index
     assert "suite-public-bundle.md" in bundle_index
@@ -5354,6 +5365,11 @@ cases:
         "- Risk level: `none`",
         1,
     )
+    release_notes = release_notes.replace(
+        "- `forgedan suite verify-archive handoff.zip`",
+        "- `forgedan suite verify-archive copied-handoff.zip`",
+        1,
+    )
     paths["release_notes_markdown"].write_text(release_notes, encoding="utf-8")
     manifest = json.loads(paths["manifest_json"].read_text(encoding="utf-8"))
     release_notes_artifact = next(
@@ -5382,6 +5398,12 @@ cases:
         "cross-artifact release notes mismatch: "
         f"suite-release-notes.md missing expected line - Risk level: `{result.risk_level}`"
         in error
+        for error in verification["errors"]
+    )
+    assert any(
+        "cross-artifact release notes mismatch: "
+        "suite-release-notes.md missing expected line "
+        "- `forgedan suite verify-archive handoff.zip`" in error
         for error in verification["errors"]
     )
 
@@ -5449,6 +5471,11 @@ cases:
         f"- Cases: {result.total_cases + 1}",
         1,
     )
+    bundle_index = bundle_index.replace(
+        "- `forgedan suite archive suite-manifest.json --output handoff.zip`",
+        "- `forgedan suite archive suite-manifest.json --output stale-handoff.zip`",
+        1,
+    )
     paths["bundle_index"].write_text(bundle_index, encoding="utf-8")
     public_bundle = paths["public_bundle_index"].read_text(encoding="utf-8")
     public_bundle = public_bundle.replace(
@@ -5480,6 +5507,12 @@ cases:
         "cross-artifact bundle index mismatch: "
         f"suite-report-bundle.md missing expected line - Cases: {result.total_cases}"
         in error
+        for error in verification["errors"]
+    )
+    assert any(
+        "cross-artifact bundle index mismatch: "
+        "suite-report-bundle.md missing expected line "
+        "- `forgedan suite archive suite-manifest.json --output handoff.zip`" in error
         for error in verification["errors"]
     )
     assert any(

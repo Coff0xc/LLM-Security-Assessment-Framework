@@ -2530,6 +2530,20 @@ def _markdown_missing_expected_line_errors(
     return errors
 
 
+def _suite_handoff_command_lines(
+    manifest_name: str,
+    archive_name: str = "handoff.zip",
+) -> List[str]:
+    manifest = _md_cell(manifest_name)
+    archive = _md_cell(archive_name)
+    return [
+        f"- `forgedan suite verify-bundle {manifest}`",
+        f"- `forgedan suite qa-report {manifest}`",
+        f"- `forgedan suite archive {manifest} --output {archive}`",
+        f"- `forgedan suite verify-archive {archive}`",
+    ]
+
+
 def _release_notes_expected_lines(suite_result: dict) -> List[str]:
     report_sections = suite_result.get("report_sections")
     if not isinstance(report_sections, dict):
@@ -2602,6 +2616,7 @@ def _release_notes_expected_lines(suite_result: dict) -> List[str]:
             "- MCP highest trust tier: "
             f"`{_md_cell(mcp_trust.get('highest_tier', 'none'))}`"
         ),
+        *_suite_handoff_command_lines("suite-manifest.json"),
     ]
 
 
@@ -2788,6 +2803,8 @@ def _bundle_index_expected_lines(suite_result: dict, public: bool) -> List[str]:
             ),
         ]
     )
+    if not public:
+        lines.extend(_suite_handoff_command_lines("suite-manifest.json"))
     return lines
 
 
@@ -9791,8 +9808,7 @@ def _render_suite_release_notes(
             "",
             "## Verification Commands",
             "",
-            f"- `forgedan suite verify-bundle {_md_cell(manifest_name)}`",
-            f"- `forgedan suite qa-report {_md_cell(manifest_name)}`",
+            *_suite_handoff_command_lines(manifest_name),
             "",
             "## Notes",
             "",
@@ -9926,6 +9942,10 @@ def _render_suite_bundle_index(
             "## Schema Contracts",
             "",
             *schema_rows,
+            "",
+            "## Verification Commands",
+            "",
+            *_suite_handoff_command_lines(manifest_name),
             "",
         ]
     )

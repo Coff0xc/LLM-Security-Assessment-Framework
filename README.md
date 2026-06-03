@@ -9,14 +9,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Paper](https://img.shields.io/badge/arXiv-2511.13548-b31b1b.svg)](https://arxiv.org/abs/2511.13548)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Tests](https://img.shields.io/badge/tests-257%20passed%20%2F%204%20skipped-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-259%20passed%20%2F%204%20skipped-brightgreen.svg)]()
 [![Report Pack](https://img.shields.io/badge/report%20pack-schema%20verified-2ea44f.svg)]()
 
 **Reproducible suites | Evidence-rich report packs | QA receipts | Archive verification**
 
 **可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
 
-[English Guide](#overview) · [中文完整指南](#中文完整说明) · [Standalone Chinese](README.zh-CN.md)
+[English Guide](#overview) · [完整中文镜像](#中文完整说明) · [Standalone Chinese / 独立中文版](README.zh-CN.md)
 
 English: [Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report Workflow](#report-workflow) · [Report Pack Anatomy](#report-pack-anatomy) · [Development](#development) · [Roadmap](#roadmap)
 
@@ -26,23 +26,35 @@ English: [Quick Start](#quick-start) · [Screenshots](#screenshots) · [Report W
 
 ---
 
-## Bilingual Format / 双语格式
+## Bilingual Reading Map / 双语阅读地图
 
-This README is a complete bilingual guide. The English section appears first,
-then the Chinese section mirrors the project positioning, workflow, report
-artifacts, verification path, development commands, roadmap, and safety notes.
+This README is maintained as a complete English guide with a complete Chinese
+mirror in the same file. The two language paths cover the same project
+positioning, screenshots, smoke path, report workflow, artifact inventory,
+verification gates, development commands, roadmap, safety notes, and license.
 
-本 README 采用完整双语格式：前半部分是英文完整说明，后半部分是中文完整说明。
-中文部分同步覆盖项目定位、工作流、报告包、校验链路、开发命令、路线图和安全说明。
-独立中文版本仍保留在 [README.zh-CN.md](README.zh-CN.md)，便于单独阅读和转发。
+本 README 是“英文完整说明 + 中文完整镜像”的双语格式。两条阅读路径覆盖同一套
+项目定位、使用截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、
+路线图、安全说明和许可证。独立中文版本保留在
+[README.zh-CN.md](README.zh-CN.md)，方便中文评审人或报告交接方单独转发。
 
-| Reader path | English | 中文 |
-|-------------|---------|------|
-| Main guide | Start at [Overview](#overview) | 从 [中文完整说明](#中文完整说明) 开始 |
-| Smoke path | [Quick Start](#quick-start) | [快速开始](#快速开始) |
-| Report delivery | [Report Workflow](#report-workflow) | [报告工作流](#报告工作流) |
-| Artifact inventory | [Report Pack Anatomy](#report-pack-anatomy) | [报告包组成](#报告包组成) |
-| Local verification | [Development](#development) | [开发与验证](#开发与验证) |
+| Need | English path | 中文路径 |
+|------|--------------|----------|
+| Understand the project position | [Overview](#overview) | [中文完整说明](#中文完整说明) |
+| Run the report smoke path | [Quick Start](#quick-start) | [快速开始](#快速开始) |
+| Inspect screenshots | [Screenshots](#screenshots) | [使用截图](#使用截图) |
+| Review the handoff workflow | [Report Workflow](#report-workflow) | [报告工作流](#报告工作流) |
+| Check report artifacts | [Report Pack Anatomy](#report-pack-anatomy) | [报告包组成](#报告包组成) |
+| Verify locally before push/handoff | [Development](#development) | [开发与验证](#开发与验证) |
+
+## Report Delivery Snapshot / 报告交付速览
+
+| Stage | English | 中文 |
+|-------|---------|------|
+| Project purpose | Report-first LLM security assessment deliverables, not a commercial security platform. | 项目目标是生成可审计、可复核、可交接的 LLM 安全评估报告，不是商业化安全平台。 |
+| Primary smoke path | `preflight` -> `suite run` -> `validate-report` -> `verify-bundle` -> `qa-report --strict-handoff` -> `archive` -> `verify-archive`. | 推荐 smoke path：预检、生成报告包、校验制品、验证目录包、生成严格 QA 回执、打包 ZIP、交付后复核归档。 |
+| Reviewer evidence | Markdown/HTML reports, evidence CSVs, case matrix, coverage summary, risk register, release notes, QA receipt, manifest. | 面向评审的证据包括 Markdown/HTML 报告、证据矩阵、case matrix、覆盖率摘要、风险登记、发布说明、QA 回执和 manifest。 |
+| Handoff protection | Generated release notes and the full bundle index include the archive handoff commands, and `verify-bundle` checks those lines. | 生成的发布说明和完整 bundle index 会写入归档交接命令，并由 `verify-bundle` 回查，避免交接指南被手工改坏。 |
 
 ---
 
@@ -252,7 +264,7 @@ packages the deliverable into a ZIP that can be verified after handoff.
 3. **Generate the report pack** with `forgedan suite run`; the run writes raw and redacted machine-readable artifacts, Markdown/HTML reports, CSV matrices, coverage, risk register, release notes, and a manifest.
 4. **Validate locally** with `forgedan suite validate-report` and `forgedan suite verify-bundle`; these checks bind schemas, hashes, summary counts, redacted artifacts, Markdown/HTML sidecars, and cross-artifact identities back to the source result.
 5. **Prepare handoff** with `forgedan suite qa-report --strict-handoff`; the receipt records checklist status, blockers, acceptance criteria, source inventory, schema checks, and reviewer-facing evidence.
-6. **Archive and verify** with `forgedan suite archive` and `forgedan suite verify-archive`; the same archive flow supports normal suite report packs and historical comparison packs.
+6. **Archive and verify** with `forgedan suite archive` and `forgedan suite verify-archive`; generated release notes and the full report bundle index carry these handoff commands, and `verify-bundle` checks that they stay present. The same archive flow supports normal suite report packs and historical comparison packs.
 
 ### CLI Reference
 
@@ -627,7 +639,7 @@ is thin.
 | `suite-coverage.json` / `suite-coverage.csv` | External reviewers | Coverage summary by case category, policy domain, taxonomy category, OWASP LLM category, and gap signals. |
 | `suite-config.json` | Assessment team | Normalized suite input snapshot, including report metadata, policy thresholds, tool policy, imported source inventory, imported MCP manifest source, and imported model artifact sources. |
 | `suite-preflight.json` / `suite-preflight.md` | Assessment team | Run-before-use readiness audit for report metadata, acceptance gates, risk defaults, policy gates, deterministic replay, and source provenance. |
-| `suite-release-notes.md` | Authorized reviewers | Concise reviewer-facing run notes with policy, risk, acceptance, source inventory, reviewer-decision, MCP trust, and artifact pointer summaries. |
+| `suite-release-notes.md` | Authorized reviewers | Concise reviewer-facing run notes with policy, risk, acceptance, source inventory, reviewer-decision, MCP trust, artifact pointers, and archive handoff commands. |
 | Redacted report/result/cases artifacts | External reviewers | Lower-sensitivity publication pack with prompts, responses, and evidence redacted. |
 | `suite-manifest.json` | Assessment team | Integrity manifest with sizes, SHA256 hashes, schema references, sensitivity, audience classifications, and report acceptance status. |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | Assessment lead | Handoff receipt covering manifest, checksums, schemas, cross-artifact consistency, preflight readiness, release notes, source inventory, coverage review, publication pack, policy gate, residual risk owner sign-off, and limitations. |
@@ -654,7 +666,7 @@ tool permission policy violations, and indirect prompt injection in untrusted
 retrieved web, RAG, or document content.
 The full bundle index gives reviewers a single Markdown handoff page for the
 generated report files, evidence matrix, case matrix, redacted publication pack,
-release notes, integrity manifest, schema contracts, and a handoff summary
+release notes, integrity manifest, schema contracts, verification commands, and a handoff summary
 covering policy violations, risk count, acceptance status, reviewer decisions,
 MCP trust, and imported source counts. Full release notes and the full bundle
 index also include the Source Inventory table with imported source paths,
@@ -721,10 +733,12 @@ high-risk restricted evidence into external deliverables. The
 evidence matrix is bound back to `suite-result.json` findings,
 `suite-risk-register.csv` is bound back to `suite-risk-register.json` risks, and
 `suite-coverage.csv` is bound back to `suite-coverage.json` coverage rows.
-Reviewer-facing `suite-release-notes.md` summary lines are also bound back to
-`suite-result.json` policy, risk, acceptance, source inventory, reviewer
-decision, and MCP trust values, and the full/public bundle indexes get the same
-summary binding. `suite-preflight.md` is bound back to `suite-preflight.json`
+Reviewer-facing `suite-release-notes.md` summary and handoff-command lines are
+also bound back to `suite-result.json` policy, risk, acceptance, source inventory,
+reviewer decision, and MCP trust values. The full bundle index gets the same
+summary and handoff-command binding, while the public bundle index keeps the
+lower-sensitivity summary binding. `suite-preflight.md` is bound back to
+`suite-preflight.json`
 status, score, summary counts, blockers, and check-table evidence/action rows.
 The full and redacted Markdown/HTML report bodies are also
 checked for required report sections plus policy, risk, case-count, usage,
@@ -856,7 +870,7 @@ screen. A normal suite run can produce:
 | `suite-evidence.csv` / `suite-case-matrix.csv` | Flat tables for evidence review, traceability, coverage checks, and downstream spreadsheet workflows. |
 | `suite-risk-register.json` / `suite-risk-register.csv` | Remediation tracker with owners, due dates, severity rationale, and stable evidence fingerprints. |
 | `suite-coverage.json` / `suite-coverage.csv` | Coverage summary by case category, policy domain, taxonomy category, and OWASP LLM category. |
-| `suite-release-notes.md` / `suite-report-bundle.md` | Compact handoff notes and artifact index for reviewers. |
+| `suite-release-notes.md` / `suite-report-bundle.md` | Compact handoff notes, verification commands, and artifact index for reviewers. |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | Handoff receipt with schema, checksum, cross-artifact, acceptance, and readiness checks. |
 | `handoff.zip` | Single-file archive that can be verified after copying or sharing. |
 
@@ -1194,7 +1208,7 @@ npm run dev
 3. **生成报告包**：使用 `forgedan suite run` 写出原始与脱敏 JSON/JSONL、Markdown/HTML 报告、CSV 矩阵、覆盖率、风险登记、发布说明和 manifest。
 4. **本地验证**：使用 `forgedan suite validate-report` 与 `forgedan suite verify-bundle` 校验 schema、hash、摘要计数、脱敏制品、Markdown/HTML sidecar 与跨制品身份。
 5. **准备交接**：使用 `forgedan suite qa-report --strict-handoff` 生成 QA 回执，记录 checklist、blocker、验收准则、Source Inventory、schema 校验和人工评审证据。
-6. **归档并复核**：使用 `forgedan suite archive` 和 `forgedan suite verify-archive` 生成单文件 ZIP，并在复制或分享后重新校验。普通报告包会在 ZIP 内重新做跨制品一致性校验，历史对比报告也支持同一归档流程。
+6. **归档并复核**：使用 `forgedan suite archive` 和 `forgedan suite verify-archive` 生成单文件 ZIP，并在复制或分享后重新校验。生成的 release notes 和完整 report bundle index 会写入这些交接命令，`verify-bundle` 会回查它们是否仍然存在。普通报告包会在 ZIP 内重新做跨制品一致性校验，历史对比报告也支持同一归档流程。
 
 ### 常用 CLI
 
@@ -1242,7 +1256,7 @@ forgedan web
 | `suite-coverage.json` / `suite-coverage.csv` | 外部评审人 | 按 case category、policy domain、taxonomy category、OWASP LLM category 汇总覆盖率 |
 | `suite-config.json` | 评估团队 | 归一化 suite 输入快照，便于审计复放 |
 | `suite-preflight.json` / `suite-preflight.md` | 评估团队 | 运行前 readiness audit |
-| `suite-release-notes.md` | 授权评审人 | 简短运行说明、风险、验收、Source Inventory、reviewer decision 和制品指针 |
+| `suite-release-notes.md` | 授权评审人 | 简短运行说明、风险、验收、Source Inventory、reviewer decision、制品指针和归档交接命令 |
 | 脱敏 report/result/cases | 外部评审人 | 低敏发布包，隐藏原始 prompt、response 和 evidence |
 | `suite-manifest.json` | 评估团队 | 含大小、SHA256、schema references、敏感度、受众分类和验收状态的完整性清单 |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | 评估负责人 | 交接回执，覆盖 manifest、schema、hash、跨制品一致性、预检、验收、risk owner 和限制项 |

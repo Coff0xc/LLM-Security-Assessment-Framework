@@ -9,16 +9,22 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Paper](https://img.shields.io/badge/arXiv-2511.13548-b31b1b.svg)](https://arxiv.org/abs/2511.13548)
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Tests](https://img.shields.io/badge/tests-257%20passed%20%2F%204%20skipped-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-259%20passed%20%2F%204%20skipped-brightgreen.svg)]()
 [![Report Pack](https://img.shields.io/badge/report%20pack-schema%20verified-2ea44f.svg)]()
 
 **可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
 
-[主 README 全量双语](README.md) · [简体中文独立版](README.zh-CN.md)
+[主 README：英文完整说明 + 中文完整镜像](README.md) · [简体中文独立版](README.zh-CN.md)
 
 [快速开始](#快速开始) · [使用截图](#使用截图) · [文档导航](#文档导航) · [攻击方法](#攻击方法) · [报告工作流](#报告工作流) · [报告包组成](#报告包组成) · [API 端点](#api-端点) · [开发与验证](#开发与验证)
 
 </div>
+
+---
+
+## 双语格式说明
+
+主 [README.md](README.md) 采用“英文完整说明 + 中文完整镜像”的结构。两套内容覆盖相同的项目定位、截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、路线图、安全说明和许可证。本文件保留为独立中文版本，便于中文评审人、报告接收方或内部交接场景直接阅读。
 
 ---
 
@@ -223,7 +229,7 @@ npm run dev
 3. **生成报告包**：使用 `forgedan suite run` 写出原始与脱敏 JSON/JSONL、Markdown/HTML 报告、CSV 矩阵、覆盖率、风险登记、发布说明和 manifest。
 4. **本地验证**：使用 `forgedan suite validate-report` 与 `forgedan suite verify-bundle` 校验 schema、hash、摘要计数、脱敏制品、Markdown/HTML sidecar 与跨制品身份。
 5. **准备交接**：使用 `forgedan suite qa-report --strict-handoff` 生成 QA 回执，记录 checklist、blocker、验收准则、Source Inventory、schema 校验和人工评审证据。
-6. **归档并复核**：使用 `forgedan suite archive` 和 `forgedan suite verify-archive` 生成单文件 ZIP，并在复制或分享后重新校验。普通报告包会在 ZIP 内重新做跨制品一致性校验，历史对比报告也支持同一归档流程。
+6. **归档并复核**：使用 `forgedan suite archive` 和 `forgedan suite verify-archive` 生成单文件 ZIP，并在复制或分享后重新校验。生成的 release notes 和完整 report bundle index 会写入这些交接命令，`verify-bundle` 会回查它们是否仍然存在。普通报告包会在 ZIP 内重新做跨制品一致性校验，历史对比报告也支持同一归档流程。
 
 ---
 
@@ -277,7 +283,7 @@ forgedan web
 | `suite-coverage.json` / `suite-coverage.csv` | 外部评审人 | 按 case category、policy domain、taxonomy category、OWASP LLM category 汇总覆盖率 |
 | `suite-config.json` | 评估团队 | 归一化 suite 输入快照，便于审计复放 |
 | `suite-preflight.json` / `suite-preflight.md` | 评估团队 | 运行前 readiness audit |
-| `suite-release-notes.md` | 授权评审人 | 简短运行说明、风险、验收、Source Inventory、reviewer decision 和制品指针 |
+| `suite-release-notes.md` | 授权评审人 | 简短运行说明、风险、验收、Source Inventory、reviewer decision、制品指针和归档交接命令 |
 | 脱敏 report/result/cases | 外部评审人 | 低敏发布包，隐藏原始 prompt、response 和 evidence |
 | `suite-manifest.json` | 评估团队 | 含大小、SHA256、schema references、敏感度、受众分类和验收状态的完整性清单 |
 | `suite-qa-receipt.json` / `suite-qa-receipt.md` | 评估负责人 | 交接回执，覆盖 manifest、schema、hash、跨制品一致性、预检、验收、risk owner 和限制项 |
