@@ -14,7 +14,7 @@
 
 **可复现套件 | 证据化报告包 | QA 交接回执 | 归档校验**
 
-[主 README：英文完整说明 + 中文完整镜像](README.md) · [简体中文独立版](README.zh-CN.md)
+[主 README：完整中英双语对照](README.md) · [简体中文独立版](README.zh-CN.md)
 
 [快速开始](#快速开始) · [使用截图](#使用截图) · [文档导航](#文档导航) · [攻击方法](#攻击方法) · [报告工作流](#报告工作流) · [报告包组成](#报告包组成) · [API 端点](#api-端点) · [开发与验证](#开发与验证)
 
@@ -24,7 +24,7 @@
 
 ## README 格式说明
 
-主 [README.md](README.md) 采用 **English Complete Guide + 中文完整镜像** 的双语结构。两套内容不是摘要关系，而是覆盖相同的项目定位、截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、路线图、安全说明和许可证。
+主 [README.md](README.md) 采用 **完整中英双语对照** 结构。每个主要章节都同时给出 English 与中文说明，覆盖相同的项目定位、截图、快速 smoke path、报告工作流、制品清单、校验门禁、开发命令、路线图、安全说明和许可证。
 
 本文件是独立中文版本，便于中文评审人、报告接收方或内部交接场景直接阅读与转发。需要中英对照时，请使用主 [README.md](README.md)。
 
@@ -255,7 +255,7 @@ forgedan run --quick -g "test prompt" -m mock:test
 forgedan web
 ```
 
-更完整的 CLI 说明见英文版 [README.md](README.md#cli-reference)。
+更完整的 CLI 说明见主 [README.md](README.md#cli-reference--常用-cli)。
 
 ---
 
