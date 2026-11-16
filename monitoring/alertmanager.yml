@@ -1,72 +1,72 @@
-# Alertmanager 配置文件
-# FORGEDAN LLM 安全评估框架告警配置
+# Alertmanager configuration file
+# Alert configuration for the FORGEDAN LLM security assessment framework
 
 global:
-  # 告警解决超时
+  # Alert resolution timeout
   resolve_timeout: 5m
 
-# 告警路由
+# Alert routing
 route:
-  # 默认接收器
+  # Default receiver
   receiver: 'default-receiver'
-  # 分组等待时间
+  # Group wait time
   group_wait: 30s
-  # 分组间隔
+  # Group interval
   group_interval: 5m
-  # 重复间隔
+  # Repeat interval
   repeat_interval: 4h
-  # 分组标签
+  # Group labels
   group_by: ['alertname', 'severity', 'service']
 
-  # 子路由
+  # Child routes
   routes:
-    # 严重告警 - 立即通知
+    # Critical alerts - notify immediately
     - match:
         severity: critical
       receiver: 'critical-receiver'
       group_wait: 10s
       repeat_interval: 1h
 
-    # 警告 - 正常处理
+    # Warnings - normal handling
     - match:
         severity: warning
       receiver: 'warning-receiver'
       repeat_interval: 4h
 
-    # 信息 - 仅记录
+    # Info - log only
     - match:
         severity: info
       receiver: 'info-receiver'
       repeat_interval: 24h
 
-# 告警抑制
+# Alert inhibition
 inhibit_rules:
-  # 当 critical 告警触发时，抑制相同 alertname 的 warning 告警
+  # When a critical alert fires, inhibit warning alerts with the same alertname
   - source_match:
       severity: 'critical'
     target_match:
       severity: 'warning'
     equal: ['alertname', 'service']
 
-  # 当 warning 告警触发时，抑制相同 alertname 的 info 告警
+  # When a warning alert fires, inhibit info alerts with the same alertname
   - source_match:
       severity: 'warning'
     target_match:
       severity: 'info'
     equal: ['alertname', 'service']
 
-# 接收器配置
+# Receiver configuration
 receivers:
-  # 默认接收器 - 仅记录
+  # Default receiver - log only
   - name: 'default-receiver'
-    # 可以配置 webhook, email, slack 等
+    # Can be configured with webhook, email, Slack, etc.
     # webhook_configs:
     #   - url: 'http://host.docker.internal:5000/api/alerts/webhook'
     #     send_resolved: true
 
-  # 严重告警接收器
+  # Critical alert receiver
   - name: 'critical-receiver'
-    # 示例: 发送到 Slack
+    # Example: send to Slack
     # slack_configs:
     #   - api_url: 'https://hooks.slack.com/services/xxx/yyy/zzz'
     #     channel: '#forgedan-alerts'
@@ -74,7 +74,7 @@ receivers:
     #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
     #     send_resolved: true
 
-    # 示例: 发送邮件
+    # Example: send an email
     # email_configs:
     #   - to: 'admin@example.com'
     #     from: 'alertmanager@forgedan.local'
@@ -83,7 +83,7 @@ receivers:
     #     auth_password: 'password'
     #     send_resolved: true
 
-    # 示例: Webhook
+    # Example: Webhook
     # webhook_configs:
     #   - url: 'http://host.docker.internal:5000/api/alerts/webhook'
     #     send_resolved: true
@@ -92,14 +92,14 @@ receivers:
     #         username: 'forgedan'
     #         password: 'secret'
 
-  # 警告接收器
+  # Warning receiver
   - name: 'warning-receiver'
-    # 配置同上
+    # Same configuration as above
 
-  # 信息接收器
+  # Info receiver
   - name: 'info-receiver'
-    # 通常只记录，不发送通知
+    # Usually logged only, no notification sent
 
-# 模板文件 (可选)
+# Template files (optional)
 # templates:
 #   - '/etc/alertmanager/templates/*.tmpl'

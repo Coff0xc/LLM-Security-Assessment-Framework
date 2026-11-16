@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "FORGEDAN LLM 安全评估框架实时监控仪表板",
+  "description": "FORGEDAN LLM security assessment framework real-time monitoring dashboard",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -33,7 +33,7 @@
       },
       "id": 1,
       "panels": [],
-      "title": "概览统计",
+      "title": "Overview Statistics",
       "type": "row"
     },
     {
@@ -90,7 +90,7 @@
           "refId": "A"
         }
       ],
-      "title": "攻击总数",
+      "title": "Total Attacks",
       "type": "stat"
     },
     {
@@ -155,7 +155,7 @@
           "refId": "A"
         }
       ],
-      "title": "成功攻击数",
+      "title": "Successful Attacks",
       "type": "stat"
     },
     {
@@ -220,7 +220,7 @@
           "refId": "A"
         }
       ],
-      "title": "攻击成功率",
+      "title": "Attack Success Rate",
       "type": "stat"
     },
     {
@@ -277,7 +277,7 @@
           "refId": "A"
         }
       ],
-      "title": "LLM 查询总数",
+      "title": "Total LLM Queries",
       "type": "stat"
     },
     {
@@ -342,7 +342,7 @@
           "refId": "A"
         }
       ],
-      "title": "活跃任务数",
+      "title": "Active Tasks",
       "type": "stat"
     },
     {
@@ -407,7 +407,7 @@
           "refId": "A"
         }
       ],
-      "title": "最佳适应度",
+      "title": "Best Fitness",
       "type": "stat"
     },
     {
@@ -420,7 +420,7 @@
       },
       "id": 8,
       "panels": [],
-      "title": "攻击分析",
+      "title": "Attack Analysis",
       "type": "row"
     },
     {
@@ -504,7 +504,7 @@
             "uid": "${datasource}"
           },
           "expr": "rate(forgedan_attacks_total[5m]) * 60",
-          "legendFormat": "攻击 ({{ model }})",
+          "legendFormat": "Attacks ({{ model }})",
           "refId": "A"
         },
         {
@@ -513,11 +513,11 @@
             "uid": "${datasource}"
           },
           "expr": "rate(forgedan_attacks_success_total[5m]) * 60",
-          "legendFormat": "成功 ({{ model }})",
+          "legendFormat": "Successes ({{ model }})",
           "refId": "B"
         }
       ],
-      "title": "攻击速率 (每分钟)",
+      "title": "Attack Rate (per minute)",
       "type": "timeseries"
     },
     {
@@ -577,7 +577,7 @@
           "refId": "A"
         }
       ],
-      "title": "攻击分布 (按模型)",
+      "title": "Attack Distribution (by Model)",
       "type": "piechart"
     },
     {
@@ -637,7 +637,7 @@
           "refId": "A"
         }
       ],
-      "title": "攻击分布 (按类别)",
+      "title": "Attack Distribution (by Category)",
       "type": "piechart"
     },
     {
@@ -650,7 +650,7 @@
       },
       "id": 12,
       "panels": [],
-      "title": "进化算法",
+      "title": "Evolutionary Algorithm",
       "type": "row"
     },
     {
@@ -666,7 +666,7 @@
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "适应度",
+            "axisLabel": "Fitness",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -740,7 +740,7 @@
             "uid": "${datasource}"
           },
           "expr": "forgedan_fitness_score",
-          "legendFormat": "最佳适应度 ({{ task_id }})",
+          "legendFormat": "Best Fitness ({{ task_id }})",
           "refId": "A"
         },
         {
@@ -749,11 +749,11 @@
             "uid": "${datasource}"
           },
           "expr": "forgedan_fitness_avg",
-          "legendFormat": "平均适应度 ({{ task_id }})",
+          "legendFormat": "Average fitness ({{ task_id }})",
           "refId": "B"
         }
       ],
-      "title": "适应度演进",
+      "title": "Fitness Evolution",
       "type": "timeseries"
     },
     {
@@ -811,7 +811,7 @@
           "refId": "A"
         }
       ],
-      "title": "当前代数",
+      "title": "Current Generation",
       "type": "stat"
     },
     {
@@ -869,7 +869,7 @@
           "refId": "A"
         }
       ],
-      "title": "种群大小",
+      "title": "Population Size",
       "type": "stat"
     },
     {
@@ -882,7 +882,7 @@
       },
       "id": 16,
       "panels": [],
-      "title": "LLM 性能",
+      "title": "LLM Performance",
       "type": "row"
     },
     {
@@ -898,7 +898,7 @@
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "延迟 (秒)",
+            "axisLabel": "Latency (seconds)",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -988,7 +988,7 @@
           "refId": "C"
         }
       ],
-      "title": "模型响应延迟分布",
+      "title": "Model Response Latency Distribution",
       "type": "timeseries"
     },
     {
@@ -1076,7 +1076,7 @@
           "refId": "A"
         }
       ],
-      "title": "LLM 查询速率 (QPS)",
+      "title": "LLM Query Rate (QPS)",
       "type": "timeseries"
     },
     {
@@ -1089,7 +1089,7 @@
       },
       "id": 19,
       "panels": [],
-      "title": "缓存与系统资源",
+      "title": "Cache & System Resources",
       "type": "row"
     },
     {
@@ -1154,7 +1154,7 @@
           "refId": "A"
         }
       ],
-      "title": "缓存命中率",
+      "title": "Cache Hit Rate",
       "type": "gauge"
     },
     {
@@ -1219,7 +1219,7 @@
           "refId": "A"
         }
       ],
-      "title": "CPU 使用率",
+      "title": "CPU Usage",
       "type": "gauge"
     },
     {
@@ -1303,7 +1303,7 @@
             "uid": "${datasource}"
           },
           "expr": "forgedan_memory_usage_bytes{type=\"resident\"}",
-          "legendFormat": "常驻内存 (RSS)",
+          "legendFormat": "Resident memory (RSS)",
           "refId": "A"
         },
         {
@@ -1312,11 +1312,11 @@
             "uid": "${datasource}"
           },
           "expr": "forgedan_memory_usage_bytes{type=\"virtual\"}",
-          "legendFormat": "虚拟内存 (VMS)",
+          "legendFormat": "Virtual memory (VMS)",
           "refId": "B"
         }
       ],
-      "title": "内存使用",
+      "title": "Memory Usage",
       "type": "timeseries"
     },
     {
@@ -1329,7 +1329,7 @@
       },
       "id": 23,
       "panels": [],
-      "title": "变异策略",
+      "title": "Mutation Strategies",
       "type": "row"
     },
     {
@@ -1416,7 +1416,7 @@
           "refId": "A"
         }
       ],
-      "title": "变异策略使用次数",
+      "title": "Mutation Strategy Usage Count",
       "type": "barchart"
     },
     {
@@ -1477,7 +1477,7 @@
           "refId": "A"
         }
       ],
-      "title": "变异策略成功率",
+      "title": "Mutation Strategy Success Rate",
       "type": "bargauge"
     }
   ],
@@ -1495,7 +1495,7 @@
         },
         "hide": 0,
         "includeAll": false,
-        "label": "数据源",
+        "label": "Data source",
         "multi": false,
         "name": "datasource",
         "options": [],
@@ -1517,7 +1517,7 @@
     "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "browser",
-  "title": "FORGEDAN 监控仪表板",
+  "title": "FORGEDAN Monitoring Dashboard",
   "uid": "forgedan-dashboard",
   "version": 1,
   "weekStart": ""

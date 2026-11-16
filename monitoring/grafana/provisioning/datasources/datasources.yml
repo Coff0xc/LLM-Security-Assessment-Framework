@@ -1,10 +1,10 @@
-# Grafana 数据源配置
-# 自动配置 Prometheus 数据源
+# Grafana data source configuration
+# Automatically configures the Prometheus data source
 
 apiVersion: 1
 
 datasources:
-  # Prometheus 数据源
+  # Prometheus data source
   - name: Prometheus
     type: prometheus
     access: proxy
@@ -17,7 +17,7 @@ datasources:
       prometheusType: Prometheus
       prometheusVersion: "2.45.0"
       timeInterval: "15s"
-      # 启用 Exemplars
+      # Enable Exemplars
       exemplarTraceIdDestinations:
         - name: traceID
           datasourceUid: tempo

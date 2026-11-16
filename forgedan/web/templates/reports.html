@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>测试报告 - FORGEDAN</title>
+    <title>Test Reports - FORGEDAN</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <div class="app-container">
-        <!-- 侧边栏 -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <span class="logo-icon">🔒</span>
@@ -20,19 +20,19 @@
             <nav class="nav-menu">
                 <a href="/" class="nav-item">
                     <span class="nav-icon">📊</span>
-                    <span>仪表盘</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="/test" class="nav-item">
                     <span class="nav-icon">🧪</span>
-                    <span>安全测试</span>
+                    <span>Security Testing</span>
                 </a>
                 <a href="/reports" class="nav-item active">
                     <span class="nav-icon">📄</span>
-                    <span>测试报告</span>
+                    <span>Test Reports</span>
                 </a>
                 <a href="/settings" class="nav-item">
                     <span class="nav-icon">⚙️</span>
-                    <span>设置</span>
+                    <span>Settings</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -40,28 +40,28 @@
             </div>
         </aside>
 
-        <!-- 主内容 -->
+        <!-- Main content -->
         <main class="main-content">
             <header class="page-header">
-                <h1>测试报告</h1>
-                <p class="subtitle">查看和管理历史测试报告</p>
+                <h1>Test Reports</h1>
+                <p class="subtitle">View and manage historical test reports</p>
             </header>
 
-            <!-- 筛选控制 -->
+            <!-- Filter controls -->
             <div class="filter-bar">
-                <input type="text" id="search-reports" class="search-input" placeholder="搜索报告...">
+                <input type="text" id="search-reports" class="search-input" placeholder="Search reports...">
                 <select id="sort-reports" class="filter-select">
-                    <option value="date-desc">最新优先</option>
-                    <option value="date-asc">最早优先</option>
-                    <option value="name">按名称</option>
+                    <option value="date-desc">Newest first</option>
+                    <option value="date-asc">Oldest first</option>
+                    <option value="name">By name</option>
                 </select>
             </div>
 
-            <!-- 报告列表 -->
+            <!-- Report list -->
             <div class="reports-grid" id="reports-container">
                 <div class="loading-state">
                     <div class="spinner"></div>
-                    <p>加载中...</p>
+                    <p>Loading...</p>
                 </div>
             </div>
         </main>
@@ -78,7 +78,7 @@
                 renderReports(allReports);
             } catch (error) {
                 document.getElementById('reports-container').innerHTML =
-                    '<div class="empty-state">加载报告失败</div>';
+                    '<div class="empty-state">Failed to load reports</div>';
             }
         }
 
@@ -89,9 +89,9 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <span class="empty-icon">📄</span>
-                        <h3>暂无报告</h3>
-                        <p>运行测试后将在这里显示报告</p>
-                        <a href="/test" class="btn btn-primary">开始测试</a>
+                        <h3>No reports yet</h3>
+                        <p>Reports will appear here after you run a test</p>
+                        <a href="/test" class="btn btn-primary">Start Testing</a>
                     </div>
                 `;
                 return;
@@ -109,10 +109,10 @@
                     </div>
                     <div class="report-actions">
                         <a href="/api/reports/${report.name}" target="_blank" class="btn btn-small">
-                            查看
+                            View
                         </a>
                         <a href="/api/reports/${report.name}" download class="btn btn-small btn-secondary">
-                            下载
+                            Download
                         </a>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
         }
 
-        // 搜索
+        // Search
         document.getElementById('search-reports').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = allReports.filter(r =>
@@ -145,7 +145,7 @@
             renderReports(filtered);
         });
 
-        // 排序
+        // Sort
         document.getElementById('sort-reports').addEventListener('change', (e) => {
             const sorted = [...allReports];
             switch (e.target.value) {

@@ -2,20 +2,20 @@
 
 > Version: 2026-06 report-delivery roadmap
 > Scope: LLM security assessment reports, evidence packs, QA receipts, schemas, and archive verification
-> 中文目标：围绕“报告交付项目”继续优化，而不是把仓库推进成商业化安全平台。
+> Goal: keep optimizing around the report-delivery project instead of turning the repository into a commercial security platform.
 
 ---
 
-## 1. Project Direction / 项目方向
+## 1. Project Direction
 
-FORGEDAN 当前的核心目标是生成可审计、可复现、可交接的 LLM 安全评估报告包。
-算法、WebScan、模型适配器和 dashboard 仍然保留，但优化优先级服务于最终报告质量：
+FORGEDAN's current core goal is to produce auditable, reproducible, and handoff-ready LLM security assessment report packages.
+The algorithms, WebScan, model adapters, and dashboard stay, but optimization priorities serve the quality of the final reports:
 
-- 报告证据是否完整、可追溯、可复核。
-- JSON/Markdown/HTML/CSV/ZIP 制品是否一致。
-- QA 交接回执是否能阻止不完整报告流出。
-- 样例报告包是否能让评审人在运行 CLI 前理解最终交付物。
-- CI 是否覆盖报告生成、校验、归档和格式门禁。
+- Whether report evidence is complete, traceable, and reviewable.
+- Whether the JSON/Markdown/HTML/CSV/ZIP artifacts are consistent.
+- Whether the QA handoff receipt can stop incomplete reports from going out.
+- Whether the sample report pack lets reviewers understand the final deliverables before running the CLI.
+- Whether CI covers report generation, validation, archiving, and formatting gates.
 
 English summary: FORGEDAN is optimized as a report-first LLM security
 assessment framework. Performance and platform features are useful only when
@@ -23,84 +23,84 @@ they improve reproducible evidence, reviewer handoff, and archive integrity.
 
 ---
 
-## 2. Current Evidence / 当前事实
+## 2. Current Evidence
 
-| Area | Current State | 中文说明 |
-| --- | --- | --- |
-| Positioning | README states the project is report-delivery first, not a commercial security platform. | README 已明确“报告交付项目，不是商业化安全平台”。 |
-| Sample pack | `docs/sample-report-pack/ready-for-handoff/` includes rendered reports, QA receipt, manifest, screenshots, and verified `handoff.zip`. | 已提交可渲染样例报告包，包含报告、QA 回执、manifest、截图和可校验 ZIP。 |
-| Reproducibility | `tests/test_sample_report_pack.py` proves the checked-in sample pack can be rebuilt byte-for-byte, excluding its explanatory README. | 样例包已有 byte-for-byte 重建测试，证明 fixture 报告包可复现。 |
-| CI gates | CI runs tests, preflight, suite generation, report validation, bundle verification, strict QA handoff, archive verification, selected flake8, Black, and frontend build. | CI 已覆盖测试、预检、报告生成、报告校验、目录包验证、严格 QA 交接、归档验证、lint、Black 和前端构建。 |
-| Schemas | Report artifacts are bound to JSON Schema contracts in `schemas/`. | 报告制品已有 Schema 合约。 |
-| Integrity | `validate-report`, `verify-bundle`, and `verify-archive` check schema, hash, sidecars, cross-artifact consistency, redaction, and QA receipt binding. | 已通过多层验证保护 hash、schema、sidecar、跨制品一致性、脱敏和 QA 回执绑定。 |
-| Landscape scan | `docs/llm-security-landscape.md` records competitor lessons and many already-fixed report gaps. | 同类项目扫描已记录能力差距和已修复项目。 |
+| Area | Current State |
+| --- | --- |
+| Positioning | README states the project is report-delivery first, not a commercial security platform. |
+| Sample pack | `docs/sample-report-pack/ready-for-handoff/` includes rendered reports, QA receipt, manifest, screenshots, and verified `handoff.zip`. |
+| Reproducibility | `tests/test_sample_report_pack.py` proves the checked-in sample pack can be rebuilt byte-for-byte, excluding its explanatory README. |
+| CI gates | CI runs tests, preflight, suite generation, report validation, bundle verification, strict QA handoff, archive verification, selected flake8, Black, and frontend build. |
+| Schemas | Report artifacts are bound to JSON Schema contracts in `schemas/`. |
+| Integrity | `validate-report`, `verify-bundle`, and `verify-archive` check schema, hash, sidecars, cross-artifact consistency, redaction, and QA receipt binding. |
+| Landscape scan | `docs/llm-security-landscape.md` records competitor lessons and many already-fixed report gaps. |
 
 ---
 
-## 3. Optimization Principles / 优化原则
+## 3. Optimization Principles
 
-1. **Report quality first / 报告质量优先**
-   每个新增能力都要能改善报告正文、证据矩阵、风险登记、QA 回执、Schema、归档或审计复核。
+1. **Report quality first**
+   Every new capability should improve the report body, evidence matrix, risk register, QA receipt, schemas, archiving, or audit review.
 
-2. **Deterministic where possible / 尽量确定性**
-   样例、fixture、CI 和 handoff pack 应尽量可复现；涉及时间、run ID、环境信息时使用显式元数据。
+2. **Deterministic where possible**
+   Samples, fixtures, CI, and the handoff pack should be as reproducible as possible; use explicit metadata for time, run IDs, and environment information.
 
-3. **Evidence over platform scope / 证据优先于平台范围**
-   不优先做多租户、商业 RBAC、Vault、Ray 集群或 GPU 路线，除非它们直接服务报告交付证据。
+3. **Evidence over platform scope**
+   Multi-tenancy, commercial RBAC, Vault, Ray clusters, and GPU work are not priorities unless they directly serve report-delivery evidence.
 
-4. **Local verification before handoff / 交付前本地验证**
+4. **Local verification before handoff**
    `preflight -> suite run -> validate-report -> verify-bundle -> qa-report --strict-handoff -> archive -> verify-archive`
-   是默认交付路径。
+   This is the default delivery path.
 
-5. **Small, reviewable increments / 小步可 review**
-   每一轮优化都应有明确文件、测试、命令和剩余风险。
-
----
-
-## 4. Completed Capabilities / 已完成能力
-
-| Capability | Evidence | 中文说明 |
-| --- | --- | --- |
-| Report-first README | `README.md`, `README.zh-CN.md` | 主 README 已改成全量中文 + English 双语对照，中文独立版同步说明。 |
-| Ready-for-handoff sample | `docs/sample-report-pack/ready-for-handoff/` | 可直接查看的 mock 样例报告包。 |
-| Screenshots in README | `docs/screenshots/*.png` | README 已包含报告总览、QA 回执、归档校验截图。 |
-| Deterministic sample metadata | `examples/ready-for-handoff-suite.yml` | fixture suite 固定 run ID、时间、case ID、环境信息和 duration。 |
-| Reproducible sample test | `tests/test_sample_report_pack.py` | 测试证明样例报告包可按相同交付路径重建。 |
-| QA receipt gates | `forgedan/suite.py`, `schemas/suite-qa-receipt.schema.json` | QA 回执记录 handoff checklist、readiness、acceptance、schema、hash 和跨制品一致性。 |
-| Archive verification | `archive`, `verify-archive`, `tests/test_suite.py` | ZIP 交付包可在复制或分享后复核。 |
-| CI report gates | `.github/workflows/ci.yml` | CI 覆盖 smoke suite 和 ready-for-handoff suite 的报告门禁。 |
+5. **Small, reviewable increments**
+   Each round of optimization should name the files, tests, commands, and remaining risks.
 
 ---
 
-## 5. Priority Roadmap / 优先路线图
+## 4. Completed Capabilities
 
-### P0. Keep Report Deliverables Trustworthy / 保持报告交付可信
+| Capability | Evidence |
+| --- | --- |
+| Report-first README | `README.md`, `README.zh-CN.md` |
+| Ready-for-handoff sample | `docs/sample-report-pack/ready-for-handoff/` |
+| Screenshots in README | `docs/screenshots/*.png` |
+| Deterministic sample metadata | `examples/ready-for-handoff-suite.yml` |
+| Reproducible sample test | `tests/test_sample_report_pack.py` |
+| QA receipt gates | `forgedan/suite.py`, `schemas/suite-qa-receipt.schema.json` |
+| Archive verification | `archive`, `verify-archive`, `tests/test_suite.py` |
+| CI report gates | `.github/workflows/ci.yml` |
+
+---
+
+## 5. Priority Roadmap
+
+### P0. Keep Report Deliverables Trustworthy
 
 | Item | Why It Matters | Acceptance Evidence |
 | --- | --- | --- |
-| Expand sample-pack reproducibility coverage when new artifacts are added. | 新制品必须进入样例包可复现契约，避免只在生成器里存在。 | `tests/test_sample_report_pack.py` compares all generated artifacts except explanatory README. |
-| Keep `README.md`, `README.zh-CN.md`, sample pack README, and `docs/repository-about.md` consistent. | GitHub 首屏、中文交付说明和仓库侧栏不应讲不同故事。 | `rg` search shows no old “commercial platform” or stale anchor language in docs. |
-| Preserve strict QA handoff in CI. | 报告项目最重要的是不把半成品交出去。 | CI runs `qa-report --strict-handoff` for `ready-for-handoff-suite`. |
-| Validate archive after every sample refresh. | ZIP 是交付接收方最可能拿到的单文件产物。 | `verify-archive docs/sample-report-pack/ready-for-handoff/handoff.zip` passes and README hash matches. |
+| Expand sample-pack reproducibility coverage when new artifacts are added. | New artifacts must enter the sample pack's reproducibility contract instead of existing only in the generator. | `tests/test_sample_report_pack.py` compares all generated artifacts except explanatory README. |
+| Keep `README.md`, `README.zh-CN.md`, sample pack README, and `docs/repository-about.md` consistent. | The GitHub front page, handoff documentation, and repository sidebar should not tell different stories. | `rg` search shows no old “commercial platform” or stale anchor language in docs. |
+| Preserve strict QA handoff in CI. | For a report project, the most important thing is not to hand off unfinished work. | CI runs `qa-report --strict-handoff` for `ready-for-handoff-suite`. |
+| Validate archive after every sample refresh. | The ZIP is the single-file artifact the recipient is most likely to receive. | `verify-archive docs/sample-report-pack/ready-for-handoff/handoff.zip` passes and README hash matches. |
 
-### P1. Improve Report Scope and Evidence / 增强报告范围与证据
-
-| Item | Why It Matters | Suggested Work |
-| --- | --- | --- |
-| Add more realistic Agent/MCP manifest fixtures. | 当前 Agent/MCP 能力已有基础，但样例仍偏小，需要更像真实交付范围。 | Add 2-3 sanitized MCP manifests with trust tiers, tool annotations, and policy outcomes. |
-| Add richer source inventory examples. | 评审人需要知道 case、MCP、model artifact、pricing policy 来自哪里。 | Extend examples to include imported cases, MCP manifest, model artifact, and usage pricing in one ready-for-report suite. |
-| Add reviewer-decision examples. | 报告交付经常需要 accepted risk、required mitigation、rejected exception。 | Add an example suite that produces mixed reviewer decisions and QA readiness states. |
-| Add comparison-report sample pack. | 历史对比是报告交付常见需求。 | Check in a small baseline/current comparison fixture with manifest and archive verification. |
-
-### P2. Improve Report UX / 优化报告阅读体验
+### P1. Improve Report Scope and Evidence
 
 | Item | Why It Matters | Suggested Work |
 | --- | --- | --- |
-| Improve Markdown report section ordering. | 评审人通常先看 executive summary、scope、risk、evidence, then appendix. | Review generated `suite-report.md` for report-reader flow and update rendering tests. |
-| Add concise “handoff checklist” section to sample README. | 样例包 README 应让接收方快速知道先打开什么、如何验收。 | Update `docs/sample-report-pack/ready-for-handoff/README.md` and contract tests. |
-| Improve HTML report accessibility. | 报告截图和 browser review 需要更稳的 table/readability behavior. | Add focused HTML structure checks or visual smoke if UI changes are made. |
+| Add more realistic Agent/MCP manifest fixtures. | Agent/MCP capabilities already have a foundation, but the samples are still small and need to look more like a real delivery scope. | Add 2-3 sanitized MCP manifests with trust tiers, tool annotations, and policy outcomes. |
+| Add richer source inventory examples. | Reviewers need to know where cases, MCP manifests, model artifacts, and pricing policies come from. | Extend examples to include imported cases, MCP manifest, model artifact, and usage pricing in one ready-for-report suite. |
+| Add reviewer-decision examples. | Report delivery often needs accepted risks, required mitigations, and rejected exceptions. | Add an example suite that produces mixed reviewer decisions and QA readiness states. |
+| Add comparison-report sample pack. | Historical comparison is a common report-delivery need. | Check in a small baseline/current comparison fixture with manifest and archive verification. |
 
-### P3. Optional Platform Enhancements / 可选平台增强
+### P2. Improve Report UX
+
+| Item | Why It Matters | Suggested Work |
+| --- | --- | --- |
+| Improve Markdown report section ordering. | Reviewers usually read the executive summary, scope, risk, and evidence first, then the appendix. | Review generated `suite-report.md` for report-reader flow and update rendering tests. |
+| Add concise “handoff checklist” section to sample README. | The sample pack README should let recipients quickly see what to open first and how to verify it. | Update `docs/sample-report-pack/ready-for-handoff/README.md` and contract tests. |
+| Improve HTML report accessibility. | Report screenshots and browser review need more stable table/readability behavior. | Add focused HTML structure checks or visual smoke if UI changes are made. |
+
+### P3. Optional Platform Enhancements
 
 These are not current priorities unless they directly improve report delivery:
 
@@ -114,7 +114,7 @@ report-delivery objective. Keep them as optional future work, not the main plan.
 
 ---
 
-## 6. Recommended Next Sprints / 建议后续迭代
+## 6. Recommended Next Sprints
 
 ### Sprint A: Documentation and Handoff Consistency
 
@@ -142,7 +142,7 @@ report-delivery objective. Keep them as optional future work, not the main plan.
 
 ---
 
-## 7. Verification Commands / 验证命令
+## 7. Verification Commands
 
 Use these commands after report-delivery changes:
 
@@ -164,7 +164,7 @@ python -m pytest -q -W error::DeprecationWarning -p no:cacheprovider --basetemp 
 
 ---
 
-## 8. Non-Goals / 非目标
+## 8. Non-Goals
 
 The following are intentionally not part of the current mainline optimization:
 
@@ -174,11 +174,10 @@ The following are intentionally not part of the current mainline optimization:
 - Publishing live provider pricing or benchmark claims without auditable sources.
 - Running real offensive tests without authorization and explicit scope.
 
-中文：当前主线不是商业平台化，而是让报告交付、证据链、QA 门禁和归档复核更可靠。
 
 ---
 
-## 9. Success Criteria / 成功标准
+## 9. Success Criteria
 
 The optimization effort is healthy when:
 
@@ -188,4 +187,3 @@ The optimization effort is healthy when:
 - CI fails when report schemas, QA handoff gates, archive integrity, or formatter/lint gates regress.
 - README, Chinese README, repository About guidance, sample pack README, and this plan all describe the same report-first project.
 
-中文成功标准：评审人能看懂、维护者能复现、接收方能复核、CI 能拦截、文档口径一致。

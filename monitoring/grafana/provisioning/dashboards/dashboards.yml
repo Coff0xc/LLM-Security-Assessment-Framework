@@ -1,5 +1,5 @@
-# Grafana 仪表板配置
-# 自动加载 FORGEDAN 仪表板
+# Grafana dashboard configuration
+# Automatically loads the FORGEDAN dashboard
 
 apiVersion: 1
 

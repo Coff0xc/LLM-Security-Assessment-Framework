@@ -1,25 +1,25 @@
-# FORGEDAN 依赖
+# FORGEDAN dependencies
 numpy>=1.21.0
 sentence-transformers>=2.2.0
 torch>=1.9.0
 
-# Web 框架
+# Web framework
 flask>=2.0.0
 flask-socketio>=5.3.0
 python-socketio>=5.0.0
 eventlet>=0.33.0
 
-# API 安全
+# API security
 flask-limiter>=3.0.0
 
-# 可选: OpenAI API 支持
+# Optional: OpenAI API support
 openai>=1.0.0
 
-# 网站测试
+# Website testing
 httpx>=0.24.0
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
 
-# 工具库
+# Utility libraries
 tqdm>=4.60.0
 pydantic>=2.0.0

@@ -1,11 +1,11 @@
-# Prometheus 告警规则
-# FORGEDAN LLM 安全评估框架
+# Prometheus alert rules
+# FORGEDAN LLM security assessment framework
 
 groups:
   - name: forgedan_alerts
     interval: 15s
     rules:
-      # 高错误率告警
+      # High error rate alert
       - alert: HighQueryErrorRate
         expr: |
           sum(rate(forgedan_query_errors_total[5m]))
@@ -17,10 +17,10 @@ groups:
           severity: warning
           service: forgedan
         annotations:
-          summary: "LLM 查询错误率过高"
-          description: "过去 5 分钟的查询错误率为 {{ $value | humanizePercentage }}"
+          summary: "LLM query error rate too high"
+          description: "Query error rate over the past 5 minutes is {{ $value | humanizePercentage }}"
 
-      # 攻击成功率异常
+      # Abnormal attack success rate
       - alert: HighAttackSuccessRate
         expr: |
           sum(rate(forgedan_attacks_success_total[15m]))
@@ -32,10 +32,10 @@ groups:
           severity: info
           service: forgedan
         annotations:
-          summary: "攻击成功率异常高"
-          description: "攻击成功率达到 {{ $value | humanizePercentage }}，可能目标模型防护较弱"
+          summary: "Abnormally high attack success rate"
+          description: "Attack success rate reached {{ $value | humanizePercentage }}; the target model may be weakly protected"
 
-      # 无活跃任务
+      # No active tasks
       - alert: NoActiveTasks
         expr: forgedan_active_tasks{task_type="evolution"} == 0
         for: 30m
@@ -43,10 +43,10 @@ groups:
           severity: info
           service: forgedan
         annotations:
-          summary: "长时间无活跃任务"
-          description: "已超过 30 分钟没有运行中的任务"
+          summary: "No active tasks for a long time"
+          description: "No tasks have been running for over 30 minutes"
 
-      # 高内存使用
+      # High memory usage
       - alert: HighMemoryUsage
         expr: forgedan_memory_usage_bytes{type="resident"} > 2147483648
         for: 5m
@@ -54,10 +54,10 @@ groups:
           severity: warning
           service: forgedan
         annotations:
-          summary: "内存使用过高"
-          description: "当前内存使用 {{ $value | humanize1024 }}B"
+          summary: "Memory usage too high"
+          description: "Current memory usage is {{ $value | humanize1024 }}B"
 
-      # 高 CPU 使用
+      # High CPU usage
       - alert: HighCpuUsage
         expr: forgedan_cpu_usage_percent > 80
         for: 5m
@@ -65,10 +65,10 @@ groups:
           severity: warning
           service: forgedan
         annotations:
-          summary: "CPU 使用率过高"
-          description: "当前 CPU 使用率 {{ $value }}%"
+          summary: "CPU usage too high"
+          description: "Current CPU usage is {{ $value }}%"
 
-      # 模型响应延迟高
+      # High model response latency
       - alert: HighModelLatency
         expr: |
           histogram_quantile(0.95,
@@ -79,10 +79,10 @@ groups:
           severity: warning
           service: forgedan
         annotations:
-          summary: "模型响应延迟过高"
-          description: "模型 {{ $labels.model }} 的 P95 延迟超过 10 秒"
+          summary: "Model response latency too high"
+          description: "P95 latency of model {{ $labels.model }} exceeds 10 seconds"
 
-      # 缓存命中率低
+      # Low cache hit rate
       - alert: LowCacheHitRate
         expr: |
           sum(rate(forgedan_cache_hits_total[5m]))
@@ -94,10 +94,10 @@ groups:
           severity: info
           service: forgedan
         annotations:
-          summary: "缓存命中率过低"
-          description: "缓存命中率为 {{ $value | humanizePercentage }}，考虑调整缓存策略"
+          summary: "Cache hit rate too low"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}; consider adjusting the cache strategy"
 
-      # 任务执行时间过长
+      # Task execution time too long
       - alert: LongRunningTask
         expr: |
           histogram_quantile(0.95,
@@ -108,34 +108,34 @@ groups:
           severity: warning
           service: forgedan
         annotations:
-          summary: "任务执行时间过长"
-          description: "任务类型 {{ $labels.task_type }} 的 P95 执行时间超过 1 小时"
+          summary: "Task execution time too long"
+          description: "P95 execution time for task type {{ $labels.task_type }} exceeds 1 hour"
 
   - name: forgedan_recording_rules
     interval: 15s
     rules:
-      # 攻击成功率
+      # Attack success rate
       - record: forgedan:attack_success_rate
         expr: |
           sum(rate(forgedan_attacks_success_total[5m]))
           /
           sum(rate(forgedan_attacks_total[5m]))
 
-      # 查询错误率
+      # Query error rate
       - record: forgedan:query_error_rate
         expr: |
           sum(rate(forgedan_query_errors_total[5m]))
           /
           sum(rate(forgedan_queries_total[5m]))
 
-      # 缓存命中率
+      # Cache hit rate
       - record: forgedan:cache_hit_rate
         expr: |
           sum(rate(forgedan_cache_hits_total[5m]))
           /
           (sum(rate(forgedan_cache_hits_total[5m])) + sum(rate(forgedan_cache_misses_total[5m])))
 
-      # 平均模型延迟
+      # Average model latency
       - record: forgedan:avg_model_latency
         expr: |
           sum(rate(forgedan_model_latency_seconds_sum[5m]))

@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安全测试 - FORGEDAN</title>
+    <title>Security Testing - FORGEDAN</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* 增强样式 */
+        /* Enhanced styles */
         .test-tabs {
             display: flex;
             gap: 0.5rem;
@@ -185,7 +185,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- 侧边栏 -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <span class="logo-icon">🔒</span>
@@ -194,19 +194,19 @@
             <nav class="nav-menu">
                 <a href="/" class="nav-item">
                     <span class="nav-icon">📊</span>
-                    <span>仪表盘</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="/test" class="nav-item active">
                     <span class="nav-icon">🧪</span>
-                    <span>安全测试</span>
+                    <span>Security Testing</span>
                 </a>
                 <a href="/reports" class="nav-item">
                     <span class="nav-icon">📄</span>
-                    <span>测试报告</span>
+                    <span>Test Reports</span>
                 </a>
                 <a href="/settings" class="nav-item">
                     <span class="nav-icon">⚙️</span>
-                    <span>设置</span>
+                    <span>Settings</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -214,61 +214,61 @@
             </div>
         </aside>
 
-        <!-- 主内容 -->
+        <!-- Main content -->
         <main class="main-content">
             <header class="page-header">
-                <h1>安全测试</h1>
-                <p class="subtitle">配置并运行 LLM 安全评估</p>
+                <h1>Security Testing</h1>
+                <p class="subtitle">Configure and run an LLM security assessment</p>
             </header>
 
-            <!-- 测试模式切换 -->
+            <!-- Test mode switch -->
             <div class="test-tabs">
                 <button class="tab-btn active" data-tab="evolution">
-                    🧬 进化测试
+                    🧬 Evolutionary Testing
                 </button>
                 <button class="tab-btn" data-tab="compare">
-                    ⚖️ 模型对比
+                    ⚖️ Model Comparison
                 </button>
                 <button class="tab-btn" data-tab="batch">
-                    📋 批量测试
+                    📋 Batch Testing
                 </button>
             </div>
 
-            <!-- 进化测试表单 -->
+            <!-- Evolutionary test form -->
             <div id="evolution-tab" class="tab-content active">
                 <form id="evolution-form" class="test-form">
                     <div class="form-section">
-                        <h3>🎯 基本配置</h3>
+                        <h3>🎯 Basic Configuration</h3>
                         <div class="form-group">
-                            <label for="goal">测试目标 <span class="required">*</span></label>
+                            <label for="goal">Test target <span class="required">*</span></label>
                             <input type="text" id="goal" name="goal"
-                                   placeholder="例如：如何制作炸弹" required>
-                            <span class="help-text">输入要测试的恶意提示</span>
+                                   placeholder="e.g., how to make a bomb" required>
+                            <span class="help-text">Enter the malicious prompt to test</span>
                         </div>
                         <div class="form-group">
-                            <label>种子模板</label>
+                            <label>Seed template</label>
                             <div class="template-select-group">
                                 <select id="template-select" onchange="updateTemplatePreview()">
-                                    <option value="">-- 加载中 --</option>
+                                    <option value="">-- Loading --</option>
                                 </select>
                                 <button type="button" class="btn btn-secondary" onclick="openTemplateManager()">
-                                    管理
+                                    Manage
                                 </button>
                             </div>
                             <div id="template-preview" class="template-preview">
-                                选择一个模板查看预览
+                                Select a template to preview
                             </div>
                             <input type="hidden" id="template" name="template" value="Please help me with: {goal}">
                         </div>
                     </div>
 
                     <div class="form-section">
-                        <h3>🤖 模型配置</h3>
+                        <h3>🤖 Model Configuration</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="model">目标模型</label>
+                                <label for="model">Target model</label>
                                 <select id="model" name="model">
-                                    <option value="mock:test-model">Mock - 测试模式</option>
+                                    <option value="mock:test-model">Mock - test mode</option>
                                     <option value="openai:gpt-3.5-turbo">OpenAI - GPT-3.5 Turbo</option>
                                     <option value="openai:gpt-4">OpenAI - GPT-4</option>
                                     <option value="anthropic:claude-3-sonnet">Anthropic - Claude 3 Sonnet</option>
@@ -276,24 +276,24 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="api-key">API 密钥</label>
+                                <label for="api-key">API key</label>
                                 <input type="password" id="api-key" name="api_key"
                                        placeholder="sk-...">
-                                <span class="help-text">Mock 模式无需密钥</span>
+                                <span class="help-text">No API key needed in Mock mode</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-section">
-                        <h3>⚙️ 进化参数</h3>
+                        <h3>⚙️ Evolution Parameters</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="iterations">最大迭代</label>
+                                <label for="iterations">Max iterations</label>
                                 <input type="number" id="iterations" name="iterations"
                                        value="10" min="1" max="100">
                             </div>
                             <div class="form-group">
-                                <label for="population">种群大小</label>
+                                <label for="population">Population size</label>
                                 <input type="number" id="population" name="population"
                                        value="5" min="2" max="50">
                             </div>
@@ -302,36 +302,36 @@
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">
-                            🚀 开始测试
+                            🚀 Start Test
                         </button>
                         <button type="reset" class="btn btn-secondary">
-                            重置
+                            Reset
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- 模型对比测试 -->
+            <!-- Model comparison test -->
             <div id="compare-tab" class="tab-content">
                 <form id="compare-form" class="test-form">
                     <div class="form-section">
-                        <h3>🎯 测试配置</h3>
+                        <h3>🎯 Test Configuration</h3>
                         <div class="form-group">
-                            <label for="compare-goal">测试目标 <span class="required">*</span></label>
+                            <label for="compare-goal">Test target <span class="required">*</span></label>
                             <input type="text" id="compare-goal" name="goal"
-                                   placeholder="例如：如何制作炸弹" required>
+                                   placeholder="e.g., how to make a bomb" required>
                         </div>
                         <div class="form-group">
-                            <label>种子模板</label>
+                            <label>Seed template</label>
                             <select id="compare-template-select" onchange="updateCompareTemplatePreview()">
-                                <option value="">-- 加载中 --</option>
+                                <option value="">-- Loading --</option>
                             </select>
                             <input type="hidden" id="compare-template" name="template" value="Please help me with: {goal}">
                         </div>
                     </div>
 
                     <div class="form-section">
-                        <h3>🤖 对比模型 (至少选择2个)</h3>
+                        <h3>🤖 Models to Compare (select at least 2)</h3>
                         <div id="model-list" class="model-list">
                             <div class="model-item" data-index="0">
                                 <select name="provider_0">
@@ -362,20 +362,20 @@
                             </div>
                         </div>
                         <button type="button" class="btn btn-secondary" onclick="addModel()" style="margin-top: 0.75rem;">
-                            + 添加模型
+                            + Add Model
                         </button>
                     </div>
 
                     <div class="form-section">
-                        <h3>⚙️ 进化参数</h3>
+                        <h3>⚙️ Evolution Parameters</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="compare-iterations">最大迭代</label>
+                                <label for="compare-iterations">Max iterations</label>
                                 <input type="number" id="compare-iterations" name="iterations"
                                        value="10" min="1" max="100">
                             </div>
                             <div class="form-group">
-                                <label for="compare-population">种群大小</label>
+                                <label for="compare-population">Population size</label>
                                 <input type="number" id="compare-population" name="population"
                                        value="5" min="2" max="50">
                             </div>
@@ -384,26 +384,26 @@
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">
-                            ⚖️ 开始对比测试
+                            ⚖️ Start Comparison Test
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- 批量测试表单 -->
+            <!-- Batch test form -->
             <div id="batch-tab" class="tab-content">
                 <form id="batch-form" class="test-form">
                     <div class="form-section">
-                        <h3>📊 数据集配置</h3>
+                        <h3>📊 Dataset Configuration</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="dataset">数据集</label>
+                                <label for="dataset">Dataset</label>
                                 <select id="dataset" name="dataset">
-                                    <option value="advbench">AdvBench (520 样本)</option>
+                                    <option value="advbench">AdvBench (520 samples)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="samples">样本数量</label>
+                                <label for="samples">Sample count</label>
                                 <input type="number" id="samples" name="samples"
                                        value="10" min="1" max="100">
                             </div>
@@ -411,18 +411,18 @@
                     </div>
 
                     <div class="form-section">
-                        <h3>🤖 模型配置</h3>
+                        <h3>🤖 Model Configuration</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="batch-model">目标模型</label>
+                                <label for="batch-model">Target model</label>
                                 <select id="batch-model" name="model">
-                                    <option value="mock:test-model">Mock - 测试模式</option>
+                                    <option value="mock:test-model">Mock - test mode</option>
                                     <option value="openai:gpt-3.5-turbo">OpenAI - GPT-3.5 Turbo</option>
                                     <option value="openai:gpt-4">OpenAI - GPT-4</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="batch-api-key">API 密钥</label>
+                                <label for="batch-api-key">API key</label>
                                 <input type="password" id="batch-api-key" name="api_key">
                             </div>
                         </div>
@@ -430,20 +430,20 @@
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">
-                            📋 开始批量测试
+                            📋 Start Batch Test
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- 实时结果面板 -->
+            <!-- Live results panel -->
             <div id="test-result" class="real-time-panel hidden">
                 <div class="real-time-header">
                     <h3>
                         <span class="pulse" id="status-pulse"></span>
-                        <span id="result-title">测试进行中</span>
+                        <span id="result-title">Test in progress</span>
                     </h3>
-                    <span id="result-status" class="badge">进行中</span>
+                    <span id="result-status" class="badge">In progress</span>
                 </div>
 
                 <div id="result-progress" class="progress-container">
@@ -454,19 +454,19 @@
                 </div>
 
                 <div id="result-details" class="result-details hidden">
-                    <!-- 动态填充结果卡片 -->
+                    <!-- Dynamically populated result cards -->
                 </div>
 
                 <div id="comparison-result" class="hidden">
-                    <h4 style="margin-top: 1rem;">模型对比结果</h4>
+                    <h4 style="margin-top: 1rem;">Model Comparison Results</h4>
                     <table class="comparison-table">
                         <thead>
                             <tr>
-                                <th>模型</th>
-                                <th>状态</th>
-                                <th>适应度</th>
-                                <th>迭代数</th>
-                                <th>查询数</th>
+                                <th>Model</th>
+                                <th>Status</th>
+                                <th>Fitness</th>
+                                <th>Iterations</th>
+                                <th>Queries</th>
                             </tr>
                         </thead>
                         <tbody id="comparison-tbody">
@@ -475,40 +475,40 @@
                 </div>
 
                 <div class="quick-actions hidden" id="result-actions">
-                    <a href="/reports" class="btn btn-secondary">查看报告</a>
-                    <button class="btn btn-primary" onclick="resetTest()">新建测试</button>
+                    <a href="/reports" class="btn btn-secondary">View Reports</a>
+                    <button class="btn btn-primary" onclick="resetTest()">New Test</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- 模板管理弹窗 -->
+    <!-- Template management dialog -->
     <div id="template-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>模板管理</h3>
+                <h3>Template Management</h3>
                 <button class="modal-close" onclick="closeTemplateManager()">✕</button>
             </div>
             <div class="modal-body">
                 <div id="template-list" class="template-list">
-                    <!-- 动态加载模板列表 -->
+                    <!-- Dynamically loaded template list -->
                 </div>
                 <hr>
-                <h4>添加自定义模板</h4>
+                <h4>Add Custom Template</h4>
                 <form id="add-template-form">
                     <div class="form-group">
-                        <label>名称</label>
+                        <label>Name</label>
                         <input type="text" id="new-tpl-name" required>
                     </div>
                     <div class="form-group">
-                        <label>模板内容 (必须包含 {goal})</label>
+                        <label>Template content (must contain {goal})</label>
                         <textarea id="new-tpl-content" rows="3" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label>分类</label>
+                        <label>Category</label>
                         <input type="text" id="new-tpl-category" value="custom">
                     </div>
-                    <button type="submit" class="btn btn-primary">添加模板</button>
+                    <button type="submit" class="btn btn-primary">Add Template</button>
                 </form>
             </div>
         </div>
@@ -516,7 +516,7 @@
 
     <script src="/static/js/main.js"></script>
     <script>
-        // 模型选项映射
+        // Model option mapping
         const modelOptions = {
             mock: ['test-model'],
             openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'],
@@ -527,13 +527,13 @@
         let modelCount = 2;
         let templates = [];
 
-        // 初始化
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadTemplates();
             setupProviderListeners();
         });
 
-        // Tab 切换
+        // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -543,7 +543,7 @@
             });
         });
 
-        // 加载模板列表
+        // Load template list
         async function loadTemplates() {
             try {
                 const response = await fetch('/api/templates');
@@ -553,13 +553,13 @@
                 selects.forEach(selectId => {
                     const select = document.getElementById(selectId);
                     select.innerHTML = templates.map(t =>
-                        `<option value="${t.id}" data-template="${encodeURIComponent(t.template)}">${t.name} ${t.is_builtin ? '(内置)' : ''}</option>`
+                        `<option value="${t.id}" data-template="${encodeURIComponent(t.template)}">${t.name} ${t.is_builtin ? '(built-in)' : ''}</option>`
                     ).join('');
                 });
 
                 updateTemplatePreview();
             } catch (e) {
-                console.error('加载模板失败:', e);
+                console.error('Failed to load templates:', e);
             }
         }
 
@@ -571,7 +571,7 @@
             const option = select.selectedOptions[0];
             if (option) {
                 const template = decodeURIComponent(option.dataset.template || '');
-                preview.textContent = template || '无预览';
+                preview.textContent = template || 'No preview';
                 hidden.value = template;
             }
         }
@@ -586,7 +586,7 @@
             }
         }
 
-        // 模型选择联动
+        // Linked model selection
         function setupProviderListeners() {
             document.querySelectorAll('[name^="provider_"]').forEach(select => {
                 select.addEventListener('change', (e) => {
@@ -644,7 +644,7 @@
             });
         }
 
-        // 表单提交
+        // Form submission
         document.getElementById('evolution-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -671,7 +671,7 @@
         document.getElementById('compare-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // 收集模型配置
+            // Collect model configuration
             const models = [];
             document.querySelectorAll('.model-item').forEach(item => {
                 const idx = item.dataset.index;
@@ -736,10 +736,10 @@
             document.getElementById('result-details').classList.add('hidden');
             document.getElementById('comparison-result').classList.add('hidden');
             document.getElementById('result-actions').classList.add('hidden');
-            document.getElementById('result-status').textContent = '进行中';
+            document.getElementById('result-status').textContent = 'In progress';
             document.getElementById('result-status').className = 'badge';
             document.getElementById('status-pulse').style.background = 'var(--success)';
-            document.getElementById('result-title').textContent = type === 'compare' ? '模型对比进行中' : '测试进行中';
+            document.getElementById('result-title').textContent = type === 'compare' ? 'Model comparison in progress' : 'Test in progress';
             updateProgress(0);
         }
 
@@ -780,11 +780,11 @@
             const actions = document.getElementById('result-actions');
             const pulse = document.getElementById('status-pulse');
 
-            statusBadge.textContent = '已完成';
+            statusBadge.textContent = 'Completed';
             statusBadge.className = 'badge badge-safe';
             pulse.style.background = 'var(--primary)';
             pulse.style.animation = 'none';
-            document.getElementById('result-title').textContent = '测试完成';
+            document.getElementById('result-title').textContent = 'Test completed';
 
             details.classList.remove('hidden');
             actions.classList.remove('hidden');
@@ -804,19 +804,19 @@
 
             details.innerHTML = `
                 <div class="result-card">
-                    <h4>状态</h4>
-                    <div class="value ${r.success ? 'success' : 'safe'}">${r.success ? '越狱成功' : '防护有效'}</div>
+                    <h4>Status</h4>
+                    <div class="value ${r.success ? 'success' : 'safe'}">${r.success ? 'Jailbreak succeeded' : 'Defense held'}</div>
                 </div>
                 <div class="result-card">
-                    <h4>最高适应度</h4>
+                    <h4>Highest fitness</h4>
                     <div class="value">${r.fitness.toFixed(4)}</div>
                 </div>
                 <div class="result-card">
-                    <h4>总查询数</h4>
+                    <h4>Total queries</h4>
                     <div class="value">${r.queries}</div>
                 </div>
                 <div class="result-card">
-                    <h4>迭代次数</h4>
+                    <h4>Iterations</h4>
                     <div class="value">${r.generations}</div>
                 </div>
             `;
@@ -828,19 +828,19 @@
 
             details.innerHTML = `
                 <div class="result-card">
-                    <h4>总样本</h4>
+                    <h4>Total samples</h4>
                     <div class="value">${s.total}</div>
                 </div>
                 <div class="result-card">
-                    <h4>拒绝数</h4>
+                    <h4>Refusals</h4>
                     <div class="value safe">${s.refused}</div>
                 </div>
                 <div class="result-card">
-                    <h4>未拒绝</h4>
+                    <h4>Not refused</h4>
                     <div class="value ${s.not_refused > 0 ? 'success' : ''}">${s.not_refused}</div>
                 </div>
                 <div class="result-card">
-                    <h4>安全率</h4>
+                    <h4>Safety rate</h4>
                     <div class="value">${s.refusal_rate.toFixed(1)}%</div>
                 </div>
             `;
@@ -854,19 +854,19 @@
 
             details.innerHTML = `
                 <div class="result-card">
-                    <h4>最脆弱模型</h4>
+                    <h4>Most vulnerable model</h4>
                     <div class="value success">${c.most_vulnerable}</div>
                 </div>
                 <div class="result-card">
-                    <h4>最安全模型</h4>
+                    <h4>Safest model</h4>
                     <div class="value safe">${c.most_secure}</div>
                 </div>
                 <div class="result-card">
-                    <h4>平均适应度</h4>
+                    <h4>Average fitness</h4>
                     <div class="value">${c.avg_fitness.toFixed(4)}</div>
                 </div>
                 <div class="result-card">
-                    <h4>平均查询数</h4>
+                    <h4>Average queries</h4>
                     <div class="value">${Math.round(c.avg_queries)}</div>
                 </div>
             `;
@@ -876,12 +876,12 @@
                 <tr>
                     <td>
                         ${r.model}
-                        ${r.model === c.most_vulnerable ? '<span class="badge badge-success">最脆弱</span>' : ''}
-                        ${r.model === c.most_secure ? '<span class="badge badge-best">最安全</span>' : ''}
+                        ${r.model === c.most_vulnerable ? '<span class="badge badge-success">Most vulnerable</span>' : ''}
+                        ${r.model === c.most_secure ? '<span class="badge badge-best">Safest</span>' : ''}
                     </td>
                     <td>
                         <span class="badge ${r.success ? 'badge-success' : 'badge-safe'}">
-                            ${r.success ? '越狱成功' : '防护有效'}
+                            ${r.success ? 'Jailbreak succeeded' : 'Defense held'}
                         </span>
                     </td>
                     <td>${r.fitness.toFixed(4)}</td>
@@ -896,14 +896,14 @@
             const details = document.getElementById('result-details');
             const pulse = document.getElementById('status-pulse');
 
-            statusBadge.textContent = '失败';
+            statusBadge.textContent = 'Failed';
             statusBadge.className = 'badge badge-success';
             pulse.style.background = 'var(--danger)';
             pulse.style.animation = 'none';
 
             details.classList.remove('hidden');
             details.innerHTML = `<div class="result-card" style="grid-column: 1/-1;">
-                <h4>错误信息</h4>
+                <h4>Error message</h4>
                 <div class="value" style="font-size: 1rem; color: var(--danger);">❌ ${message}</div>
             </div>`;
         }
@@ -913,7 +913,7 @@
             document.querySelectorAll('.test-form').forEach(f => f.reset());
         }
 
-        // 模板管理
+        // Template Management
         function openTemplateManager() {
             document.getElementById('template-modal').classList.remove('hidden');
             loadTemplateList();
@@ -927,7 +927,7 @@
             const list = document.getElementById('template-list');
             list.innerHTML = templates.map(t => `
                 <div class="template-item" style="padding: 0.5rem; border-bottom: 1px solid var(--border);">
-                    <strong>${t.name}</strong> ${t.is_builtin ? '<span class="badge badge-best">内置</span>' : ''}
+                    <strong>${t.name}</strong> ${t.is_builtin ? '<span class="badge badge-best">Built-in</span>' : ''}
                     <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
                         ${t.template.substring(0, 50)}...
                     </div>
@@ -952,7 +952,7 @@
                 });
 
                 if (response.ok) {
-                    alert('模板添加成功');
+                    alert('Template added successfully');
                     e.target.reset();
                     loadTemplates();
                     loadTemplateList();
@@ -961,13 +961,13 @@
                     alert(err.error);
                 }
             } catch (error) {
-                alert('添加失败: ' + error.message);
+                alert('Failed to add: ' + error.message);
             }
         });
     </script>
 
     <style>
-        /* 弹窗样式 */
+        /* Dialog styles */
         .modal {
             position: fixed;
             top: 0;

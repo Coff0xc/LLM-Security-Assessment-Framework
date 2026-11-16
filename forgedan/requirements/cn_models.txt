@@ -1,125 +1,125 @@
-# 国产大模型 SDK 依赖
+# Chinese LLM SDK dependencies
 # Chinese LLM Provider Dependencies
 # ===================================
 #
-# 使用方式:
+# Usage:
 #   pip install -r requirements/cn_models.txt
 #
-# 或安装特定提供商:
-#   pip install httpx pyjwt  # 智谱、百川
-#   pip install openai       # DeepSeek、通义千问、Moonshot、零一万物
+# Or install a specific provider:
+#   pip install httpx pyjwt  # Zhipu, Baichuan
+#   pip install openai       # DeepSeek, Qwen, Moonshot, Yi
 
 # ===================================
-# 核心依赖 (Core Dependencies)
+# Core dependencies
 # ===================================
 
-# HTTP 客户端 - 用于智谱、百川等原生 API
+# HTTP client - for native APIs such as Zhipu and Baichuan
 httpx>=0.24.0
 
-# JWT 认证 - 用于智谱 API 认证
+# JWT authentication - for Zhipu API authentication
 PyJWT>=2.8.0
 
-# OpenAI SDK - 兼容 DeepSeek、通义千问、Moonshot、零一万物
+# OpenAI SDK - compatible with DeepSeek, Qwen, Moonshot, and Yi
 openai>=1.0.0
 
 # ===================================
-# 智谱 GLM (Zhipu AI)
+# Zhipu GLM (Zhipu AI)
 # ===================================
-# API 文档: https://open.bigmodel.cn/dev/api
+# API docs: https://open.bigmodel.cn/dev/api
 #
-# 配置环境变量:
+# Configure environment variables:
 #   export ZHIPU_API_KEY="your-api-key"
 #
-# 使用示例:
+# Usage example:
 #   from forgedan.adapters import ModelAdapterFactory
 #   adapter = ModelAdapterFactory.create_from_string("zhipu:glm-4", api_key="xxx.xxx")
 #
-# 注意: 智谱 API Key 格式为 "api_key_id.api_key_secret"
+# Note: the Zhipu API key format is "api_key_id.api_key_secret"
 
 # ===================================
-# 百川 (Baichuan AI)
+# Baichuan (Baichuan AI)
 # ===================================
-# API 文档: https://platform.baichuan-ai.com/docs/api
+# API docs: https://platform.baichuan-ai.com/docs/api
 #
-# 配置环境变量:
+# Configure environment variables:
 #   export BAICHUAN_API_KEY="your-api-key"
 #
-# 使用示例:
+# Usage example:
 #   adapter = ModelAdapterFactory.create_from_string("baichuan:Baichuan2-Turbo", api_key="xxx")
 
 # ===================================
-# 通义千问 (Qwen / DashScope)
+# Qwen (Qwen / DashScope)
 # ===================================
-# API 文档: https://help.aliyun.com/document_detail/2712195.html
+# API docs: https://help.aliyun.com/document_detail/2712195.html
 #
-# 配置环境变量:
+# Configure environment variables:
 #   export DASHSCOPE_API_KEY="your-api-key"
 #
-# 使用示例:
+# Usage example:
 #   adapter = ModelAdapterFactory.create_from_string("qwen:qwen-max", api_key="xxx")
 #
-# 支持模型:
-#   - qwen-turbo: 速度优先
-#   - qwen-plus: 效果平衡
-#   - qwen-max: 效果最佳
-#   - qwen-max-longcontext: 100万上下文
-#   - qwen-vl-max: 多模态
+# Supported models:
+#   - qwen-turbo: speed first
+#   - qwen-plus: balanced performance
+#   - qwen-max: best performance
+#   - qwen-max-longcontext: 1M context
+#   - qwen-vl-max: multimodal
 
 # ===================================
 # DeepSeek
 # ===================================
-# API 文档: https://platform.deepseek.com/api-docs
+# API docs: https://platform.deepseek.com/api-docs
 #
-# 配置环境变量:
+# Configure environment variables:
 #   export DEEPSEEK_API_KEY="your-api-key"
 #
-# 使用示例:
+# Usage example:
 #   adapter = ModelAdapterFactory.create_from_string("deepseek:deepseek-chat", api_key="xxx")
 #
-# 支持模型:
-#   - deepseek-chat: 通用对话
-#   - deepseek-coder: 代码生成
-#   - deepseek-reasoner: 推理增强
+# Supported models:
+#   - deepseek-chat: general chat
+#   - deepseek-coder: code generation
+#   - deepseek-reasoner: enhanced reasoning
 
 # ===================================
 # Moonshot (Kimi)
 # ===================================
-# API 文档: https://platform.moonshot.cn/docs
+# API docs: https://platform.moonshot.cn/docs
 #
-# 配置环境变量:
+# Configure environment variables:
 #   export MOONSHOT_API_KEY="your-api-key"
 #
-# 使用示例:
+# Usage example:
 #   adapter = ModelAdapterFactory.create_from_string("moonshot:moonshot-v1-128k", api_key="xxx")
 #
-# 支持模型:
-#   - moonshot-v1-8k: 8K 上下文
-#   - moonshot-v1-32k: 32K 上下文
-#   - moonshot-v1-128k: 128K 超长上下文
+# Supported models:
+#   - moonshot-v1-8k: 8K context
+#   - moonshot-v1-32k: 32K context
+#   - moonshot-v1-128k: 128K extra-long context
 
 # ===================================
-# 零一万物 (Yi)
+# Yi (Yi)
 # ===================================
-# API 文档: https://platform.lingyiwanwu.com/docs
+# API docs: https://platform.lingyiwanwu.com/docs
 #
-# 配置环境变量:
+# Configure environment variables:
 #   export YI_API_KEY="your-api-key"
 #
-# 使用示例:
+# Usage example:
 #   adapter = ModelAdapterFactory.create_from_string("yi:yi-large", api_key="xxx")
 #
-# 支持模型:
-#   - yi-large: 大模型
-#   - yi-medium: 中型模型
-#   - yi-vision: 多模态视觉
-#   - yi-large-rag: RAG 增强
+# Supported models:
+#   - yi-large: large model
+#   - yi-medium: medium model
+#   - yi-vision: multimodal vision
+#   - yi-large-rag: RAG-enhanced
 
 # ===================================
-# 可选依赖 (Optional)
+# Optional dependencies
 # ===================================
 
-# 多模态图片处理
+# Multimodal image processing
 Pillow>=9.0.0
 
-# 异步增强
+# Async enhancements
 aiofiles>=23.0.0

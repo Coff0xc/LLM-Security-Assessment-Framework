@@ -1,16 +1,16 @@
-# FORGEDAN 监控服务 Docker Compose 配置
+# Docker Compose configuration for FORGEDAN monitoring services
 #
-# 包含服务:
-# - Prometheus: 指标收集和存储
-# - Grafana: 可视化仪表板
-# - Alertmanager: 告警管理 (可选)
-# - Push Gateway: 批量任务指标推送 (可选)
+# Included services:
+# - Prometheus: metrics collection and storage
+# - Grafana: visualization dashboards
+# - Alertmanager: alert management (optional)
+# - Push Gateway: batch job metrics push (optional)
 #
-# 使用方法:
-#   启动所有服务: docker-compose -f docker-compose.monitoring.yml up -d
-#   仅启动核心服务: docker-compose -f docker-compose.monitoring.yml up -d prometheus grafana
-#   查看日志: docker-compose -f docker-compose.monitoring.yml logs -f
-#   停止服务: docker-compose -f docker-compose.monitoring.yml down
+# Usage:
+#   Start all services: docker-compose -f docker-compose.monitoring.yml up -d
+#   Start only the core services: docker-compose -f docker-compose.monitoring.yml up -d prometheus grafana
+#   View logs: docker-compose -f docker-compose.monitoring.yml logs -f
+#   Stop services: docker-compose -f docker-compose.monitoring.yml down
 
 version: '3.8'
 
@@ -23,11 +23,11 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      # Prometheus 配置文件
+      # Prometheus configuration file
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      # 告警规则
+      # Alert rules
       - ./monitoring/prometheus_rules.yml:/etc/prometheus/rules/forgedan.yml:ro
-      # 数据持久化
+      # Data persistence
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -40,7 +40,7 @@ services:
     networks:
       - forgedan-network
     extra_hosts:
-      # 允许访问宿主机上的服务 (Windows/Mac)
+      # Allow access to services on the host machine (Windows/Mac)
       - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
@@ -56,27 +56,27 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # 管理员账户
+      # Administrator account
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=forgedan123
-      # 允许匿名访问 (可选，生产环境建议关闭)
+      # Allow anonymous access (optional; recommended to disable in production)
       - GF_AUTH_ANONYMOUS_ENABLED=false
-      # 服务器配置
+      # Server configuration
       - GF_SERVER_ROOT_URL=http://localhost:3000
       - GF_SERVER_SERVE_FROM_SUB_PATH=false
-      # 日志
+      # Logs
       - GF_LOG_MODE=console
       - GF_LOG_LEVEL=info
-      # 插件
+      # Plugins
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
     volumes:
-      # 数据源配置
+      # Data source configuration
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      # 仪表板配置
+      # Dashboard configuration
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      # 仪表板文件
+      # Dashboard files
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      # 数据持久化
+      # Data persistence
       - grafana_data:/var/lib/grafana
     networks:
       - forgedan-network
@@ -89,7 +89,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # ============== Alertmanager (可选) ==============
+  # ============== Alertmanager (optional) ==============
   alertmanager:
     image: prom/alertmanager:v0.26.0
     container_name: forgedan-alertmanager
@@ -113,7 +113,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # ============== Push Gateway (可选) ==============
+  # ============== Push Gateway (optional) ==============
   pushgateway:
     image: prom/pushgateway:v1.6.2
     container_name: forgedan-pushgateway
@@ -135,13 +135,13 @@ services:
       timeout: 10s
       retries: 3
 
-# ============== 网络 ==============
+# ============== Network ==============
 networks:
   forgedan-network:
     driver: bridge
     name: forgedan-network
 
-# ============== 数据卷 ==============
+# ============== Data volumes ==============
 volumes:
   prometheus_data:
     name: forgedan-prometheus-data

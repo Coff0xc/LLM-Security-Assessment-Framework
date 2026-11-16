@@ -1,19 +1,19 @@
-# 基础依赖 - 所有用户必须安装
+# Base dependencies - required for all users
 
-# 核心依赖
+# Core dependencies
 aiohttp>=3.9.0
 pydantic>=2.0.0
 python-dotenv>=1.0.0
 
-# 数据处理
+# Data processing
 numpy>=1.21.0
 
-# 文本处理和语义相似度
+# Text processing and semantic similarity
 sentence-transformers>=2.2.0
 
-# 日志和配置
+# Logging and configuration
 pyyaml>=6.0
 
-# CLI 工具
+# CLI tools
 click>=8.0.0
 tqdm>=4.60.0
